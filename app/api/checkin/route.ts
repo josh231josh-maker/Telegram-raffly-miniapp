@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
-const REFERRAL_TICKET_THRESHOLD = 1;
+const REFERRAL_TICKET_THRESHOLD = 10;
 const REFERRAL_REWARD_TICKETS = 50;
 
 export async function POST(req: NextRequest) {
