@@ -1,5 +1,7 @@
 "use client";
 
+import { useTelegram } from "@/components/providers/telegram-provider";
+
 function TicketIcon() {
   return (
     <span className="text-xl text-gold" aria-hidden="true">
@@ -49,22 +51,23 @@ function BalanceCard({ label, value, sublabel, icon, accent }: BalanceCardProps)
 }
 
 export function BalanceCards() {
-  // Placeholder values — will be fetched from Supabase `users` table
-  const ticketBalance = 0;
-  const usdtBalance = "0.00";
+  const { user, loadingUser } = useTelegram();
+
+  const ticketBalance = user?.ticket_balance ?? 0;
+  const usdtBalance = (user?.usdt_balance ?? 0).toFixed(2);
 
   return (
     <section className="grid grid-cols-2 gap-3" aria-label="Your balances">
       <BalanceCard
         label="Tickets"
-        value={String(ticketBalance)}
-        sublabel="This week's entries"
+        value={loadingUser ? "…" : String(ticketBalance)}
+        sublabel="Never expire"
         icon={<TicketIcon />}
         accent="gold"
       />
       <BalanceCard
         label="USDT"
-        value={`$${usdtBalance}`}
+        value={loadingUser ? "…" : `$${usdtBalance}`}
         sublabel="Withdraw at $30"
         icon={<UsdtIcon />}
         accent="emerald"
