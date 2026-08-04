@@ -1,7 +1,7 @@
 "use client";
 
 import { init, miniApp, themeParams, retrieveRawInitData } from "@telegram-apps/sdk";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 type RafflyUser = {
   id: string;
@@ -10,6 +10,16 @@ type RafflyUser = {
   first_name: string | null;
   ticket_balance: number;
   usdt_balance: number;
+  streak_count: number;
+  last_checkin_date: string | null;
+};
+
+type CheckInResult = {
+  alreadyCheckedIn?: boolean;
+  ticketsEarned?: number;
+  streak?: number;
+  user?: RafflyUser;
+  error?: string;
 };
 
 type TelegramContextValue = {
@@ -17,6 +27,7 @@ type TelegramContextValue = {
   isTelegram: boolean;
   user: RafflyUser | null;
   loadingUser: boolean;
+  checkIn: () => Promise<CheckInResult>;
 };
 
 const TelegramContext = createContext<TelegramContextValue>({
@@ -24,6 +35,7 @@ const TelegramContext = createContext<TelegramContextValue>({
   isTelegram: false,
   user: null,
   loadingUser: true,
+  checkIn: async () => ({ error: "Not ready" }),
 });
 
 export function useTelegram() {
@@ -35,6 +47,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const [isTelegram, setIsTelegram] = useState(false);
   const [user, setUser] = useState<RafflyUser | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const initDataRef = useRef("");
 
   useEffect(() => {
     let rawInitData = "";
@@ -69,6 +82,8 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       setIsReady(true);
     }
 
+    initDataRef.current = rawInitData;
+
     if (rawInitData) {
       fetch("/api/auth", {
         method: "POST",
@@ -84,13 +99,31 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         })
         .finally(() => setLoadingUser(false));
     } else {
-      console.log("No rawInitData found");
       setLoadingUser(false);
     }
   }, []);
 
+  const checkIn = async (): Promise<CheckInResult> => {
+    if (!initDataRef.current) {
+      return { error: "Not ready" };
+    }
+    try {
+      const res = await fetch("/api/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: initDataRef.current }),
+      });
+      const data: CheckInResult = await res.json();
+      if (data.user) setUser(data.user);
+      return data;
+    } catch (err) {
+      console.error("Check-in fetch error:", err);
+      return { error: "Network error" };
+    }
+  };
+
   return (
-    <TelegramContext.Provider value={{ isReady, isTelegram, user, loadingUser }}>
+    <TelegramContext.Provider value={{ isReady, isTelegram, user, loadingUser, checkIn }}>
       {children}
     </TelegramContext.Provider>
   );

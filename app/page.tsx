@@ -2,6 +2,7 @@
 import { HomeHeader } from "@/components/home/home-header";
 import { BalanceCards } from "@/components/home/balance-cards";
 import { DrawCountdown } from "@/components/home/draw-countdown";
+import { DailyCheckIn } from "@/components/home/daily-checkin";
 
 export default function HomePage() {
   return (
@@ -9,6 +10,7 @@ export default function HomePage() {
       <div className="mx-auto flex max-w-md flex-col gap-6">
         <HomeHeader />
         <BalanceCards />
+        <DailyCheckIn />
         <DrawCountdown />
         <p className="text-center text-xs text-indigo-200/50">
           Tickets reset each week
