@@ -3,6 +3,7 @@ import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: NextRequest) {
+  console.log("CHECKIN_HIT", new Date().toISOString(), req.headers.get("user-agent"));
   const { initData } = await req.json();
   if (!initData) {
     return NextResponse.json({ error: "Missing initData" }, { status: 400 });
