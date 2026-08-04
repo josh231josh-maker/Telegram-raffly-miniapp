@@ -85,10 +85,18 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     initDataRef.current = rawInitData;
 
     if (rawInitData) {
+      let startParam: string | null = null;
+      try {
+        const params = new URLSearchParams(rawInitData);
+        startParam = params.get("start_param");
+      } catch {
+        startParam = null;
+      }
+
       fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData: rawInitData }),
+        body: JSON.stringify({ initData: rawInitData, startParam }),
       })
         .then((res) => res.json())
         .then((data) => {

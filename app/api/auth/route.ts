@@ -3,7 +3,7 @@ import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: NextRequest) {
-  const { initData } = await req.json();
+  const { initData, startParam } = await req.json();
   if (!initData) {
     return NextResponse.json({ error: "Missing initData" }, { status: 400 });
   }
@@ -26,12 +26,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ user: existing });
   }
 
+  let referredBy: string | null = null;
+  if (startParam) {
+    const referrerTelegramId = Number(startParam);
+    if (!Number.isNaN(referrerTelegramId) && referrerTelegramId !== tgUser.id) {
+      const { data: referrer } = await supabase
+        .from("users")
+        .select("id")
+        .eq("telegram_id", referrerTelegramId)
+        .single();
+      if (referrer) {
+        referredBy = referrer.id;
+      }
+    }
+  }
+
   const { data: created, error } = await supabase
     .from("users")
     .insert({
       telegram_id: tgUser.id,
       username: tgUser.username ?? null,
       first_name: tgUser.first_name ?? null,
+      referred_by: referredBy,
     })
     .select()
     .single();
