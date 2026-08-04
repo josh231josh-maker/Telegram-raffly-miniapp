@@ -1,6 +1,6 @@
 "use client";
 
-import { init, miniApp, themeParams } from "@telegram-apps/sdk";
+import { init, miniApp, themeParams, retrieveRawInitData } from "@telegram-apps/sdk";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 type RafflyUser = {
@@ -57,10 +57,11 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
 
       setIsTelegram(true);
 
-      const win = window as unknown as {
-        Telegram?: { WebApp?: { initData?: string } };
-      };
-      rawInitData = win.Telegram?.WebApp?.initData ?? "";
+      try {
+        rawInitData = retrieveRawInitData() ?? "";
+      } catch {
+        rawInitData = "";
+      }
     } catch (err) {
       console.error("Telegram init error:", err);
       setIsTelegram(false);
