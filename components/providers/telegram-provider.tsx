@@ -65,6 +65,8 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       console.error("Telegram init error:", err);
       setIsTelegram(false);
     } finally {
+      setIsReady(true);
+    }
 
     if (rawInitData) {
       fetch("/api/auth", {
@@ -76,9 +78,12 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         .then((data) => {
           if (data.user) setUser(data.user);
         })
-        .catch(() => {})
+        .catch((err) => {
+          console.error("Auth fetch error:", err);
+        })
         .finally(() => setLoadingUser(false));
     } else {
+      console.log("No rawInitData found");
       setLoadingUser(false);
     }
   }, []);
