@@ -61,11 +61,10 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         Telegram?: { WebApp?: { initData?: string } };
       };
       rawInitData = win.Telegram?.WebApp?.initData ?? "";
-    } catch {
+    } catch (err) {
+      console.error("Telegram init error:", err);
       setIsTelegram(false);
     } finally {
-      setIsReady(true);
-    }
 
     if (rawInitData) {
       fetch("/api/auth", {
