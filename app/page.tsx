@@ -15,11 +15,11 @@ export default function HomePage() {
       <div className="mx-auto flex max-w-md flex-col gap-6">
         <HomeHeader />
         <BalanceCards />
+        <WithdrawCard />
         <RaffleStats />
         <DailyCheckIn />
         <WatchAdCard />
         <ReferralCard />
-        <WithdrawCard />
         <DrawCountdown />
         <PreviousWinners />
         <p className="text-center text-xs text-indigo-200/50">

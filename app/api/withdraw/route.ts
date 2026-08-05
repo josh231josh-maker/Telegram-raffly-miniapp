@@ -3,7 +3,7 @@ import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: NextRequest) {
-  const { initData, amount, walletAddress } = await req.json();
+  const { initData } = await req.json();
   if (!initData) {
     return NextResponse.json({ error: "Missing initData" }, { status: 400 });
   }
@@ -12,14 +12,6 @@ export async function POST(req: NextRequest) {
   const tgUser = verifyTelegramInitData(initData, botToken);
   if (!tgUser) {
     return NextResponse.json({ error: "Invalid initData" }, { status: 401 });
-  }
-
-  const numAmount = Number(amount);
-  if (!numAmount || numAmount <= 0) {
-    return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
-  }
-  if (!walletAddress || typeof walletAddress !== "string" || walletAddress.trim().length < 6) {
-    return NextResponse.json({ error: "Invalid wallet address" }, { status: 400 });
   }
 
   const supabase = getSupabaseAdmin();
@@ -34,15 +26,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  if (numAmount > existing.usdt_balance) {
-    return NextResponse.json({ error: "Insufficient balance" }, { status: 400 });
-  }
+  const amount = existing.usdt_balance;
 
-  const newBalance = existing.usdt_balance - numAmount;
+  if (!amount || amount <= 0) {
+    return NextResponse.json({ error: "No balance to withdraw" }, { status: 400 });
+  }
 
   const { data: updatedUser, error: updateError } = await supabase
     .from("users")
-    .update({ usdt_balance: newBalance })
+    .update({ usdt_balance: 0 })
     .eq("id", existing.id)
     .select()
     .single();
@@ -53,8 +45,8 @@ export async function POST(req: NextRequest) {
 
   const { error: withdrawError } = await supabase.from("withdrawals").insert({
     user_id: existing.id,
-    amount: numAmount,
-    wallet_address: walletAddress.trim(),
+    amount,
+    wallet_address: null,
     status: "pending",
   });
 
@@ -62,5 +54,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: withdrawError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true, user: updatedUser });
+  return NextResponse.json({ success: true, amount, user: updatedUser });
 }
