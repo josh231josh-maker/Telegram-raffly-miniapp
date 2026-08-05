@@ -36,6 +36,7 @@ type TelegramContextValue = {
   checkIn: () => Promise<CheckInResult>;
   refreshUser: () => Promise<void>;
   requestWithdrawal: (amount: number, walletAddress: string) => Promise<WithdrawResult>;
+  getInitData: () => string;
 };
 
 const TelegramContext = createContext<TelegramContextValue>({
@@ -46,6 +47,7 @@ const TelegramContext = createContext<TelegramContextValue>({
   checkIn: async () => ({ error: "Not ready" }),
   refreshUser: async () => {},
   requestWithdrawal: async () => ({ error: "Not ready" }),
+  getInitData: () => "",
 });
 
 export function useTelegram() {
@@ -187,6 +189,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         checkIn,
         refreshUser: fetchUser,
         requestWithdrawal,
+        getInitData: () => initDataRef.current,
       }}
     >
       {children}

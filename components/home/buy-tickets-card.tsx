@@ -11,7 +11,7 @@ const TIERS = [
 ];
 
 export function BuyTicketsCard() {
-  const { refreshUser, loadingUser } = useTelegram();
+  const { refreshUser, loadingUser, getInitData } = useTelegram();
   const openInvoice = useTelegramInvoice();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -26,8 +26,7 @@ export function BuyTicketsCard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          initData: (window as unknown as { Telegram?: { WebApp?: { initData?: string } } })
-            .Telegram?.WebApp?.initData,
+          initData: getInitData(),
           tier: tierId,
         }),
       });
