@@ -10,6 +10,7 @@ import { EnterRaffleCard } from "@/components/home/enter-raffle-card";
 import { PreviousWinners } from "@/components/home/previous-winners";
 import { WithdrawCard } from "@/components/home/withdraw-card";
 import { BuyTicketsCard } from "@/components/home/buy-tickets-card";
+import { TonConnectCard } from "@/components/home/ton-connect-card";
 
 export default function HomePage() {
   return (
@@ -18,6 +19,7 @@ export default function HomePage() {
         <HomeHeader />
         <BalanceCards />
         <WithdrawCard />
+        <TonConnectCard />
         <BuyTicketsCard />
         <EnterRaffleCard />
         <RaffleStats />

@@ -3,7 +3,8 @@ import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: NextRequest) {
-  const { initData } = await req.json();
+  const { initData, walletAddress } = await req.json();
+
   if (!initData) {
     return NextResponse.json({ error: "Missing initData" }, { status: 400 });
   }
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   const { data: existing, error: fetchError } = await supabase
     .from("users")
-    .select("*")
+    .select("id")
     .eq("telegram_id", tgUser.id)
     .single();
 
@@ -26,15 +27,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const amount = existing.usdt_balance;
-
-  if (!amount || amount <= 0) {
-    return NextResponse.json({ error: "No balance to withdraw" }, { status: 400 });
-  }
-
-  const { data: updatedUser, error: updateError } = await supabase
+  const { data: updated, error: updateError } = await supabase
     .from("users")
-    .update({ usdt_balance: 0 })
+    .update({ ton_wallet_address: walletAddress ?? null })
     .eq("id", existing.id)
     .select()
     .single();
@@ -43,16 +38,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
-  const { error: withdrawError } = await supabase.from("withdrawals").insert({
-    user_id: existing.id,
-    amount,
-    wallet_address: existing.ton_wallet_address ?? null,
-    status: "pending",
-  });
-
-  if (withdrawError) {
-    return NextResponse.json({ error: withdrawError.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ success: true, amount, user: updatedUser });
+  return NextResponse.json({ success: true, user: updated });
 }

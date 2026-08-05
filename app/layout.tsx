@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { TelegramProvider } from "@/components/providers/telegram-provider";
+import { TonProvider } from "@/components/providers/ton-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,7 +39,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Script src="https://sad.adsgram.ai/js/sad.min.js" strategy="beforeInteractive" />
-        <TelegramProvider>{children}</TelegramProvider>
+        <TonProvider>
+          <TelegramProvider>{children}</TelegramProvider>
+        </TonProvider>
       </body>
     </html>
   );
