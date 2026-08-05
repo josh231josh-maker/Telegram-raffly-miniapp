@@ -28,7 +28,7 @@ export function RaffleStats() {
   return (
     <section className="card-glow rounded-2xl border border-gold/20 bg-card p-5 backdrop-blur-sm">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-indigo-200/70">This Week's Raffle</span>
+        <span className="text-sm font-medium text-indigo-200/70">This Week&apos;s Raffle</span>
       </div>
       <div className="grid grid-cols-3 gap-2 text-center">
         <div>
