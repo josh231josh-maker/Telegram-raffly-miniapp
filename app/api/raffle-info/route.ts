@@ -1,13 +1,27 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { getCurrentWeekEnd } from "@/lib/raffle-week";
 
 export async function GET() {
   const supabase = getSupabaseAdmin();
 
-  const { data: users } = await supabase.from("users").select("ticket_balance");
+  const weekEndIso = getCurrentWeekEnd().toISOString();
 
-  const totalTickets = (users ?? []).reduce((sum, u) => sum + (u.ticket_balance ?? 0), 0);
-  const totalParticipants = (users ?? []).filter((u) => (u.ticket_balance ?? 0) > 0).length;
+  const { data: raffle } = await supabase
+    .from("raffles")
+    .select("id")
+    .eq("week_end", weekEndIso)
+    .maybeSingle();
+
+  const { data: entries } = raffle
+    ? await supabase
+        .from("raffle_entries")
+        .select("tickets_used")
+        .eq("raffle_id", raffle.id)
+    : { data: [] };
+
+  const totalTickets = (entries ?? []).reduce((sum, e) => sum + (e.tickets_used ?? 0), 0);
+  const totalParticipants = (entries ?? []).filter((e) => (e.tickets_used ?? 0) > 0).length;
 
   const { data: winners } = await supabase
     .from("winner_announcements")

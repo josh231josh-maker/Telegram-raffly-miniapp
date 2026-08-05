@@ -28,6 +28,20 @@ type WithdrawResult = {
   error?: string;
 };
 
+type RaffleEntry = {
+  raffleId: string;
+  weekEnd: string;
+  status: string;
+  ticketsEntered: number;
+};
+
+type EnterRaffleResult = {
+  success?: boolean;
+  ticketsEntered?: number;
+  user?: RafflyUser;
+  error?: string;
+};
+
 type TelegramContextValue = {
   isReady: boolean;
   isTelegram: boolean;
@@ -37,6 +51,10 @@ type TelegramContextValue = {
   refreshUser: () => Promise<void>;
   requestWithdrawal: (amount: number, walletAddress: string) => Promise<WithdrawResult>;
   getInitData: () => string;
+  raffleEntry: RaffleEntry | null;
+  loadingRaffleEntry: boolean;
+  enterRaffle: (ticketsToEnter: number) => Promise<EnterRaffleResult>;
+  refreshRaffleEntry: () => Promise<void>;
 };
 
 const TelegramContext = createContext<TelegramContextValue>({
@@ -48,6 +66,10 @@ const TelegramContext = createContext<TelegramContextValue>({
   refreshUser: async () => {},
   requestWithdrawal: async () => ({ error: "Not ready" }),
   getInitData: () => "",
+  raffleEntry: null,
+  loadingRaffleEntry: true,
+  enterRaffle: async () => ({ error: "Not ready" }),
+  refreshRaffleEntry: async () => {},
 });
 
 export function useTelegram() {
@@ -59,6 +81,8 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const [isTelegram, setIsTelegram] = useState(false);
   const [user, setUser] = useState<RafflyUser | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [raffleEntry, setRaffleEntry] = useState<RaffleEntry | null>(null);
+  const [loadingRaffleEntry, setLoadingRaffleEntry] = useState(true);
   const initDataRef = useRef("");
 
   const fetchUser = async () => {
@@ -73,6 +97,28 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       if (data.user) setUser(data.user);
     } catch (err) {
       console.error("Auth fetch error:", err);
+    }
+  };
+
+  const fetchRaffleEntry = async () => {
+    if (!initDataRef.current) return;
+    try {
+      const res = await fetch(
+        `/api/raffle-entry?initData=${encodeURIComponent(initDataRef.current)}`
+      );
+      const data = await res.json();
+      if (data.raffleId) {
+        setRaffleEntry({
+          raffleId: data.raffleId,
+          weekEnd: data.weekEnd,
+          status: data.status,
+          ticketsEntered: data.ticketsEntered,
+        });
+      }
+    } catch (err) {
+      console.error("Raffle entry fetch error:", err);
+    } finally {
+      setLoadingRaffleEntry(false);
     }
   };
 
@@ -133,8 +179,11 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
           console.error("Auth fetch error:", err);
         })
         .finally(() => setLoadingUser(false));
+
+      fetchRaffleEntry();
     } else {
       setLoadingUser(false);
+      setLoadingRaffleEntry(false);
     }
   }, []);
 
@@ -179,6 +228,30 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const enterRaffle = async (ticketsToEnter: number): Promise<EnterRaffleResult> => {
+    if (!initDataRef.current) {
+      return { error: "Not ready" };
+    }
+    try {
+      const res = await fetch("/api/raffle-entry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: initDataRef.current, ticketsToEnter }),
+      });
+      const data: EnterRaffleResult = await res.json();
+      if (data.user) setUser(data.user);
+      if (data.success) {
+        setRaffleEntry((prev) =>
+          prev ? { ...prev, ticketsEntered: data.ticketsEntered ?? prev.ticketsEntered } : prev
+        );
+      }
+      return data;
+    } catch (err) {
+      console.error("Raffle entry fetch error:", err);
+      return { error: "Network error" };
+    }
+  };
+
   return (
     <TelegramContext.Provider
       value={{
@@ -190,6 +263,10 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         refreshUser: fetchUser,
         requestWithdrawal,
         getInitData: () => initDataRef.current,
+        raffleEntry,
+        loadingRaffleEntry,
+        enterRaffle,
+        refreshRaffleEntry: fetchRaffleEntry,
       }}
     >
       {children}

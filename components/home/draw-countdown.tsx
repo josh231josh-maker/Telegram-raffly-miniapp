@@ -1,22 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-function getNextSundayUTC(): Date {
-  const now = new Date();
-  const day = now.getUTCDay();
-  const daysUntilSunday = day === 0 ? 7 : 7 - day;
-
-  const nextSunday = new Date(now);
-  nextSunday.setUTCDate(now.getUTCDate() + daysUntilSunday);
-  nextSunday.setUTCHours(20, 0, 0, 0); // 8 PM UTC weekly draw placeholder
-
-  if (nextSunday <= now) {
-    nextSunday.setUTCDate(nextSunday.getUTCDate() + 7);
-  }
-
-  return nextSunday;
-}
+import { getCurrentWeekEnd } from "@/lib/raffle-week";
 
 function formatCountdown(ms: number): string {
   if (ms <= 0) return "Drawing soon…";
@@ -31,7 +16,7 @@ function formatCountdown(ms: number): string {
 }
 
 export function DrawCountdown() {
-  const [target] = useState(() => getNextSundayUTC());
+  const [target] = useState(() => getCurrentWeekEnd());
   const [countdown, setCountdown] = useState("—");
 
   useEffect(() => {

@@ -9,7 +9,7 @@ type RaffleInfo = {
 };
 
 export function RaffleStats() {
-  const { user } = useTelegram();
+  const { raffleEntry } = useTelegram();
   const [info, setInfo] = useState<RaffleInfo | null>(null);
 
   useEffect(() => {
@@ -17,11 +17,11 @@ export function RaffleStats() {
       .then((res) => res.json())
       .then((data) => setInfo(data))
       .catch(() => setInfo(null));
-  }, [user?.ticket_balance]);
+  }, [raffleEntry?.ticketsEntered]);
 
   if (!info) return null;
 
-  const yourTickets = user?.ticket_balance ?? 0;
+  const yourTickets = raffleEntry?.ticketsEntered ?? 0;
   const chance =
     info.totalTickets > 0 ? ((yourTickets / info.totalTickets) * 100).toFixed(2) : "0.00";
 
