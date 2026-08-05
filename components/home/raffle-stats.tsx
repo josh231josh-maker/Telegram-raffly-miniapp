@@ -23,7 +23,7 @@ export function RaffleStats() {
 
   const yourTickets = user?.ticket_balance ?? 0;
   const chance =
-    info.totalTickets > 0 ? ((yourTickets / info.totalTickets) * 100).toFixed(1) : "0.0";
+    info.totalTickets > 0 ? ((yourTickets / info.totalTickets) * 100).toFixed(2) : "0.00";
 
   return (
     <section className="card-glow rounded-2xl border border-gold/20 bg-card p-5 backdrop-blur-sm">
