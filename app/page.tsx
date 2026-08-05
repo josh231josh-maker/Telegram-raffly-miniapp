@@ -8,6 +8,7 @@ import { ReferralCard } from "@/components/home/referral-card";
 import { RaffleStats } from "@/components/home/raffle-stats";
 import { PreviousWinners } from "@/components/home/previous-winners";
 import { WithdrawCard } from "@/components/home/withdraw-card";
+import { BuyTicketsCard } from "@/components/home/buy-tickets-card";
 
 export default function HomePage() {
   return (
@@ -16,6 +17,7 @@ export default function HomePage() {
         <HomeHeader />
         <BalanceCards />
         <WithdrawCard />
+        <BuyTicketsCard />
         <RaffleStats />
         <DailyCheckIn />
         <WatchAdCard />
