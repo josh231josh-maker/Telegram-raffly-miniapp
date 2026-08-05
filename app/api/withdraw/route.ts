@@ -1,0 +1,66 @@
+import { NextRequest, NextResponse } from "next/server";
+import { verifyTelegramInitData } from "@/lib/telegram-auth";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+
+export async function POST(req: NextRequest) {
+  const { initData, amount, walletAddress } = await req.json();
+  if (!initData) {
+    return NextResponse.json({ error: "Missing initData" }, { status: 400 });
+  }
+
+  const botToken = process.env.TELEGRAM_BOT_TOKEN!;
+  const tgUser = verifyTelegramInitData(initData, botToken);
+  if (!tgUser) {
+    return NextResponse.json({ error: "Invalid initData" }, { status: 401 });
+  }
+
+  const numAmount = Number(amount);
+  if (!numAmount || numAmount <= 0) {
+    return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+  }
+  if (!walletAddress || typeof walletAddress !== "string" || walletAddress.trim().length < 6) {
+    return NextResponse.json({ error: "Invalid wallet address" }, { status: 400 });
+  }
+
+  const supabase = getSupabaseAdmin();
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("users")
+    .select("*")
+    .eq("telegram_id", tgUser.id)
+    .single();
+
+  if (fetchError || !existing) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  if (numAmount > existing.usdt_balance) {
+    return NextResponse.json({ error: "Insufficient balance" }, { status: 400 });
+  }
+
+  const newBalance = existing.usdt_balance - numAmount;
+
+  const { data: updatedUser, error: updateError } = await supabase
+    .from("users")
+    .update({ usdt_balance: newBalance })
+    .eq("id", existing.id)
+    .select()
+    .single();
+
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  }
+
+  const { error: withdrawError } = await supabase.from("withdrawals").insert({
+    user_id: existing.id,
+    amount: numAmount,
+    wallet_address: walletAddress.trim(),
+    status: "pending",
+  });
+
+  if (withdrawError) {
+    return NextResponse.json({ error: withdrawError.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true, user: updatedUser });
+}

@@ -7,6 +7,7 @@ import { WatchAdCard } from "@/components/home/watch-ad-card";
 import { ReferralCard } from "@/components/home/referral-card";
 import { RaffleStats } from "@/components/home/raffle-stats";
 import { PreviousWinners } from "@/components/home/previous-winners";
+import { WithdrawCard } from "@/components/home/withdraw-card";
 
 export default function HomePage() {
   return (
@@ -18,6 +19,7 @@ export default function HomePage() {
         <DailyCheckIn />
         <WatchAdCard />
         <ReferralCard />
+        <WithdrawCard />
         <DrawCountdown />
         <PreviousWinners />
         <p className="text-center text-xs text-indigo-200/50">

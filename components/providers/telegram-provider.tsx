@@ -22,6 +22,12 @@ type CheckInResult = {
   error?: string;
 };
 
+type WithdrawResult = {
+  success?: boolean;
+  user?: RafflyUser;
+  error?: string;
+};
+
 type TelegramContextValue = {
   isReady: boolean;
   isTelegram: boolean;
@@ -29,6 +35,7 @@ type TelegramContextValue = {
   loadingUser: boolean;
   checkIn: () => Promise<CheckInResult>;
   refreshUser: () => Promise<void>;
+  requestWithdrawal: (amount: number, walletAddress: string) => Promise<WithdrawResult>;
 };
 
 const TelegramContext = createContext<TelegramContextValue>({
@@ -38,6 +45,7 @@ const TelegramContext = createContext<TelegramContextValue>({
   loadingUser: true,
   checkIn: async () => ({ error: "Not ready" }),
   refreshUser: async () => {},
+  requestWithdrawal: async () => ({ error: "Not ready" }),
 });
 
 export function useTelegram() {
@@ -147,9 +155,39 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const requestWithdrawal = async (
+    amount: number,
+    walletAddress: string
+  ): Promise<WithdrawResult> => {
+    if (!initDataRef.current) {
+      return { error: "Not ready" };
+    }
+    try {
+      const res = await fetch("/api/withdraw", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: initDataRef.current, amount, walletAddress }),
+      });
+      const data: WithdrawResult = await res.json();
+      if (data.user) setUser(data.user);
+      return data;
+    } catch (err) {
+      console.error("Withdraw fetch error:", err);
+      return { error: "Network error" };
+    }
+  };
+
   return (
     <TelegramContext.Provider
-      value={{ isReady, isTelegram, user, loadingUser, checkIn, refreshUser: fetchUser }}
+      value={{
+        isReady,
+        isTelegram,
+        user,
+        loadingUser,
+        checkIn,
+        refreshUser: fetchUser,
+        requestWithdrawal,
+      }}
     >
       {children}
     </TelegramContext.Provider>
