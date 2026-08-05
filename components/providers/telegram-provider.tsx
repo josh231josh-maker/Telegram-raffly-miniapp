@@ -28,6 +28,7 @@ type TelegramContextValue = {
   user: RafflyUser | null;
   loadingUser: boolean;
   checkIn: () => Promise<CheckInResult>;
+  refreshUser: () => Promise<void>;
 };
 
 const TelegramContext = createContext<TelegramContextValue>({
@@ -36,6 +37,7 @@ const TelegramContext = createContext<TelegramContextValue>({
   user: null,
   loadingUser: true,
   checkIn: async () => ({ error: "Not ready" }),
+  refreshUser: async () => {},
 });
 
 export function useTelegram() {
@@ -48,6 +50,21 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<RafflyUser | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const initDataRef = useRef("");
+
+  const fetchUser = async () => {
+    if (!initDataRef.current) return;
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: initDataRef.current }),
+      });
+      const data = await res.json();
+      if (data.user) setUser(data.user);
+    } catch (err) {
+      console.error("Auth fetch error:", err);
+    }
+  };
 
   useEffect(() => {
     let rawInitData = "";
@@ -131,7 +148,9 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <TelegramContext.Provider value={{ isReady, isTelegram, user, loadingUser, checkIn }}>
+    <TelegramContext.Provider
+      value={{ isReady, isTelegram, user, loadingUser, checkIn, refreshUser: fetchUser }}
+    >
       {children}
     </TelegramContext.Provider>
   );

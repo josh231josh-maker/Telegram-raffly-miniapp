@@ -3,6 +3,7 @@ import { HomeHeader } from "@/components/home/home-header";
 import { BalanceCards } from "@/components/home/balance-cards";
 import { DrawCountdown } from "@/components/home/draw-countdown";
 import { DailyCheckIn } from "@/components/home/daily-checkin";
+import { WatchAdCard } from "@/components/home/watch-ad-card";
 import { ReferralCard } from "@/components/home/referral-card";
 
 export default function HomePage() {
@@ -12,6 +13,7 @@ export default function HomePage() {
         <HomeHeader />
         <BalanceCards />
         <DailyCheckIn />
+        <WatchAdCard />
         <ReferralCard />
         <DrawCountdown />
         <p className="text-center text-xs text-indigo-200/50">
