@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-
-const REFERRAL_TICKET_THRESHOLD = 10;
-const REFERRAL_REWARD_TICKETS = 50;
+import { checkAndRewardReferral } from "@/lib/referral";
 
 export async function POST(req: NextRequest) {
   const { initData } = await req.json();
@@ -56,29 +54,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
-  if (
-    existing.referred_by &&
-    !existing.referral_reward_given &&
-    newTicketBalance >= REFERRAL_TICKET_THRESHOLD
-  ) {
-    const { data: referrer } = await supabase
-      .from("users")
-      .select("id, ticket_balance")
-      .eq("id", existing.referred_by)
-      .single();
-
-    if (referrer) {
-      await supabase
-        .from("users")
-        .update({ ticket_balance: referrer.ticket_balance + REFERRAL_REWARD_TICKETS })
-        .eq("id", referrer.id);
-
-      await supabase
-        .from("users")
-        .update({ referral_reward_given: true })
-        .eq("id", existing.id);
-    }
-  }
+  await checkAndRewardReferral(supabase, existing.id);
 
   return NextResponse.json({
     alreadyCheckedIn: false,

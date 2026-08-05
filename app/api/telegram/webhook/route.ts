@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { checkAndRewardReferral } from "@/lib/referral";
 
 
 
@@ -41,6 +42,8 @@ export async function POST(req: NextRequest) {
           .from("users")
           .update({ ticket_balance: user.ticket_balance + tickets })
           .eq("id", user.id);
+
+        await checkAndRewardReferral(supabase, user.id);
       }
     }
     return NextResponse.json({ ok: true });

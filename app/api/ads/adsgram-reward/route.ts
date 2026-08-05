@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { checkAndRewardReferral } from "@/lib/referral";
 
 const ADS_TO_TICKET_RATIO = 2;
 
@@ -52,8 +53,12 @@ export async function GET(req: NextRequest) {
 
     await supabase
       .from("users")
+      await supabase
+      .from("users")
       .update({ ticket_balance: user.ticket_balance + 1 })
       .eq("id", user.id);
+
+    await checkAndRewardReferral(supabase, user.id);
   }
 
   return NextResponse.json({ success: true });
