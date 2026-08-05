@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
-const TIERS: Record<string, { stars: number; tickets: number }> = {
-  entry: { stars: 10, tickets: 15 },
-  better: { stars: 50, tickets: 90 },
-  best: { stars: 100, tickets: 200 },
-};
+
 
 export async function POST(req: NextRequest) {
   const secretHeader = req.headers.get("x-telegram-bot-api-secret-token");
@@ -52,5 +48,3 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
-
-export { TIERS };
