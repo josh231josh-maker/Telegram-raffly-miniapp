@@ -17,7 +17,7 @@ export function RaffleStats() {
       .then((res) => res.json())
       .then((data) => setInfo(data))
       .catch(() => setInfo(null));
-  }, []);
+  }, [user?.ticket_balance]);
 
   if (!info) return null;
 
