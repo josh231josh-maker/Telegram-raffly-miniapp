@@ -27,7 +27,7 @@ function UsdtIcon() {
 type BalanceCardProps = {
   label: string;
   value: string;
-  sublabel: string;
+  sublabel?: string;
   icon: React.ReactNode;
   accent: "gold" | "green";
 };
@@ -42,7 +42,7 @@ function BalanceCard({ label, value, sublabel, icon, accent }: BalanceCardProps)
         {icon}
       </div>
       <p className="font-heading text-3xl font-bold tracking-tight text-text">{value}</p>
-      <p className="mt-1 text-xs text-text-faint">{sublabel}</p>
+      {sublabel && <p className="mt-1 text-xs text-text-faint">{sublabel}</p>}
     </article>
   );
 }
@@ -65,7 +65,6 @@ export function BalanceCards() {
       <BalanceCard
         label="USDT"
         value={loadingUser ? "…" : `$${usdtBalance}`}
-        sublabel="No minimum"
         icon={<UsdtIcon />}
         accent="green"
       />
