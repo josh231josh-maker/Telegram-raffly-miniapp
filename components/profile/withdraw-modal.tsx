@@ -47,20 +47,38 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
 
   const handleDisconnect = async () => {
     setDisconnecting(true);
+    setMessage(null);
     try {
-      await tonConnectUI.disconnect();
+      // TON Connect's own session may already be gone (expired, cleared,
+      // never live in this app instance) even though our database still
+      // has a saved address — that mismatch is exactly what this modal's
+      // "connected" state is showing. Don't let an SDK-level disconnect
+      // failure block clearing our own record.
+      try {
+        await tonConnectUI.disconnect();
+      } catch (err) {
+        console.error("TON Connect disconnect error (continuing anyway):", err);
+      }
 
       const initData = getInitData();
-      if (initData) {
-        await fetch("/api/wallet/connect-ton", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ initData, walletAddress: null }),
-        });
+      if (!initData) {
+        throw new Error("Not ready — reopen the app and try again.");
       }
+
+      const res = await fetch("/api/wallet/connect-ton", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData, walletAddress: null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? `Server error (${res.status})`);
+      }
+
       await refreshUser();
+      setMessage("Wallet disconnected.");
     } catch (err) {
-      console.error("Disconnect wallet error:", err);
+      setMessage(err instanceof Error ? err.message : "Could not disconnect. Try again.");
     } finally {
       setDisconnecting(false);
     }
