@@ -75,11 +75,11 @@ type BottomNavProps = {
 
 export function BottomNav({ active, onChange }: BottomNavProps) {
   return (
-    <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    <div
+      className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 14px)" }}
     >
-      <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
+      <nav className="nav-shadow flex w-full max-w-xs items-center justify-around rounded-full border border-border bg-card px-2 py-2">
         {TABS.map((tab) => {
           const isActive = active === tab.id;
           const Icon = ICONS[tab.id];
@@ -87,19 +87,22 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className="flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 transition"
+              className="relative flex flex-1 flex-col items-center gap-0.5 rounded-full py-1.5 transition"
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className={`h-6 w-6 ${isActive ? "text-accent" : "text-text-faint"}`} />
+              {isActive && (
+                <span className="absolute -top-1 h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+              )}
+              <Icon className={`h-5 w-5 ${isActive ? "text-accent" : "text-text-faint"}`} />
               <span
-                className={`text-[11px] font-medium ${isActive ? "text-accent" : "text-text-faint"}`}
+                className={`text-[10px] font-medium ${isActive ? "text-accent" : "text-text-faint"}`}
               >
                 {tab.label}
               </span>
             </button>
           );
         })}
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }

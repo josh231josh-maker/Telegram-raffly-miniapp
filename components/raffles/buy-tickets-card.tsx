@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
+import { TicketIcon, StarIcon } from "@/components/icons";
+import { IconBadge } from "@/components/icon-badge";
 
 const TIERS = [
   { id: "entry", stars: 10, tickets: 15, label: "Entry Pack" },
@@ -56,8 +58,11 @@ export function BuyTicketsCard() {
   return (
     <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-text-dim">Buy Tickets</span>
-        <span className="text-xs text-text-faint">via Telegram Stars ⭐</span>
+        <div className="flex items-center gap-3">
+          <IconBadge icon={<TicketIcon />} tone="gold" size="sm" />
+          <span className="text-sm font-medium text-text-dim">Buy Tickets</span>
+        </div>
+        <span className="text-xs text-text-faint">via Telegram Stars</span>
       </div>
       <div className="flex flex-col gap-2">
         {TIERS.map((t) => (
@@ -70,8 +75,9 @@ export function BuyTicketsCard() {
             <span className="text-text">
               {t.label} — {t.tickets} tickets
             </span>
-            <span className="font-semibold text-gold">
-              {loadingTier === t.id ? "..." : `${t.stars} ⭐`}
+            <span className="flex items-center gap-1 font-semibold text-gold">
+              {loadingTier === t.id ? "..." : t.stars}
+              <StarIcon className="h-3.5 w-3.5" />
             </span>
           </button>
         ))}

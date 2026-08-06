@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { GiftIcon } from "@/components/icons";
+import { IconBadge } from "@/components/icon-badge";
 
 export function ReferralCard() {
   const { user, loadingUser } = useTelegram();
@@ -24,7 +26,10 @@ export function ReferralCard() {
   return (
     <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-medium text-text-dim">Invite Friends</span>
+        <div className="flex items-center gap-3">
+          <IconBadge icon={<GiftIcon />} tone="accent" size="sm" />
+          <span className="text-sm font-medium text-text-dim">Invite Friends</span>
+        </div>
         <span className="text-xs text-text-faint">+50 tickets each</span>
       </div>
       <p className="mb-3 text-xs text-text-faint">
@@ -32,7 +37,7 @@ export function ReferralCard() {
       </p>
       <button
         onClick={handleCopy}
-        className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white transition"
+        className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition"
       >
         {copied ? "Link copied!" : "Copy invite link"}
       </button>

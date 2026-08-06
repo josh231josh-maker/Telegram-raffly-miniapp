@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TrophyIcon } from "@/components/icons";
+import { IconBadge } from "@/components/icon-badge";
 
 type Winner = {
   id: string;
@@ -26,9 +28,7 @@ export function PreviousWinners() {
     <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-sm font-medium text-text-dim">Previous Winners</span>
-        <span className="text-lg" aria-hidden="true">
-          🏆
-        </span>
+        <IconBadge icon={<TrophyIcon />} tone="gold" size="sm" />
       </div>
       <div className="flex flex-col divide-y divide-border">
         {winners.map((w) => (

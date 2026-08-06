@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { WalletIcon } from "@/components/icons";
+import { IconBadge } from "@/components/icon-badge";
 
 export function TonConnectCard() {
   const address = useTonAddress();
@@ -37,7 +39,10 @@ export function TonConnectCard() {
   return (
     <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-text-dim">TON Wallet</span>
+        <div className="flex items-center gap-3">
+          <IconBadge icon={<WalletIcon />} tone="accent" size="sm" />
+          <span className="text-sm font-medium text-text-dim">TON Wallet</span>
+        </div>
         <span className="text-xs text-text-faint">for withdrawals</span>
       </div>
       <p className="mb-3 text-xs text-text-faint">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { ArrowDownCircleIcon } from "@/components/icons";
 
 export function WithdrawCard() {
   const { user, requestWithdrawal, loadingUser } = useTelegram();
@@ -31,8 +32,9 @@ export function WithdrawCard() {
       <button
         onClick={handleWithdraw}
         disabled={status === "loading" || balance <= 0}
-        className="w-full rounded-xl bg-green px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40"
+        className="btn-green flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
       >
+        <ArrowDownCircleIcon className="h-4 w-4" />
         {status === "loading" ? "Processing..." : `Withdraw $${balance.toFixed(2)}`}
       </button>
       {message && <p className="text-center text-xs text-text-faint">{message}</p>}

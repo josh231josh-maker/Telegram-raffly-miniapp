@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { CalendarCheckIcon } from "@/components/icons";
+import { IconBadge } from "@/components/icon-badge";
 
 export function DailyCheckIn() {
   const { user, checkIn, loadingUser } = useTelegram();
@@ -31,8 +33,11 @@ export function DailyCheckIn() {
 
   return (
     <section className="card-soft rounded-2xl border border-border bg-card p-5">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-medium text-text-dim">Daily Check-in</span>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <IconBadge icon={<CalendarCheckIcon />} tone="accent" size="sm" />
+          <span className="text-sm font-medium text-text-dim">Daily Check-in</span>
+        </div>
         <span className="text-xs text-text-faint">
           Streak: {user?.streak_count ?? 0} day{(user?.streak_count ?? 0) === 1 ? "" : "s"}
         </span>
@@ -40,7 +45,7 @@ export function DailyCheckIn() {
       <button
         onClick={handleCheckIn}
         disabled={disabled}
-        className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+        className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
       >
         {alreadyCheckedInToday || status === "already"
           ? "Already claimed today"

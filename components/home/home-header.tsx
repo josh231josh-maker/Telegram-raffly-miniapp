@@ -1,16 +1,16 @@
 "use client";
 
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { TicketIcon } from "@/components/icons";
+import { IconBadge } from "@/components/icon-badge";
 
 export function HomeHeader() {
   const { isTelegram } = useTelegram();
 
   return (
-    <header className="flex flex-col items-center gap-1 pb-1 text-center">
+    <header className="flex flex-col items-center gap-1.5 pb-1 text-center">
       <div className="flex items-center gap-2">
-        <span className="text-xl" aria-hidden="true">
-          🎟️
-        </span>
+        <IconBadge icon={<TicketIcon />} tone="gold" size="sm" />
         <h1 className="font-heading text-2xl font-bold text-text">Raffly</h1>
       </div>
       <p className="text-xs text-text-dim">5 winners · $100 USDT each · every week</p>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getCurrentWeekEnd } from "@/lib/raffle-week";
+import { TrophyIcon } from "@/components/icons";
 
 type Segments = { days: string; hours: string; minutes: string; seconds: string };
 
@@ -42,13 +43,16 @@ export function HeroCountdown() {
   ];
 
   return (
-    <section className="hero-gradient rounded-3xl p-6 text-white shadow-lg" aria-label="Next weekly draw">
+    <section
+      className="hero-gradient relative overflow-hidden rounded-3xl p-6 text-white shadow-lg"
+      aria-label="Next weekly draw"
+    >
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-widest text-white/60">
           Next Weekly Draw
         </span>
-        <span className="text-lg" aria-hidden="true">
-          🏆
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-gold">
+          <TrophyIcon className="h-4 w-4" />
         </span>
       </div>
 

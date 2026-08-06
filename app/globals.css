@@ -50,7 +50,9 @@ body {
 }
 
 .hero-gradient {
-  background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.1), transparent 55%),
+    linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%);
 }
 
 .pass-gradient {
@@ -59,6 +61,46 @@ body {
 
 .card-soft {
   box-shadow:
+    0 1px 2px rgba(28, 21, 51, 0.05),
+    0 2px 6px rgba(28, 21, 51, 0.04),
+    0 16px 32px -12px rgba(28, 21, 51, 0.12);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, #7d5dff 0%, var(--accent) 100%);
+  box-shadow:
+    0 1px 1px rgba(255, 255, 255, 0.25) inset,
+    0 8px 20px -6px rgba(109, 74, 255, 0.55);
+}
+
+.btn-accent:active {
+  transform: scale(0.98);
+}
+
+.btn-green {
+  background: linear-gradient(135deg, #22c55e 0%, var(--green) 100%);
+  box-shadow:
+    0 1px 1px rgba(255, 255, 255, 0.25) inset,
+    0 8px 20px -6px rgba(22, 163, 74, 0.5);
+}
+
+.btn-green:active {
+  transform: scale(0.98);
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, #e2b355 0%, var(--gold) 100%);
+  box-shadow:
+    0 1px 1px rgba(255, 255, 255, 0.3) inset,
+    0 8px 20px -6px rgba(201, 150, 44, 0.5);
+}
+
+.btn-gold:active {
+  transform: scale(0.98);
+}
+
+.nav-shadow {
+  box-shadow:
     0 1px 2px rgba(28, 21, 51, 0.04),
-    0 8px 24px rgba(28, 21, 51, 0.06);
+    0 12px 28px -8px rgba(28, 21, 51, 0.18);
 }

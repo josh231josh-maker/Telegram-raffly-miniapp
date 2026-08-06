@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { TicketIcon } from "@/components/icons";
+import { IconBadge } from "@/components/icon-badge";
 
 export function EnterRaffleCard() {
   const { user, raffleEntry, loadingUser, loadingRaffleEntry, enterRaffle } = useTelegram();
@@ -37,7 +39,10 @@ export function EnterRaffleCard() {
   return (
     <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-text-dim">Enter This Week&apos;s Draw</span>
+        <div className="flex items-center gap-3">
+          <IconBadge icon={<TicketIcon />} tone="gold" size="sm" />
+          <span className="text-sm font-medium text-text-dim">Enter This Week&apos;s Draw</span>
+        </div>
         <span className="text-xs text-text-faint">{alreadyEntered} entered so far</span>
       </div>
 
@@ -94,7 +99,7 @@ export function EnterRaffleCard() {
           <button
             onClick={handleEnter}
             disabled={status === "loading" || clampedAmount <= 0}
-            className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
           >
             {status === "loading" ? "Entering..." : `Enter ${clampedAmount || ""} ticket${clampedAmount === 1 ? "" : "s"}`}
           </button>

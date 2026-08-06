@@ -1,6 +1,7 @@
 "use client";
 
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { ChevronRightIcon } from "@/components/icons";
 
 const SETTINGS_ROWS: { label: string; href?: string }[] = [
   { label: "Support", href: "https://t.me/RafflySupportBot" },
@@ -22,7 +23,7 @@ export function ProfileCard() {
   return (
     <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-3 border-b border-border pb-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent-soft font-heading text-lg font-bold text-accent">
+        <div className="btn-accent flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-heading text-lg font-bold text-white">
           {initials(user.first_name, user.username)}
         </div>
         <div>
@@ -61,16 +62,12 @@ export function ProfileCard() {
               className="flex items-center justify-between py-3 text-sm text-text"
             >
               <span>{row.label}</span>
-              <span className="text-text-faint" aria-hidden="true">
-                ›
-              </span>
+              <ChevronRightIcon className="h-4 w-4 text-text-faint" />
             </a>
           ) : (
             <div key={row.label} className="flex items-center justify-between py-3 text-sm text-text">
               <span>{row.label}</span>
-              <span className="text-text-faint" aria-hidden="true">
-                ›
-              </span>
+              <ChevronRightIcon className="h-4 w-4 text-text-faint" />
             </div>
           )
         )}

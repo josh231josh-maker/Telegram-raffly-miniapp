@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDownIcon } from "@/components/icons";
 
 type ActivityItem = {
   id: string;
@@ -24,12 +25,9 @@ export function RecentActivity() {
         aria-expanded={open}
       >
         <span className="text-sm font-medium text-text-dim">Recent Activity</span>
-        <span
-          className={`text-text-faint transition-transform ${open ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        >
-          ⌄
-        </span>
+        <ChevronDownIcon
+          className={`h-4 w-4 text-text-faint transition-transform ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
       {open && (
