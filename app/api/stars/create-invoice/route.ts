@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { RAFFLY_PASS_STARS } from "@/lib/raffly-pass";
 
-// TODO: raise back to real prices (10/50/100) before launch — set to 1 for testing
+// TODO: raise back to real prices (10/50/100) before launch
+// Diagnostic: entry temporarily at 3 stars (not 1) to test whether a 1-star
+// XTR invoice is what's hanging on Telegram's own confirm screen.
 const TIERS: Record<string, { stars: number; tickets: number; label: string }> = {
-  entry: { stars: 1, tickets: 15, label: "Entry Pack — 15 Tickets" },
+  entry: { stars: 3, tickets: 15, label: "Entry Pack — 15 Tickets" },
   better: { stars: 1, tickets: 90, label: "Better Value — 90 Tickets" },
   best: { stars: 1, tickets: 200, label: "Best Value — 200 Tickets" },
   pass: { stars: RAFFLY_PASS_STARS, tickets: 0, label: "Raffly Pass — 30 Days" },
