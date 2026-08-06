@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export const WEEKLY_WINNER_COUNT = 5;
+
 /** Weekly draw is Sunday 8 PM UTC — keep in sync with components/home/draw-countdown.tsx */
 export function getCurrentWeekEnd(now = new Date()): Date {
   const day = now.getUTCDay();

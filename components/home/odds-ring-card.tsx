@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { WEEKLY_WINNER_COUNT } from "@/lib/raffle-week";
 
 type RaffleInfo = {
   totalTickets: number;
@@ -25,8 +26,11 @@ export function OddsRingCard() {
   const yourTickets = raffleEntry?.ticketsEntered ?? 0;
   const totalTickets = info?.totalTickets ?? 0;
   const totalParticipants = info?.totalParticipants ?? 0;
-  const pct = totalTickets > 0 ? Math.min(100, (yourTickets / totalTickets) * 100) : 0;
-  const chance = totalTickets > 0 ? ((yourTickets / totalTickets) * 100).toFixed(2) : "0.00";
+  const pct =
+    totalTickets > 0
+      ? Math.min(100, (yourTickets / totalTickets) * WEEKLY_WINNER_COUNT * 100)
+      : 0;
+  const chance = pct.toFixed(2);
   const dashOffset = CIRCUMFERENCE * (1 - pct / 100);
 
   return (
