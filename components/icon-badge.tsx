@@ -1,6 +1,6 @@
 "use client";
 
-import { cloneElement, isValidElement, useId, type ReactElement } from "react";
+import { cloneElement, isValidElement, useId } from "react";
 
 type IconBadgeProps = {
   icon: React.ReactNode;
@@ -44,8 +44,8 @@ export function IconBadge({ icon, tone = "accent", size = "md" }: IconBadgeProps
   const gradId = useId();
   const [c1, c2, c3, c4] = GRADIENT_STOPS[key];
 
-  const sizedIcon = isValidElement(icon)
-    ? cloneElement(icon as ReactElement<{ className?: string }>, {
+  const sizedIcon = isValidElement<{ className?: string }>(icon)
+    ? cloneElement(icon, {
         className: `${ICON_SIZE_CLASSES[size]} ${icon.props.className ?? ""}`.trim(),
       })
     : icon;
