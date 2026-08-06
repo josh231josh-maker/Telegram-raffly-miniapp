@@ -1,10 +1,16 @@
 "use client";
 
+import { useTelegram } from "@/components/providers/telegram-provider";
+import { isPassActive } from "@/lib/raffly-pass";
+
 type PassBannerProps = {
   onOpen: () => void;
 };
 
 export function PassBanner({ onOpen }: PassBannerProps) {
+  const { user } = useTelegram();
+  const hasPass = isPassActive(user?.raffly_pass_expires_at ?? null);
+
   return (
     <button
       onClick={onOpen}
@@ -17,8 +23,15 @@ export function PassBanner({ onOpen }: PassBannerProps) {
         👑
       </span>
       <span className="flex-1">
-        <span className="block font-heading text-sm font-semibold text-text">Raffly Pass</span>
-        <span className="block text-xs text-text-dim">20 tickets/day · 2× ad rewards</span>
+        <span className="block font-heading text-sm font-semibold text-text">
+          Raffly Pass
+          {hasPass && (
+            <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-white">
+              Active
+            </span>
+          )}
+        </span>
+        <span className="block text-xs text-text-dim">20 tickets/day · 2x rewards</span>
       </span>
       <span className="text-text-faint" aria-hidden="true">
         ›

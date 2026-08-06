@@ -13,6 +13,8 @@ type RafflyUser = {
   streak_count: number;
   last_checkin_date: string | null;
   ton_wallet_address: string | null;
+  raffly_pass_expires_at: string | null;
+  raffly_pass_last_claim_date: string | null;
 };
 
 type CheckInResult = {
@@ -43,6 +45,13 @@ type EnterRaffleResult = {
   error?: string;
 };
 
+type ClaimPassResult = {
+  alreadyClaimed?: boolean;
+  ticketsEarned?: number;
+  user?: RafflyUser;
+  error?: string;
+};
+
 type TelegramContextValue = {
   isReady: boolean;
   isTelegram: boolean;
@@ -56,6 +65,7 @@ type TelegramContextValue = {
   loadingRaffleEntry: boolean;
   enterRaffle: (ticketsToEnter: number) => Promise<EnterRaffleResult>;
   refreshRaffleEntry: () => Promise<void>;
+  claimPassTickets: () => Promise<ClaimPassResult>;
 };
 
 const TelegramContext = createContext<TelegramContextValue>({
@@ -71,6 +81,7 @@ const TelegramContext = createContext<TelegramContextValue>({
   loadingRaffleEntry: true,
   enterRaffle: async () => ({ error: "Not ready" }),
   refreshRaffleEntry: async () => {},
+  claimPassTickets: async () => ({ error: "Not ready" }),
 });
 
 export function useTelegram() {
@@ -253,6 +264,25 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const claimPassTickets = async (): Promise<ClaimPassResult> => {
+    if (!initDataRef.current) {
+      return { error: "Not ready" };
+    }
+    try {
+      const res = await fetch("/api/raffly-pass/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: initDataRef.current }),
+      });
+      const data: ClaimPassResult = await res.json();
+      if (data.user) setUser(data.user);
+      return data;
+    } catch (err) {
+      console.error("Claim pass tickets fetch error:", err);
+      return { error: "Network error" };
+    }
+  };
+
   return (
     <TelegramContext.Provider
       value={{
@@ -268,6 +298,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         loadingRaffleEntry,
         enterRaffle,
         refreshRaffleEntry: fetchRaffleEntry,
+        claimPassTickets,
       }}
     >
       {children}
