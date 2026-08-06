@@ -13,8 +13,7 @@ import { WatchAdCard } from "@/components/raffles/watch-ad-card";
 import { ReferralCard } from "@/components/raffles/referral-card";
 import { BuyTicketsCard } from "@/components/raffles/buy-tickets-card";
 import { BalanceCards } from "@/components/profile/balance-cards";
-import { WithdrawCard } from "@/components/profile/withdraw-card";
-import { TonConnectCard } from "@/components/profile/ton-connect-card";
+import { WithdrawButton } from "@/components/profile/withdraw-button";
 import { ProfileCard } from "@/components/profile/profile-card";
 import { RecentActivity } from "@/components/profile/recent-activity";
 import { RafflyPassDetail } from "@/components/raffly-pass/raffly-pass-detail";
@@ -51,8 +50,7 @@ export default function HomePage() {
           <>
             <h1 className="font-heading text-2xl font-bold text-text">Profile</h1>
             <BalanceCards />
-            <WithdrawCard />
-            <TonConnectCard />
+            <WithdrawButton />
             <ProfileCard />
             <RecentActivity />
           </>
