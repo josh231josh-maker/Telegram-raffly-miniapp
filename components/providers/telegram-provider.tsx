@@ -12,6 +12,7 @@ type RafflyUser = {
   usdt_balance: number;
   streak_count: number;
   last_checkin_date: string | null;
+  ton_wallet_address: string | null;
 };
 
 type CheckInResult = {
