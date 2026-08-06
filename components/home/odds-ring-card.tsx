@@ -120,45 +120,50 @@ export function OddsRingCard() {
         </p>
       ) : (
         <>
-          <div className="mb-3 flex items-center justify-center gap-3">
+          <div className="flex items-center justify-between gap-3 rounded-2xl bg-background p-3">
             <button
               onClick={() => setClamped(clampedAmount - 1)}
               disabled={status === "loading" || clampedAmount <= 0}
-              className="h-9 w-9 rounded-full border border-border bg-accent-soft text-lg text-accent transition disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-lg font-semibold text-accent shadow-sm transition disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Decrease amount"
             >
               −
             </button>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={available}
-              value={clampedAmount}
-              onChange={(e) => setClamped(Number(e.target.value))}
-              disabled={status === "loading"}
-              className="w-20 rounded-lg border border-border bg-background py-2 text-center text-lg font-semibold text-text"
-            />
+            <div className="flex flex-1 flex-col items-center">
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={available}
+                value={clampedAmount}
+                onChange={(e) => setClamped(Number(e.target.value))}
+                disabled={status === "loading"}
+                className="w-20 bg-transparent text-center font-heading text-3xl font-bold text-text outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+              <span className="text-[11px] text-text-faint">of {available} tickets</span>
+            </div>
             <button
               onClick={() => setClamped(clampedAmount + 1)}
               disabled={status === "loading" || clampedAmount >= available}
-              className="h-9 w-9 rounded-full border border-border bg-accent-soft text-lg text-accent transition disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-lg font-semibold text-accent shadow-sm transition disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Increase amount"
             >
               +
             </button>
-            <button
-              onClick={() => setClamped(available)}
-              disabled={status === "loading" || clampedAmount >= available}
-              className="rounded-lg border border-accent/30 px-3 py-2 text-xs font-semibold text-accent transition disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Max
-            </button>
           </div>
 
-          <p className="mb-3 text-center text-xs text-text-faint">
-            {available} ticket{available === 1 ? "" : "s"} available
-          </p>
+          <div className="my-3 grid grid-cols-3 gap-2">
+            {[25, 50, 100].map((pct) => (
+              <button
+                key={pct}
+                onClick={() => setClamped(Math.round((available * pct) / 100))}
+                disabled={status === "loading"}
+                className="rounded-lg border border-border py-2 text-xs font-semibold text-text-dim transition disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {pct === 100 ? "Max" : `${pct}%`}
+              </button>
+            ))}
+          </div>
 
           <button
             onClick={handleEnter}
