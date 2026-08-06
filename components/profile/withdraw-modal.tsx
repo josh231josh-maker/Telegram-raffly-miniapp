@@ -10,11 +10,12 @@ type WithdrawModalProps = {
 };
 
 export function WithdrawModal({ onClose }: WithdrawModalProps) {
-  const { user, requestWithdrawal, getInitData } = useTelegram();
+  const { user, requestWithdrawal, getInitData, refreshUser } = useTelegram();
   const address = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
   const [status, setStatus] = useState<"idle" | "loading" | "done">("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
 
   const balance = user?.usdt_balance ?? 0;
   const walletConnected = !!user?.ton_wallet_address;
@@ -43,6 +44,27 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
       body: JSON.stringify({ initData, walletAddress: address }),
     }).catch((err) => console.error("Save TON wallet error:", err));
   }, [address, user, getInitData]);
+
+  const handleDisconnect = async () => {
+    setDisconnecting(true);
+    try {
+      await tonConnectUI.disconnect();
+
+      const initData = getInitData();
+      if (initData) {
+        await fetch("/api/wallet/connect-ton", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ initData, walletAddress: null }),
+        });
+      }
+      await refreshUser();
+    } catch (err) {
+      console.error("Disconnect wallet error:", err);
+    } finally {
+      setDisconnecting(false);
+    }
+  };
 
   const handleWithdraw = async () => {
     setMessage(null);
@@ -104,10 +126,11 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
               <p className="text-[11px] text-text-faint">TON Wallet</p>
             </div>
             <button
-              onClick={() => tonConnectUI.disconnect()}
-              className="shrink-0 rounded-full bg-background px-3 py-1.5 text-xs font-semibold text-text-dim"
+              onClick={handleDisconnect}
+              disabled={disconnecting}
+              className="shrink-0 rounded-full bg-background px-3 py-1.5 text-xs font-semibold text-text-dim disabled:opacity-50"
             >
-              Disconnect
+              {disconnecting ? "..." : "Disconnect"}
             </button>
           </div>
         ) : (
