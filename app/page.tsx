@@ -7,7 +7,6 @@ import { HeroCountdown } from "@/components/home/hero-countdown";
 import { PassBanner } from "@/components/home/pass-banner";
 import { OddsRingCard } from "@/components/home/odds-ring-card";
 import { PreviousWinners } from "@/components/home/previous-winners";
-import { EnterRaffleCard } from "@/components/raffles/enter-raffle-card";
 import { DailyCheckIn } from "@/components/raffles/daily-checkin";
 import { WatchAdCard } from "@/components/raffles/watch-ad-card";
 import { ReferralCard } from "@/components/raffles/referral-card";
@@ -38,7 +37,6 @@ export default function HomePage() {
         {tab === "raffles" && (
           <>
             <h1 className="font-heading text-2xl font-bold text-text">Raffles</h1>
-            <EnterRaffleCard />
             <DailyCheckIn />
             <WatchAdCard />
             <ReferralCard />

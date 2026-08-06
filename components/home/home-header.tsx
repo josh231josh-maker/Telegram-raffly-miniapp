@@ -13,7 +13,6 @@ export function HomeHeader() {
         <IconBadge icon={<TicketIcon />} tone="gold" size="sm" />
         <h1 className="font-heading text-2xl font-bold text-text">Raffly</h1>
       </div>
-      <p className="text-xs text-text-dim">5 winners · $100 USDT each · every week</p>
       {!isTelegram && (
         <p className="mt-1 rounded-full border border-gold/30 bg-gold-soft px-3 py-1 text-[11px] text-gold">
           Dev mode — open in Telegram for full experience
