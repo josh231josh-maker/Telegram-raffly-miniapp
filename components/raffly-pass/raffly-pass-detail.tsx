@@ -1,0 +1,156 @@
+"use client";
+
+import { useState } from "react";
+import { useTelegram } from "@/components/providers/telegram-provider";
+import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
+import { RAFFLY_PASS_STARS, isPassActive } from "@/lib/raffly-pass";
+
+type RafflyPassDetailProps = {
+  onClose: () => void;
+};
+
+const BENEFITS = [
+  "20 tickets every day for 30 days",
+  "2x tickets from watching ads",
+  "Double daily check-in rewards",
+];
+
+export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
+  const { user, loadingUser, getInitData, refreshUser, claimPassTickets } = useTelegram();
+  const openInvoice = useTelegramInvoice();
+  const [status, setStatus] = useState<"idle" | "loading">("idle");
+  const [message, setMessage] = useState<string | null>(null);
+
+  const hasPass = !loadingUser && isPassActive(user?.raffly_pass_expires_at ?? null);
+  const today = new Date().toISOString().slice(0, 10);
+  const alreadyClaimedToday = user?.raffly_pass_last_claim_date === today;
+
+  const handleBuy = async () => {
+    setMessage(null);
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/stars/create-invoice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: getInitData(), tier: "pass" }),
+      });
+      const data = await res.json();
+      if (!data.invoiceUrl) {
+        setMessage(data.error ?? "Could not start payment");
+        setStatus("idle");
+        return;
+      }
+
+      const invoiceStatus = await openInvoice(data.invoiceUrl);
+      if (invoiceStatus === "paid") {
+        setMessage("Raffly Pass activated!");
+        setTimeout(() => refreshUser(), 1500);
+      } else if (invoiceStatus === "cancelled") {
+        setMessage("Payment cancelled");
+      } else if (invoiceStatus !== "pending") {
+        setMessage("Payment did not complete");
+      }
+    } catch {
+      setMessage("Something went wrong");
+    } finally {
+      setStatus("idle");
+    }
+  };
+
+  const handleClaim = async () => {
+    setMessage(null);
+    setStatus("loading");
+    const result = await claimPassTickets();
+    setStatus("idle");
+    if (result.alreadyClaimed) {
+      setMessage("Already claimed today's tickets");
+    } else if (result.error) {
+      setMessage(result.error);
+    } else if (result.ticketsEarned) {
+      setMessage(`+${result.ticketsEarned} tickets claimed!`);
+    }
+  };
+
+  return (
+    <div className="pass-gradient fixed inset-0 z-50 flex flex-col text-white">
+      <div className="flex items-center justify-between px-5 pt-6">
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-lg"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div className="flex flex-1 flex-col items-center overflow-y-auto px-6 pb-10 pt-4 text-center">
+        <div
+          className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-3xl"
+          aria-hidden="true"
+        >
+          👑
+        </div>
+        <h1 className="font-heading mt-4 text-2xl font-bold">Raffly Pass</h1>
+
+        {hasPass ? (
+          <p className="mt-1 text-xs text-white/50">
+            Active until{" "}
+            {new Date(user!.raffly_pass_expires_at!).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+            })}
+          </p>
+        ) : (
+          <>
+            <p className="font-heading mt-1 text-3xl font-bold text-gold">
+              {RAFFLY_PASS_STARS} ⭐
+            </p>
+            <p className="text-xs text-white/50">one-time purchase</p>
+          </>
+        )}
+
+        <div className="mt-6 w-full rounded-2xl bg-white/5 p-4 text-left">
+          {BENEFITS.map((benefit) => (
+            <div key={benefit} className="flex items-start gap-3 py-2">
+              <span className="mt-0.5 text-gold" aria-hidden="true">
+                ✓
+              </span>
+              <span className="text-sm text-white/80">{benefit}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 w-full rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3">
+          <p className="text-sm font-semibold text-gold">You&apos;ll receive 600+ tickets this month</p>
+        </div>
+
+        {hasPass ? (
+          <button
+            onClick={handleClaim}
+            disabled={status === "loading" || alreadyClaimedToday}
+            className="mt-6 w-full rounded-xl bg-gold px-4 py-3 text-sm font-semibold text-[#1a1238] transition disabled:opacity-60"
+          >
+            {status === "loading"
+              ? "Claiming..."
+              : alreadyClaimedToday
+              ? "Already claimed today"
+              : "Claim today's 20 tickets"}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={handleBuy}
+              disabled={status === "loading" || loadingUser}
+              className="mt-6 w-full rounded-xl bg-gold px-4 py-3 text-sm font-semibold text-[#1a1238] transition disabled:opacity-60"
+            >
+              {status === "loading" ? "Processing..." : "Get Raffly Pass"}
+            </button>
+            <p className="mt-3 text-[11px] text-white/40">Does not auto-renew.</p>
+          </>
+        )}
+
+        {message && <p className="mt-3 text-xs text-white/60">{message}</p>}
+      </div>
+    </div>
+  );
+}

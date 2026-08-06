@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { checkAndRewardReferral } from "@/lib/referral";
+import { isPassActive } from "@/lib/raffly-pass";
 
 const ADS_TO_TICKET_RATIO = 2;
 
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
 
   const { data: user, error: userError } = await supabase
     .from("users")
-    .select("id, ticket_balance")
+    .select("id, ticket_balance, raffly_pass_expires_at")
     .eq("telegram_id", telegramId)
     .single();
 
@@ -51,11 +52,11 @@ export async function GET(req: NextRequest) {
       .update({ converted: true })
       .in("id", toConvert);
 
+    const ticketsAwarded = isPassActive(user.raffly_pass_expires_at) ? 2 : 1;
+
     await supabase
       .from("users")
-      await supabase
-      .from("users")
-      .update({ ticket_balance: user.ticket_balance + 1 })
+      .update({ ticket_balance: user.ticket_balance + ticketsAwarded })
       .eq("id", user.id);
 
     await checkAndRewardReferral(supabase, user.id);

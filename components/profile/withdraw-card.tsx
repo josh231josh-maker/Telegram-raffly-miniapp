@@ -31,11 +31,11 @@ export function WithdrawCard() {
       <button
         onClick={handleWithdraw}
         disabled={status === "loading" || balance <= 0}
-        className="w-full rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition disabled:cursor-not-allowed disabled:opacity-40"
+        className="w-full rounded-xl bg-green px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40"
       >
         {status === "loading" ? "Processing..." : `Withdraw $${balance.toFixed(2)}`}
       </button>
-      {message && <p className="text-center text-xs text-indigo-200/60">{message}</p>}
+      {message && <p className="text-center text-xs text-text-faint">{message}</p>}
     </div>
   );
 }

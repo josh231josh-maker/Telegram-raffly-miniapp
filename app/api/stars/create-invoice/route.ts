@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
+import { RAFFLY_PASS_STARS } from "@/lib/raffly-pass";
 
 const TIERS: Record<string, { stars: number; tickets: number; label: string }> = {
   entry: { stars: 10, tickets: 15, label: "Entry Pack — 15 Tickets" },
   better: { stars: 50, tickets: 90, label: "Better Value — 90 Tickets" },
   best: { stars: 100, tickets: 200, label: "Best Value — 200 Tickets" },
+  pass: { stars: RAFFLY_PASS_STARS, tickets: 0, label: "Raffly Pass — 30 Days" },
 };
 
 export async function POST(req: NextRequest) {
@@ -24,17 +26,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
   }
 
-  const payload = `${tgUser.id}:${selected.tickets}`;
+  const payload = `${tgUser.id}:${selected.tickets}:${tier}`;
+  const description =
+    tier === "pass"
+      ? "Unlock Raffly Pass: 20 tickets/day, 2x rewards, for 30 days"
+      : `Get ${selected.tickets} raffle tickets for Raffly`;
 
   const res = await fetch(`https://api.telegram.org/bot${botToken}/createInvoiceLink`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       title: selected.label,
-      description: `Get ${selected.tickets} raffle tickets for Raffly`,
+      description,
       payload,
       currency: "XTR",
-      prices: [{ label: "Tickets", amount: selected.stars }],
+      prices: [{ label: selected.label, amount: selected.stars }],
     }),
   });
 

@@ -6,23 +6,16 @@ export function HomeHeader() {
   const { isTelegram } = useTelegram();
 
   return (
-    <header className="flex flex-col items-center gap-2 text-center">
+    <header className="flex flex-col items-center gap-1 pb-1 text-center">
       <div className="flex items-center gap-2">
-        <span className="text-2xl" aria-hidden="true">
+        <span className="text-xl" aria-hidden="true">
           🎟️
         </span>
-        <h1 className="text-3xl font-bold tracking-tight">
-          <span className="gold-text">Raffly</span>
-        </h1>
-        <span className="text-2xl" aria-hidden="true">
-          ⭐
-        </span>
+        <h1 className="font-heading text-2xl font-bold text-text">Raffly</h1>
       </div>
-      <p className="text-sm text-indigo-200/80">
-        5 winners · $100 USDT each · every week
-      </p>
+      <p className="text-xs text-text-dim">5 winners · $100 USDT each · every week</p>
       {!isTelegram && (
-        <p className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs text-amber-200">
+        <p className="mt-1 rounded-full border border-gold/30 bg-gold-soft px-3 py-1 text-[11px] text-gold">
           Dev mode — open in Telegram for full experience
         </p>
       )}

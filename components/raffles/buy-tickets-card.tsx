@@ -54,10 +54,10 @@ export function BuyTicketsCard() {
   };
 
   return (
-    <section className="card-glow rounded-2xl border border-gold/20 bg-card p-5 backdrop-blur-sm">
+    <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-indigo-200/70">Buy Tickets</span>
-        <span className="text-xs text-indigo-200/50">via Telegram Stars ⭐</span>
+        <span className="text-sm font-medium text-text-dim">Buy Tickets</span>
+        <span className="text-xs text-text-faint">via Telegram Stars ⭐</span>
       </div>
       <div className="flex flex-col gap-2">
         {TIERS.map((t) => (
@@ -65,9 +65,9 @@ export function BuyTicketsCard() {
             key={t.id}
             onClick={() => handleBuy(t.id)}
             disabled={loadingTier !== null}
-            className="flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <span className="text-indigo-100">
+            <span className="text-text">
               {t.label} — {t.tickets} tickets
             </span>
             <span className="font-semibold text-gold">
@@ -76,7 +76,7 @@ export function BuyTicketsCard() {
           </button>
         ))}
       </div>
-      {message && <p className="mt-2 text-center text-xs text-indigo-200/60">{message}</p>}
+      {message && <p className="mt-2 text-center text-xs text-text-faint">{message}</p>}
     </section>
   );
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { checkAndRewardReferral } from "@/lib/referral";
+import { RAFFLY_PASS_DURATION_DAYS } from "@/lib/raffly-pass";
 
 
 
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   const payment = update.message?.successful_payment;
   if (payment) {
-    const [telegramIdStr, ticketsStr] = String(payment.invoice_payload).split(":");
+    const [telegramIdStr, ticketsStr, tier] = String(payment.invoice_payload).split(":");
     const telegramId = Number(telegramIdStr);
     const tickets = Number(ticketsStr);
 
@@ -33,15 +34,28 @@ export async function POST(req: NextRequest) {
       const supabase = getSupabaseAdmin();
       const { data: user } = await supabase
         .from("users")
-        .select("id, ticket_balance")
+        .select("id, ticket_balance, raffly_pass_expires_at")
         .eq("telegram_id", telegramId)
         .single();
 
       if (user) {
-        await supabase
-          .from("users")
-          .update({ ticket_balance: user.ticket_balance + tickets })
-          .eq("id", user.id);
+        if (tier === "pass") {
+          const base =
+            user.raffly_pass_expires_at && new Date(user.raffly_pass_expires_at) > new Date()
+              ? new Date(user.raffly_pass_expires_at)
+              : new Date();
+          base.setUTCDate(base.getUTCDate() + RAFFLY_PASS_DURATION_DAYS);
+
+          await supabase
+            .from("users")
+            .update({ raffly_pass_expires_at: base.toISOString() })
+            .eq("id", user.id);
+        } else {
+          await supabase
+            .from("users")
+            .update({ ticket_balance: user.ticket_balance + tickets })
+            .eq("id", user.id);
+        }
 
         await checkAndRewardReferral(supabase, user.id);
       }

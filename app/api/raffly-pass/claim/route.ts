@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { checkAndRewardReferral } from "@/lib/referral";
-import { isPassActive } from "@/lib/raffly-pass";
+import { RAFFLY_PASS_DAILY_TICKETS, isPassActive } from "@/lib/raffly-pass";
 
 export async function POST(req: NextRequest) {
   const { initData } = await req.json();
@@ -28,27 +27,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const today = new Date().toISOString().slice(0, 10);
-
-  if (existing.last_checkin_date === today) {
-    return NextResponse.json({ alreadyCheckedIn: true, user: existing });
+  if (!isPassActive(existing.raffly_pass_expires_at)) {
+    return NextResponse.json({ error: "No active Raffly Pass" }, { status: 400 });
   }
 
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  const newStreak =
-    existing.last_checkin_date === yesterday ? existing.streak_count + 1 : 1;
-  const baseTicketsEarned = Math.min(newStreak, 5);
-  const ticketsEarned = isPassActive(existing.raffly_pass_expires_at)
-    ? baseTicketsEarned * 2
-    : baseTicketsEarned;
-  const newTicketBalance = existing.ticket_balance + ticketsEarned;
+  const today = new Date().toISOString().slice(0, 10);
+  if (existing.raffly_pass_last_claim_date === today) {
+    return NextResponse.json({ alreadyClaimed: true, user: existing });
+  }
 
   const { data: updated, error: updateError } = await supabase
     .from("users")
     .update({
-      ticket_balance: newTicketBalance,
-      streak_count: newStreak,
-      last_checkin_date: today,
+      ticket_balance: existing.ticket_balance + RAFFLY_PASS_DAILY_TICKETS,
+      raffly_pass_last_claim_date: today,
     })
     .eq("id", existing.id)
     .select()
@@ -58,12 +50,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
-  await checkAndRewardReferral(supabase, existing.id);
-
   return NextResponse.json({
-    alreadyCheckedIn: false,
-    ticketsEarned,
-    streak: newStreak,
+    alreadyClaimed: false,
+    ticketsEarned: RAFFLY_PASS_DAILY_TICKETS,
     user: updated,
   });
 }

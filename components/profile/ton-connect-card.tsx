@@ -35,17 +35,17 @@ export function TonConnectCard() {
   }, [address, user, getInitData]);
 
   return (
-    <section className="card-glow rounded-2xl border border-gold/20 bg-card p-5 backdrop-blur-sm">
+    <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-indigo-200/70">TON Wallet</span>
-        <span className="text-xs text-indigo-200/50">for withdrawals</span>
+        <span className="text-sm font-medium text-text-dim">TON Wallet</span>
+        <span className="text-xs text-text-faint">for withdrawals</span>
       </div>
-      <p className="mb-3 text-xs text-indigo-200/50">
+      <p className="mb-3 text-xs text-text-faint">
         Connect your TON wallet so we know where to send your USDT winnings.
       </p>
       <TonConnectButton />
       {user?.ton_wallet_address && (
-        <p className="mt-2 text-center text-xs text-emerald-400">
+        <p className="mt-2 text-center text-xs text-green">
           Connected: {user.ton_wallet_address.slice(0, 6)}...{user.ton_wallet_address.slice(-4)}
         </p>
       )}
