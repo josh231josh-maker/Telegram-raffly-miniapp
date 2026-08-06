@@ -20,13 +20,17 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
   const balance = user?.usdt_balance ?? 0;
   const walletConnected = !!user?.ton_wallet_address;
 
-  // Whenever the browser's connected wallet doesn't match what THIS
-  // Telegram account has saved, disconnect it. Runs on every change
-  // (not just once) since TON Connect restores its saved session
-  // asynchronously and may not be ready on the very first render.
+  // Whenever the browser's connected wallet doesn't match a DIFFERENT
+  // wallet THIS Telegram account already has saved, disconnect it — this
+  // guards against a stale TON Connect session left over from another
+  // Telegram account on the same device. It must only fire when there's
+  // an existing saved address to conflict with: right after a fresh
+  // connect, user.ton_wallet_address is still null until the save below
+  // completes, and treating that as a "mismatch" would immediately
+  // disconnect every new connection.
   useEffect(() => {
     if (!user) return;
-    if (address && address !== user.ton_wallet_address) {
+    if (address && user.ton_wallet_address && address !== user.ton_wallet_address) {
       tonConnectUI.disconnect();
     }
   }, [user, address, tonConnectUI]);
@@ -42,8 +46,10 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ initData, walletAddress: address }),
-    }).catch((err) => console.error("Save TON wallet error:", err));
-  }, [address, user, getInitData]);
+    })
+      .then(() => refreshUser())
+      .catch((err) => console.error("Save TON wallet error:", err));
+  }, [address, user, getInitData, refreshUser]);
 
   const handleDisconnect = async () => {
     setDisconnecting(true);
