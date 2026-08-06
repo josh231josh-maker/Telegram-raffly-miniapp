@@ -36,8 +36,7 @@ export function ProfileCard() {
 
       <div className="grid grid-cols-3 gap-2 border-b border-border py-4 text-center">
         <div>
-          {/* Referral count isn't tracked on the user record yet — shown once the backend exposes it. */}
-          <p className="font-heading text-lg font-bold text-text">—</p>
+          <p className="font-heading text-lg font-bold text-text">{user.referral_count}</p>
           <p className="text-xs text-text-faint">Referrals</p>
         </div>
         <div>

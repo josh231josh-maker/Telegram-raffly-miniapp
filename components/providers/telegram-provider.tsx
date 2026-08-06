@@ -15,6 +15,7 @@ type RafflyUser = {
   ton_wallet_address: string | null;
   raffly_pass_expires_at: string | null;
   raffly_pass_last_claim_date: string | null;
+  referral_count: number;
 };
 
 type CheckInResult = {
