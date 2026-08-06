@@ -6,10 +6,11 @@ import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { TicketIcon, StarIcon } from "@/components/icons";
 import { IconBadge } from "@/components/icon-badge";
 
+// TODO: raise back to real prices (10/50/100) before launch — set to 1 for testing
 const TIERS = [
-  { id: "entry", stars: 10, tickets: 15, label: "Entry Pack" },
-  { id: "better", stars: 50, tickets: 90, label: "Better Value" },
-  { id: "best", stars: 100, tickets: 200, label: "Best Value" },
+  { id: "entry", stars: 1, tickets: 15, label: "Entry Pack" },
+  { id: "better", stars: 1, tickets: 90, label: "Better Value" },
+  { id: "best", stars: 1, tickets: 200, label: "Best Value" },
 ];
 
 export function BuyTicketsCard() {
