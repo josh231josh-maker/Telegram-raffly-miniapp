@@ -2,7 +2,10 @@
 
 import { useTelegram } from "@/components/providers/telegram-provider";
 
-const SETTINGS_ROWS = ["Notifications", "Support", "Terms & Privacy"];
+const SETTINGS_ROWS: { label: string; href?: string }[] = [
+  { label: "Support", href: "https://t.me/RafflySupportBot" },
+  { label: "Terms & Privacy" },
+];
 
 function initials(firstName: string | null, username: string | null): string {
   const source = firstName || username || "?";
@@ -48,14 +51,29 @@ export function ProfileCard() {
       </div>
 
       <div className="flex flex-col divide-y divide-border">
-        {SETTINGS_ROWS.map((row) => (
-          <div key={row} className="flex items-center justify-between py-3 text-sm text-text">
-            <span>{row}</span>
-            <span className="text-text-faint" aria-hidden="true">
-              ›
-            </span>
-          </div>
-        ))}
+        {SETTINGS_ROWS.map((row) =>
+          row.href ? (
+            <a
+              key={row.label}
+              href={row.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between py-3 text-sm text-text"
+            >
+              <span>{row.label}</span>
+              <span className="text-text-faint" aria-hidden="true">
+                ›
+              </span>
+            </a>
+          ) : (
+            <div key={row.label} className="flex items-center justify-between py-3 text-sm text-text">
+              <span>{row.label}</span>
+              <span className="text-text-faint" aria-hidden="true">
+                ›
+              </span>
+            </div>
+          )
+        )}
       </div>
     </section>
   );
