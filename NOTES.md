@@ -21,7 +21,7 @@
 | Ad limit | No daily cap for now |
 | Ticket expiry | Tickets do **not** carry over — reset each week |
 | Winnings | Credited to in-app USDT balance |
-| Withdrawals | Manual, minimum **$30 USDT** |
+| Withdrawals | Manual, no minimum |
 
 ---
 
@@ -115,7 +115,7 @@ lib/
 - [ ] **Phase 3 — Earn tickets:** Ads, check-in, referrals
 - [ ] **Phase 4 — Payments:** Telegram Stars + TON Connect
 - [ ] **Phase 5 — Raffle engine:** Weekly draw, winner selection, notifications
-- [ ] **Phase 6 — Withdrawals:** $30 minimum USDT payout flow
+- [ ] **Phase 6 — Withdrawals:** No-minimum USDT payout flow
 
 ---
 

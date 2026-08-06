@@ -65,7 +65,7 @@ export function BalanceCards() {
       <BalanceCard
         label="USDT"
         value={loadingUser ? "…" : `$${usdtBalance}`}
-        sublabel="Withdraw at $30"
+        sublabel="No minimum"
         icon={<UsdtIcon />}
         accent="green"
       />
