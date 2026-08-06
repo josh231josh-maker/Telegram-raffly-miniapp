@@ -41,7 +41,7 @@ export function WatchAdCard() {
       <button
         onClick={showAd}
         disabled={status !== "idle"}
-        className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+        className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
       >
         {status === "loading"
           ? "Processing..."

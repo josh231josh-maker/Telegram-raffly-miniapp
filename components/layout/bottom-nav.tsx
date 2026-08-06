@@ -79,7 +79,7 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
       className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4"
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 14px)" }}
     >
-      <nav className="nav-shadow flex w-full max-w-xs items-center justify-around rounded-full border border-border bg-card px-2 py-2">
+      <nav className="nav-shadow flex w-full max-w-xs items-center justify-around rounded-full border border-border bg-card/90 px-2 py-2 backdrop-blur-md">
         {TABS.map((tab) => {
           const isActive = active === tab.id;
           const Icon = ICONS[tab.id];

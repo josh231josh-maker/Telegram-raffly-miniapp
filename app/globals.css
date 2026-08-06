@@ -1,23 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f5fb;
-  --card: #ffffff;
-  --border: #eae7f5;
-  --accent: #6d4aff;
-  --accent-soft: #f1ecff;
-  --gold: #c9962c;
-  --gold-soft: #faf1e0;
-  --green: #16a34a;
-  --green-soft: #eaf8ee;
-  --text: #1c1533;
-  --text-dim: #6b6478;
-  --text-faint: #a6a0b8;
+  --background: #0a0e24;
+  --card: #131a3d;
+  --border: rgba(244, 202, 118, 0.14);
+  --border-soft: rgba(255, 255, 255, 0.07);
+  --accent: #f0b23e;
+  --accent-2: #ffd873;
+  --accent-soft: rgba(240, 178, 62, 0.15);
+  --gold: #f0b23e;
+  --gold-soft: rgba(240, 178, 62, 0.15);
+  --ruby: #d6336c;
+  --ruby-deep: #4a1030;
+  --ruby-soft: rgba(214, 51, 108, 0.16);
+  --green: #2fd699;
+  --green-soft: rgba(47, 214, 153, 0.15);
+  --text: #f6f2ea;
+  --text-dim: #a8adcf;
+  --text-faint: #6d729a;
 
-  --hero-from: #2a1f5c;
-  --hero-to: #1c1440;
-  --pass-from: #241a4a;
-  --pass-to: #1a1238;
+  --hero-from: #1c2456;
+  --hero-to: #0a0d22;
+  --pass-from: #3a1030;
+  --pass-to: #0a0d22;
 }
 
 @theme inline {
@@ -25,10 +30,14 @@
   --color-foreground: var(--text);
   --color-card: var(--card);
   --color-border: var(--border);
+  --color-border-soft: var(--border-soft);
   --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
   --color-accent-soft: var(--accent-soft);
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
+  --color-ruby: var(--ruby);
+  --color-ruby-soft: var(--ruby-soft);
   --color-green: var(--green);
   --color-green-soft: var(--green-soft);
   --color-text: var(--text);
@@ -49,28 +58,47 @@ body {
   font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
 }
 
+.app-bg-gradient {
+  background:
+    radial-gradient(circle at 18% -6%, rgba(240, 178, 62, 0.14), transparent 42%),
+    radial-gradient(circle at 100% 18%, rgba(214, 51, 108, 0.09), transparent 40%),
+    var(--background);
+}
+
 .hero-gradient {
   background:
-    radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.1), transparent 55%),
-    linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%);
+    radial-gradient(circle at 12% -10%, rgba(255, 216, 115, 0.22), transparent 55%),
+    linear-gradient(150deg, var(--hero-from) 0%, var(--hero-to) 100%);
 }
 
 .pass-gradient {
-  background: linear-gradient(135deg, var(--pass-from) 0%, var(--pass-to) 100%);
+  background:
+    radial-gradient(circle at 18% -6%, rgba(255, 216, 115, 0.16), transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(214, 51, 108, 0.18), transparent 55%),
+    linear-gradient(160deg, var(--pass-from) 0%, var(--pass-to) 100%);
+}
+
+.pass-banner-gradient {
+  background:
+    radial-gradient(circle at 90% -20%, rgba(255, 216, 115, 0.25), transparent 50%),
+    linear-gradient(135deg, #8a2456 0%, var(--ruby-deep) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 10px 24px -8px rgba(214, 51, 108, 0.45);
 }
 
 .card-soft {
   box-shadow:
-    0 1px 2px rgba(28, 21, 51, 0.05),
-    0 2px 6px rgba(28, 21, 51, 0.04),
-    0 16px 32px -12px rgba(28, 21, 51, 0.12);
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 16px 32px -16px rgba(0, 0, 0, 0.55);
 }
 
 .btn-accent {
-  background: linear-gradient(135deg, #7d5dff 0%, var(--accent) 100%);
+  color: #201205;
+  background: linear-gradient(135deg, var(--accent-2) 0%, var(--accent) 100%);
   box-shadow:
-    0 1px 1px rgba(255, 255, 255, 0.25) inset,
-    0 8px 20px -6px rgba(109, 74, 255, 0.55);
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 10px 22px -8px rgba(240, 178, 62, 0.55);
 }
 
 .btn-accent:active {
@@ -78,29 +106,19 @@ body {
 }
 
 .btn-green {
-  background: linear-gradient(135deg, #22c55e 0%, var(--green) 100%);
+  color: #06281d;
+  background: linear-gradient(135deg, #6ff0c2 0%, var(--green) 100%);
   box-shadow:
-    0 1px 1px rgba(255, 255, 255, 0.25) inset,
-    0 8px 20px -6px rgba(22, 163, 74, 0.5);
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 10px 22px -8px rgba(47, 214, 153, 0.5);
 }
 
 .btn-green:active {
   transform: scale(0.98);
 }
 
-.btn-gold {
-  background: linear-gradient(135deg, #e2b355 0%, var(--gold) 100%);
-  box-shadow:
-    0 1px 1px rgba(255, 255, 255, 0.3) inset,
-    0 8px 20px -6px rgba(201, 150, 44, 0.5);
-}
-
-.btn-gold:active {
-  transform: scale(0.98);
-}
-
 .nav-shadow {
   box-shadow:
-    0 1px 2px rgba(28, 21, 51, 0.04),
-    0 12px 28px -8px rgba(28, 21, 51, 0.18);
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 14px 30px -10px rgba(0, 0, 0, 0.6);
 }

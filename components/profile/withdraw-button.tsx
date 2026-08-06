@@ -17,7 +17,7 @@ export function WithdrawButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="btn-green flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition"
+        className="btn-green flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition"
       >
         <ArrowDownCircleIcon className="h-4 w-4" />
         Withdraw ${balance.toFixed(2)}

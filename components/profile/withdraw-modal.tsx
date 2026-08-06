@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { UsdtIcon, CloseIcon } from "@/components/icons";
+import { IconBadge } from "@/components/icon-badge";
 
 type WithdrawModalProps = {
   onClose: () => void;
@@ -128,9 +129,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
         </div>
 
         <div className="flex flex-col items-center gap-2 py-4">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-soft text-green">
-            <UsdtIcon className="h-7 w-7" />
-          </span>
+          <IconBadge icon={<UsdtIcon />} tone="green" size="lg" />
           <span className="font-heading text-3xl font-bold text-text">${balance.toFixed(2)}</span>
         </div>
 
@@ -169,7 +168,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
         <button
           onClick={handleWithdraw}
           disabled={!canWithdraw}
-          className="btn-green w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+          className="btn-green w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
         >
           {status === "loading" ? "Processing..." : `Withdraw $${balance.toFixed(2)}`}
         </button>

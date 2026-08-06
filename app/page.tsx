@@ -22,7 +22,7 @@ export default function HomePage() {
   const [passOpen, setPassOpen] = useState(false);
 
   return (
-    <main className="min-h-dvh bg-background pb-28">
+    <main className="app-bg-gradient min-h-dvh pb-28">
       <div className="mx-auto flex max-w-md flex-col gap-4 px-4 pt-6">
         {tab === "home" && (
           <>

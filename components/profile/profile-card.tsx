@@ -23,7 +23,7 @@ export function ProfileCard() {
   return (
     <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-3 border-b border-border pb-4">
-        <div className="btn-accent flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-heading text-lg font-bold text-white">
+        <div className="btn-accent flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-heading text-lg font-bold">
           {initials(user.first_name, user.username)}
         </div>
         <div>

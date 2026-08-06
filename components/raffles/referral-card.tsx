@@ -37,7 +37,7 @@ export function ReferralCard() {
       </p>
       <button
         onClick={handleCopy}
-        className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition"
+        className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold transition"
       >
         {copied ? "Link copied!" : "Copy invite link"}
       </button>

@@ -5,6 +5,7 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { RAFFLY_PASS_STARS, isPassActive } from "@/lib/raffly-pass";
 import { CrownIcon, CheckIcon, CloseIcon, StarIcon } from "@/components/icons";
+import { IconBadge } from "@/components/icon-badge";
 
 type RafflyPassDetailProps = {
   onClose: () => void;
@@ -85,9 +86,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
       </div>
 
       <div className="flex flex-1 flex-col items-center overflow-y-auto px-6 pb-10 pt-4 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-gold">
-          <CrownIcon className="h-8 w-8" />
-        </div>
+        <IconBadge icon={<CrownIcon />} tone="gold" size="lg" />
         <h1 className="font-heading mt-4 text-2xl font-bold">Raffly Pass</h1>
 
         {hasPass ? (
@@ -127,7 +126,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
           <button
             onClick={handleClaim}
             disabled={status === "loading" || alreadyClaimedToday}
-            className="btn-gold mt-6 w-full rounded-xl px-4 py-3 text-sm font-semibold text-[#1a1238] transition disabled:opacity-60 disabled:shadow-none"
+            className="btn-accent mt-6 w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-60 disabled:shadow-none"
           >
             {status === "loading"
               ? "Claiming..."
@@ -140,7 +139,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
             <button
               onClick={handleBuy}
               disabled={status === "loading" || loadingUser}
-              className="btn-gold mt-6 w-full rounded-xl px-4 py-3 text-sm font-semibold text-[#1a1238] transition disabled:opacity-60 disabled:shadow-none"
+              className="btn-accent mt-6 w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-60 disabled:shadow-none"
             >
               {status === "loading" ? "Processing..." : "Get Raffly Pass"}
             </button>
