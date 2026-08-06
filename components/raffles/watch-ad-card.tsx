@@ -28,15 +28,15 @@ export function WatchAdCard() {
   if (loadingUser) return null;
 
   return (
-    <section className="card-glow rounded-2xl border border-gold/20 bg-card p-5 backdrop-blur-sm">
+    <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-medium text-indigo-200/70">Watch & Earn</span>
-        <span className="text-xs text-indigo-200/50">2 ads = 1 ticket</span>
+        <span className="text-sm font-medium text-text-dim">Watch & Earn</span>
+        <span className="text-xs text-text-faint">2 ads = 1 ticket</span>
       </div>
       <button
         onClick={showAd}
         disabled={status !== "idle"}
-        className="w-full rounded-xl bg-gold px-4 py-3 text-sm font-semibold text-indigo-950 transition disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
       >
         {status === "loading"
           ? "Processing..."

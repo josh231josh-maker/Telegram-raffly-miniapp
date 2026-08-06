@@ -30,17 +30,17 @@ export function DailyCheckIn() {
     alreadyCheckedInToday || status === "loading" || status === "done" || status === "already";
 
   return (
-    <section className="card-glow rounded-2xl border border-gold/20 bg-card p-5 backdrop-blur-sm">
+    <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-medium text-indigo-200/70">Daily Check-in</span>
-        <span className="text-xs text-indigo-200/50">
+        <span className="text-sm font-medium text-text-dim">Daily Check-in</span>
+        <span className="text-xs text-text-faint">
           Streak: {user?.streak_count ?? 0} day{(user?.streak_count ?? 0) === 1 ? "" : "s"}
         </span>
       </div>
       <button
         onClick={handleCheckIn}
         disabled={disabled}
-        className="w-full rounded-xl bg-gold px-4 py-3 text-sm font-semibold text-indigo-950 transition disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
       >
         {alreadyCheckedInToday || status === "already"
           ? "Already claimed today"

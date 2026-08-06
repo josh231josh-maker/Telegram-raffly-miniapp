@@ -133,10 +133,10 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         miniApp.ready();
       }
       if (miniApp.setHeaderColor.isAvailable()) {
-        miniApp.setHeaderColor("#1e1b4b");
+        miniApp.setHeaderColor("#f6f5fb");
       }
       if (miniApp.setBackgroundColor.isAvailable()) {
-        miniApp.setBackgroundColor("#0f0a1e");
+        miniApp.setBackgroundColor("#f6f5fb");
       }
       if (themeParams.mount.isAvailable()) {
         themeParams.mount();

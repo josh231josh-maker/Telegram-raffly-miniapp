@@ -1,37 +1,67 @@
 "use client";
+
+import { useState } from "react";
+import { BottomNav, type TabId } from "@/components/layout/bottom-nav";
 import { HomeHeader } from "@/components/home/home-header";
-import { BalanceCards } from "@/components/home/balance-cards";
-import { DrawCountdown } from "@/components/home/draw-countdown";
-import { DailyCheckIn } from "@/components/home/daily-checkin";
-import { WatchAdCard } from "@/components/home/watch-ad-card";
-import { ReferralCard } from "@/components/home/referral-card";
-import { RaffleStats } from "@/components/home/raffle-stats";
-import { EnterRaffleCard } from "@/components/home/enter-raffle-card";
+import { HeroCountdown } from "@/components/home/hero-countdown";
+import { PassBanner } from "@/components/home/pass-banner";
+import { OddsRingCard } from "@/components/home/odds-ring-card";
 import { PreviousWinners } from "@/components/home/previous-winners";
-import { WithdrawCard } from "@/components/home/withdraw-card";
-import { BuyTicketsCard } from "@/components/home/buy-tickets-card";
-import { TonConnectCard } from "@/components/home/ton-connect-card";
+import { EnterRaffleCard } from "@/components/raffles/enter-raffle-card";
+import { DailyCheckIn } from "@/components/raffles/daily-checkin";
+import { WatchAdCard } from "@/components/raffles/watch-ad-card";
+import { ReferralCard } from "@/components/raffles/referral-card";
+import { BuyTicketsCard } from "@/components/raffles/buy-tickets-card";
+import { BalanceCards } from "@/components/profile/balance-cards";
+import { WithdrawCard } from "@/components/profile/withdraw-card";
+import { TonConnectCard } from "@/components/profile/ton-connect-card";
+import { ProfileCard } from "@/components/profile/profile-card";
+import { RecentActivity } from "@/components/profile/recent-activity";
+import { RafflyPassDetail } from "@/components/raffly-pass/raffly-pass-detail";
 
 export default function HomePage() {
+  const [tab, setTab] = useState<TabId>("home");
+  const [passOpen, setPassOpen] = useState(false);
+
   return (
-    <main className="raffly-gradient ticket-pattern min-h-dvh px-4 pb-8 pt-6">
-      <div className="mx-auto flex max-w-md flex-col gap-6">
-        <HomeHeader />
-        <BalanceCards />
-        <WithdrawCard />
-        <TonConnectCard />
-        <BuyTicketsCard />
-        <EnterRaffleCard />
-        <RaffleStats />
-        <DailyCheckIn />
-        <WatchAdCard />
-        <ReferralCard />
-        <DrawCountdown />
-        <PreviousWinners />
-        <p className="text-center text-xs text-indigo-200/50">
-          Tickets reset each week
-        </p>
+    <main className="min-h-dvh bg-background pb-28">
+      <div className="mx-auto flex max-w-md flex-col gap-4 px-4 pt-6">
+        {tab === "home" && (
+          <>
+            <HomeHeader />
+            <HeroCountdown />
+            <PassBanner onOpen={() => setPassOpen(true)} />
+            <OddsRingCard />
+            <PreviousWinners />
+          </>
+        )}
+
+        {tab === "raffles" && (
+          <>
+            <h1 className="font-heading text-2xl font-bold text-text">Raffles</h1>
+            <EnterRaffleCard />
+            <DailyCheckIn />
+            <WatchAdCard />
+            <ReferralCard />
+            <BuyTicketsCard />
+          </>
+        )}
+
+        {tab === "profile" && (
+          <>
+            <h1 className="font-heading text-2xl font-bold text-text">Profile</h1>
+            <BalanceCards />
+            <WithdrawCard />
+            <TonConnectCard />
+            <ProfileCard />
+            <RecentActivity />
+          </>
+        )}
       </div>
+
+      <BottomNav active={tab} onChange={setTab} />
+
+      {passOpen && <RafflyPassDetail onClose={() => setPassOpen(false)} />}
     </main>
   );
 }
