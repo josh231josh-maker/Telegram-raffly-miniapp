@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 
@@ -8,22 +8,20 @@ export function TonConnectCard() {
   const address = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
   const { user, getInitData } = useTelegram();
-  const checkedStaleConnection = useRef(false);
 
-  // If the browser has a connected wallet that doesn't belong to THIS
-  // Telegram account, disconnect it so we never save someone else's
-  // leftover connection (e.g. shared device) to the wrong account.
+  // Whenever the browser's connected wallet doesn't match what THIS
+  // Telegram account has saved, disconnect it. Runs on every change
+  // (not just once) since TON Connect restores its saved session
+  // asynchronously and may not be ready on the very first render.
   useEffect(() => {
-    if (!user || checkedStaleConnection.current) return;
-    checkedStaleConnection.current = true;
-
+    if (!user) return;
     if (address && address !== user.ton_wallet_address) {
       tonConnectUI.disconnect();
     }
   }, [user, address, tonConnectUI]);
 
   useEffect(() => {
-    if (!user || !checkedStaleConnection.current) return;
+    if (!user) return;
     if (!address || address === user.ton_wallet_address) return;
 
     const initData = getInitData();
