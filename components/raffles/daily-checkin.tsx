@@ -45,7 +45,7 @@ export function DailyCheckIn() {
   return (
     <TaskRow
       icon={<CalendarCheckIcon />}
-      tone="gold"
+      tone="purple"
       label={label}
       sublabel={
         disabled ? undefined : `Streak: ${user.streak_count ?? 0} day${(user.streak_count ?? 0) === 1 ? "" : "s"}`

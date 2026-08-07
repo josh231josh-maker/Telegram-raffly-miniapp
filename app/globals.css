@@ -1,28 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #1e2749;
-  --card: #262f57;
-  --border: rgba(255, 209, 102, 0.2);
-  --border-soft: rgba(255, 255, 255, 0.1);
-  --accent: #ffb020;
-  --accent-2: #ffd166;
-  --accent-soft: rgba(255, 176, 32, 0.18);
-  --gold: #ffb020;
-  --gold-soft: rgba(255, 176, 32, 0.18);
-  --ruby: #ff4d8d;
-  --ruby-deep: #6b2154;
-  --ruby-soft: rgba(255, 77, 141, 0.18);
-  --green: #2be6a0;
-  --green-soft: rgba(43, 230, 160, 0.18);
-  --text: #ffffff;
-  --text-dim: #c7ccec;
-  --text-faint: #9298c2;
+  --background: #faf5f2;
+  --card: #ffffff;
+  --border: #f1e9f7;
+  --border-soft: rgba(28, 21, 35, 0.06);
+  --purple: #7c4dff;
+  --purple-2: #9b6bff;
+  --purple-soft: #f1ecff;
+  --orange: #ff7a45;
+  --orange-2: #ff9a66;
+  --orange-soft: #fff0e8;
+  --pink: #ff5ca8;
+  --pink-soft: #ffe8f3;
+  --green: #16a34a;
+  --green-2: #22c55e;
+  --green-soft: #e8f8ee;
+  --text: #1c1523;
+  --text-dim: #6b6478;
+  --text-faint: #a79fb8;
 
-  --hero-from: #333f80;
-  --hero-to: #1c2449;
-  --pass-from: #62255a;
-  --pass-to: #1c2449;
+  --hero-from: #7c5cff;
+  --hero-to: #ec4899;
+  --pass-from: #ff9a56;
+  --pass-to: #ff5f3d;
 }
 
 @theme inline {
@@ -31,13 +32,17 @@
   --color-card: var(--card);
   --color-border: var(--border);
   --color-border-soft: var(--border-soft);
-  --color-accent: var(--accent);
-  --color-accent-2: var(--accent-2);
-  --color-accent-soft: var(--accent-soft);
-  --color-gold: var(--gold);
-  --color-gold-soft: var(--gold-soft);
-  --color-ruby: var(--ruby);
-  --color-ruby-soft: var(--ruby-soft);
+  --color-purple: var(--purple);
+  --color-purple-soft: var(--purple-soft);
+  --color-accent: var(--orange);
+  --color-accent-2: var(--orange-2);
+  --color-accent-soft: var(--orange-soft);
+  --color-gold: var(--orange);
+  --color-gold-soft: var(--orange-soft);
+  --color-pink: var(--pink);
+  --color-pink-soft: var(--pink-soft);
+  --color-ruby: var(--pink);
+  --color-ruby-soft: var(--pink-soft);
   --color-green: var(--green);
   --color-green-soft: var(--green-soft);
   --color-text: var(--text);
@@ -59,66 +64,79 @@ body {
 }
 
 .app-bg-gradient {
-  background:
-    radial-gradient(circle at 18% -6%, rgba(255, 176, 32, 0.16), transparent 42%),
-    radial-gradient(circle at 100% 18%, rgba(255, 77, 141, 0.11), transparent 40%),
-    var(--background);
+  background: var(--background);
 }
 
 .hero-gradient {
-  background:
-    radial-gradient(circle at 12% -10%, rgba(255, 209, 102, 0.28), transparent 55%),
-    linear-gradient(150deg, var(--hero-from) 0%, var(--hero-to) 100%);
+  background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%);
 }
 
 .pass-gradient {
-  background:
-    radial-gradient(circle at 18% -6%, rgba(255, 209, 102, 0.2), transparent 45%),
-    radial-gradient(circle at 100% 100%, rgba(255, 77, 141, 0.22), transparent 55%),
-    linear-gradient(160deg, var(--pass-from) 0%, var(--pass-to) 100%);
+  background: linear-gradient(160deg, var(--pass-from) 0%, var(--pass-to) 100%);
 }
 
 .pass-banner-gradient {
-  background:
-    radial-gradient(circle at 90% -20%, rgba(255, 209, 102, 0.3), transparent 50%),
-    linear-gradient(135deg, #b23a72 0%, var(--ruby-deep) 100%);
+  background: linear-gradient(135deg, var(--pass-from) 0%, var(--pass-to) 100%);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.12) inset,
-    0 10px 24px -8px rgba(255, 77, 141, 0.5);
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 10px 24px -8px rgba(255, 95, 61, 0.45);
 }
 
 .card-soft {
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 16px 32px -16px rgba(0, 0, 0, 0.55);
+    0 1px 2px rgba(28, 21, 51, 0.05),
+    0 2px 6px rgba(28, 21, 51, 0.04),
+    0 16px 32px -12px rgba(28, 21, 51, 0.1);
 }
 
 .btn-accent {
-  color: #201205;
-  background: linear-gradient(135deg, var(--accent-2) 0%, var(--accent) 100%);
+  color: #fff;
+  background: linear-gradient(135deg, var(--orange-2) 0%, var(--orange) 100%);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.4) inset,
-    0 10px 22px -8px rgba(255, 176, 32, 0.55);
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 10px 22px -8px rgba(255, 122, 69, 0.5);
 }
 
 .btn-accent:active {
   transform: scale(0.98);
 }
 
-.btn-green {
-  color: #06281d;
-  background: linear-gradient(135deg, #6ff0c2 0%, var(--green) 100%);
+.btn-purple {
+  color: #fff;
+  background: linear-gradient(135deg, var(--purple-2) 0%, var(--purple) 100%);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.4) inset,
-    0 10px 22px -8px rgba(43, 230, 160, 0.5);
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 10px 22px -8px rgba(124, 77, 255, 0.5);
+}
+
+.btn-purple:active {
+  transform: scale(0.98);
+}
+
+.btn-green {
+  color: #fff;
+  background: linear-gradient(135deg, var(--green-2) 0%, var(--green) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 10px 22px -8px rgba(22, 163, 74, 0.4);
 }
 
 .btn-green:active {
   transform: scale(0.98);
 }
 
+.card-purple {
+  background: linear-gradient(135deg, var(--purple-2) 0%, var(--purple) 100%);
+  box-shadow: 0 10px 22px -10px rgba(124, 77, 255, 0.55);
+}
+
+.card-green {
+  background: linear-gradient(135deg, var(--green-2) 0%, var(--green) 100%);
+  box-shadow: 0 10px 22px -10px rgba(22, 163, 74, 0.4);
+}
+
 .nav-shadow {
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.05) inset,
-    0 14px 30px -10px rgba(0, 0, 0, 0.6);
+    0 1px 2px rgba(28, 21, 51, 0.04),
+    0 12px 28px -8px rgba(28, 21, 51, 0.16);
 }

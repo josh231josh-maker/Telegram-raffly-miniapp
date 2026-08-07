@@ -2,29 +2,29 @@
 
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { UsdtIcon } from "@/components/icons";
-import { IconBadge } from "@/components/icon-badge";
 import { TicketImage } from "@/components/ticket-image";
 
 type BalanceCardProps = {
   label: string;
   value: string;
   sublabel?: string;
-  icon?: React.ReactNode;
-  flatIcon?: React.ReactNode;
-  accent: "gold" | "green";
+  icon: React.ReactNode;
+  variant: "purple" | "green";
 };
 
-function BalanceCard({ label, value, sublabel, icon, flatIcon, accent }: BalanceCardProps) {
-  const accentBorder = accent === "gold" ? "border-gold/25" : "border-green/25";
+function BalanceCard({ label, value, sublabel, icon, variant }: BalanceCardProps) {
+  const cardClass = variant === "purple" ? "card-purple" : "card-green";
 
   return (
-    <article className={`card-soft rounded-2xl border bg-card p-5 ${accentBorder}`}>
+    <article className={`${cardClass} rounded-[24px] p-5 text-white`}>
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-text-dim">{label}</span>
-        {flatIcon ?? <IconBadge icon={icon} tone={accent} size="sm" />}
+        <span className="text-sm font-medium text-white/80">{label}</span>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20">
+          {icon}
+        </span>
       </div>
-      <p className="font-heading text-3xl font-bold tracking-tight text-text">{value}</p>
-      {sublabel && <p className="mt-1 text-xs text-text-faint">{sublabel}</p>}
+      <p className="font-heading text-3xl font-bold tracking-tight">{value}</p>
+      {sublabel && <p className="mt-1 text-xs text-white/70">{sublabel}</p>}
     </article>
   );
 }
@@ -41,14 +41,14 @@ export function BalanceCards() {
         label="Tickets"
         value={loadingUser ? "…" : String(ticketBalance)}
         sublabel="Never expire"
-        flatIcon={<TicketImage size={36} />}
-        accent="gold"
+        icon={<TicketImage size={22} />}
+        variant="purple"
       />
       <BalanceCard
         label="USDT"
         value={loadingUser ? "…" : `$${usdtBalance}`}
-        icon={<UsdtIcon />}
-        accent="green"
+        icon={<UsdtIcon className="h-4 w-4" />}
+        variant="green"
       />
     </section>
   );

@@ -5,7 +5,6 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { RAFFLY_PASS_STARS, isPassActive } from "@/lib/raffly-pass";
 import { CrownIcon, CheckIcon, CloseIcon, StarIcon } from "@/components/icons";
-import { IconBadge } from "@/components/icon-badge";
 
 type RafflyPassDetailProps = {
   onClose: () => void;
@@ -86,7 +85,9 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
       </div>
 
       <div className="flex flex-1 flex-col items-center overflow-y-auto px-6 pb-10 pt-4 text-center">
-        <IconBadge icon={<CrownIcon />} tone="gold" size="lg" />
+        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/25 text-white">
+          <CrownIcon className="h-8 w-8" />
+        </span>
         <h1 className="font-heading mt-4 text-2xl font-bold">Raffly Pass</h1>
 
         {hasPass ? (
@@ -99,7 +100,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
           </p>
         ) : (
           <>
-            <p className="font-heading mt-1 flex items-center justify-center gap-1.5 text-3xl font-bold text-gold">
+            <p className="font-heading mt-1 flex items-center justify-center gap-1.5 text-3xl font-bold text-white">
               {RAFFLY_PASS_STARS}
               <StarIcon className="h-6 w-6" />
             </p>
@@ -110,7 +111,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
         <div className="mt-6 w-full rounded-2xl bg-white/5 p-4 text-left">
           {BENEFITS.map((benefit) => (
             <div key={benefit} className="flex items-start gap-3 py-2">
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold/20 text-gold">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/25 text-white">
                 <CheckIcon className="h-3 w-3" />
               </span>
               <span className="text-sm text-white/80">{benefit}</span>
@@ -118,15 +119,15 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
           ))}
         </div>
 
-        <div className="mt-4 w-full rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3">
-          <p className="text-sm font-semibold text-gold">You&apos;ll receive 600+ tickets this month</p>
+        <div className="mt-4 w-full rounded-2xl border border-white/30 bg-white/15 px-4 py-3">
+          <p className="text-sm font-semibold text-white">You&apos;ll receive 600+ tickets this month</p>
         </div>
 
         {hasPass ? (
           <button
             onClick={handleClaim}
             disabled={status === "loading" || alreadyClaimedToday}
-            className="btn-accent mt-6 w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-60 disabled:shadow-none"
+            className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-semibold text-accent shadow-lg transition active:scale-[0.98] disabled:opacity-60"
           >
             {status === "loading"
               ? "Claiming..."
@@ -139,7 +140,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
             <button
               onClick={handleBuy}
               disabled={status === "loading" || loadingUser}
-              className="btn-accent mt-6 w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-60 disabled:shadow-none"
+              className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-semibold text-accent shadow-lg transition active:scale-[0.98] disabled:opacity-60"
             >
               {status === "loading" ? "Processing..." : "Get Raffly Pass"}
             </button>

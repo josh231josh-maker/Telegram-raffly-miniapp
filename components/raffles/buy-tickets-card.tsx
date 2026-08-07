@@ -9,9 +9,9 @@ import { TicketImage } from "@/components/ticket-image";
 // TODO: raise back to real prices (10/50/100) before launch
 // Diagnostic: entry temporarily at 3 stars (not 1), must match app/api/stars/create-invoice/route.ts
 const TIERS = [
-  { id: "entry", stars: 3, tickets: 15, label: "Entry Pack" },
-  { id: "better", stars: 1, tickets: 90, label: "Better Value" },
-  { id: "best", stars: 1, tickets: 200, label: "Best Value" },
+  { id: "entry", stars: 3, tickets: 15, label: "Entry Pack", popular: false },
+  { id: "better", stars: 1, tickets: 90, label: "Better Value", popular: true },
+  { id: "best", stars: 1, tickets: 200, label: "Best Value", popular: false },
 ];
 
 export function BuyTicketsCard() {
@@ -72,10 +72,17 @@ export function BuyTicketsCard() {
             key={t.id}
             onClick={() => handleBuy(t.id)}
             disabled={loadingTier !== null}
-            className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+            className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm transition disabled:cursor-not-allowed disabled:opacity-50 ${
+              t.popular ? "border-accent/30 bg-accent-soft" : "border-border bg-background"
+            }`}
           >
             <span className="text-text">
               {t.label} — {t.tickets} tickets
+              {t.popular && (
+                <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                  Popular
+                </span>
+              )}
             </span>
             <span className="flex items-center gap-1 font-semibold text-gold">
               {loadingTier === t.id ? "..." : t.stars}

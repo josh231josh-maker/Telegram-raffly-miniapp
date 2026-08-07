@@ -18,7 +18,7 @@ export function ReferralCard() {
     <>
       <TaskRow
         icon={<GiftIcon />}
-        tone="gold"
+        tone="pink"
         label="Invite Friends"
         sublabel="Earn tickets per referral"
         rewardLabel="+50"

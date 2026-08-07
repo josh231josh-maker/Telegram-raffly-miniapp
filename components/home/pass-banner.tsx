@@ -3,7 +3,6 @@
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { CrownIcon, ChevronRightIcon } from "@/components/icons";
-import { IconBadge } from "@/components/icon-badge";
 
 type PassBannerProps = {
   onOpen: () => void;
@@ -16,9 +15,11 @@ export function PassBanner({ onOpen }: PassBannerProps) {
   return (
     <button
       onClick={onOpen}
-      className="pass-banner-gradient flex items-center gap-3 rounded-2xl border border-[rgba(255,209,102,0.18)] px-4 py-3 text-left text-white transition active:scale-[0.99]"
+      className="pass-banner-gradient flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-white transition active:scale-[0.99]"
     >
-      <IconBadge icon={<CrownIcon />} tone="gold" size="md" />
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/25 text-white">
+        <CrownIcon className="h-5 w-5" />
+      </span>
       <span className="flex-1">
         <span className="flex items-center gap-2 font-heading text-sm font-semibold">
           Raffly Pass

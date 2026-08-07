@@ -62,7 +62,7 @@ export function OddsRingCard() {
   };
 
   return (
-    <section className="card-soft rounded-2xl border border-border bg-card p-5">
+    <section className="card-soft rounded-[28px] border border-border bg-card p-5">
       <p className="mb-4 text-sm font-medium text-text-dim">Your Odds</p>
       <div className="flex items-center gap-5">
         <div className="relative h-24 w-24 shrink-0">
@@ -123,7 +123,7 @@ export function OddsRingCard() {
             <button
               onClick={() => setClamped(clampedAmount - 1)}
               disabled={status === "loading" || clampedAmount <= 0}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-lg font-semibold text-accent shadow-sm transition disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Decrease amount"
             >
               −
@@ -144,7 +144,7 @@ export function OddsRingCard() {
             <button
               onClick={() => setClamped(clampedAmount + 1)}
               disabled={status === "loading" || clampedAmount >= available}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-lg font-semibold text-accent shadow-sm transition disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Increase amount"
             >
               +
@@ -157,7 +157,7 @@ export function OddsRingCard() {
                 key={pct}
                 onClick={() => setClamped(Math.round((available * pct) / 100))}
                 disabled={status === "loading"}
-                className="rounded-lg border border-border py-2 text-xs font-semibold text-text-dim transition disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-full border border-border py-2 text-xs font-semibold text-text-dim transition disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {pct === 100 ? "Max" : `${pct}%`}
               </button>
@@ -167,7 +167,7 @@ export function OddsRingCard() {
           <button
             onClick={handleEnter}
             disabled={status === "loading" || clampedAmount <= 0}
-            className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+            className="btn-accent w-full rounded-full px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
           >
             {status === "loading" ? "Entering..." : `Enter ${clampedAmount || ""} ticket${clampedAmount === 1 ? "" : "s"}`}
           </button>

@@ -35,7 +35,7 @@ export function WatchAdCard() {
   return (
     <TaskRow
       icon={<PlayCircleIcon />}
-      tone="gold"
+      tone="orange"
       label={label}
       sublabel={status === "idle" ? "2 ads = 1 ticket" : undefined}
       rewardLabel="+1"

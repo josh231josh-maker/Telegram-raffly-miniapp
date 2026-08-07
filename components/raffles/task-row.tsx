@@ -6,7 +6,7 @@ import { TicketImage } from "@/components/ticket-image";
 
 type TaskRowProps = {
   icon: React.ReactNode;
-  tone?: "gold" | "green" | "ruby";
+  tone?: "purple" | "orange" | "pink" | "green";
   label: string;
   sublabel?: string;
   rewardLabel: string;
@@ -15,9 +15,16 @@ type TaskRowProps = {
   chevron?: boolean;
 };
 
+const REWARD_CLASSES: Record<NonNullable<TaskRowProps["tone"]>, string> = {
+  purple: "bg-purple-soft text-purple",
+  orange: "bg-accent-soft text-accent",
+  pink: "bg-pink-soft text-pink",
+  green: "bg-green-soft text-green",
+};
+
 export function TaskRow({
   icon,
-  tone = "gold",
+  tone = "orange",
   label,
   sublabel,
   rewardLabel,
@@ -36,7 +43,11 @@ export function TaskRow({
         <span className="block text-sm font-medium text-text">{label}</span>
         {sublabel && <span className="block text-xs text-text-faint">{sublabel}</span>}
       </span>
-      <span className="flex shrink-0 items-center gap-1 rounded-full bg-gold-soft px-2.5 py-1 text-xs font-semibold text-gold">
+      <span
+        className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
+          disabled ? "bg-border text-text-faint" : REWARD_CLASSES[tone]
+        }`}
+      >
         {rewardLabel}
         <TicketImage size={14} />
       </span>
