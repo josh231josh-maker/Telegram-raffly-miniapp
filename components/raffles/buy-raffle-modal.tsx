@@ -6,14 +6,15 @@ import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { CloseIcon, StarIcon } from "@/components/icons";
 import { TicketImage } from "@/components/ticket-image";
 
-// pay `stars`, receive `tickets` — first number in each pair is the star cost
+// pay `stars`, receive `tickets` — must match app/api/stars/create-invoice/route.ts
+// TODO: raise back to real prices (10/50/100/250/500/1000) before launch — set to 1 for testing
 const TIERS = [
-  { id: "raffle10", stars: 10, tickets: 12 },
-  { id: "raffle50", stars: 50, tickets: 70 },
-  { id: "raffle100", stars: 100, tickets: 150 },
-  { id: "raffle250", stars: 250, tickets: 400 },
-  { id: "raffle500", stars: 500, tickets: 850 },
-  { id: "raffle1000", stars: 1000, tickets: 1800 },
+  { id: "raffle10", stars: 1, tickets: 12 },
+  { id: "raffle50", stars: 1, tickets: 70 },
+  { id: "raffle100", stars: 1, tickets: 150 },
+  { id: "raffle250", stars: 1, tickets: 400 },
+  { id: "raffle500", stars: 1, tickets: 850 },
+  { id: "raffle1000", stars: 1, tickets: 1800 },
 ];
 
 type BuyRaffleModalProps = {
