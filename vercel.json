@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/raffle/draw",
-      "schedule": "0 20 * * 0"
+      "schedule": "0 0 * * 1"
     }
   ]
 }

@@ -2,14 +2,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const WEEKLY_WINNER_COUNT = 5;
 
-/** Weekly draw is Sunday 8 PM UTC — keep in sync with components/home/draw-countdown.tsx */
+/** Weekly draw is 12am UTC Monday — keep in sync with the cron schedule in vercel.json */
 export function getCurrentWeekEnd(now = new Date()): Date {
-  const day = now.getUTCDay();
-  const daysUntilSunday = day === 0 ? 7 : 7 - day;
+  const day = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const daysUntilMonday = day === 1 ? 7 : (1 - day + 7) % 7;
 
   const weekEnd = new Date(now);
-  weekEnd.setUTCDate(now.getUTCDate() + daysUntilSunday);
-  weekEnd.setUTCHours(20, 0, 0, 0);
+  weekEnd.setUTCDate(now.getUTCDate() + daysUntilMonday);
+  weekEnd.setUTCHours(0, 0, 0, 0);
 
   if (weekEnd <= now) {
     weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
