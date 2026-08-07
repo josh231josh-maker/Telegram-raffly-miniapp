@@ -1,7 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
-export const REFERRAL_TICKET_THRESHOLD = 10;
-export const REFERRAL_REWARD_TICKETS = 500;
+export const REFERRAL_TICKET_THRESHOLD = 500;
+export const REFERRAL_REWARD_TICKETS = 50;
 
 export async function checkAndRewardReferral(supabase: SupabaseClient, userId: string) {
   const { data: user } = await supabase
