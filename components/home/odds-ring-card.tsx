@@ -32,10 +32,11 @@ export function OddsRingCard() {
   const yourTickets = raffleEntry?.ticketsEntered ?? 0;
   const totalTickets = info?.totalTickets ?? 0;
   const totalParticipants = info?.totalParticipants ?? 0;
-  // PRE-LAUNCH PLACEHOLDER: displayed participant count only, not used in the
-  // odds math below. Replace with `totalParticipants` before going live to
-  // real users — this is real-money-adjacent and must reflect real numbers.
+  // PRE-LAUNCH PLACEHOLDERS: displayed counts only, not used in the odds math
+  // below. Replace with `totalParticipants`/`totalTickets` before going live
+  // to real users — this is real-money-adjacent and must reflect real numbers.
   const displayParticipants = 205;
+  const displayTotalTickets = 573;
   // With at most one winner per person, once participants <= the number of
   // weekly winners, every participant with a ticket is effectively certain
   // to win — the ticket-share estimate below only makes sense once there
@@ -103,7 +104,7 @@ export function OddsRingCard() {
           </div>
           <div className="flex items-center justify-between border-b border-border py-1.5">
             <span className="text-text-dim">Total pool</span>
-            <span className="font-semibold text-text">{totalTickets}</span>
+            <span className="font-semibold text-text">{displayTotalTickets}</span>
           </div>
           <div className="flex items-center justify-between py-1.5">
             <span className="text-text-dim">Participants</span>
