@@ -60,7 +60,7 @@ type TelegramContextValue = {
   user: RafflyUser | null;
   loadingUser: boolean;
   checkIn: () => Promise<CheckInResult>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<RafflyUser | null>;
   requestWithdrawal: (amount: number, walletAddress: string) => Promise<WithdrawResult>;
   getInitData: () => string;
   raffleEntry: RaffleEntry | null;
@@ -76,7 +76,7 @@ const TelegramContext = createContext<TelegramContextValue>({
   user: null,
   loadingUser: true,
   checkIn: async () => ({ error: "Not ready" }),
-  refreshUser: async () => {},
+  refreshUser: async () => null,
   requestWithdrawal: async () => ({ error: "Not ready" }),
   getInitData: () => "",
   raffleEntry: null,
@@ -99,8 +99,8 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const [loadingRaffleEntry, setLoadingRaffleEntry] = useState(true);
   const initDataRef = useRef("");
 
-  const fetchUser = async () => {
-    if (!initDataRef.current) return;
+  const fetchUser = async (): Promise<RafflyUser | null> => {
+    if (!initDataRef.current) return null;
     try {
       const res = await fetch("/api/auth", {
         method: "POST",
@@ -108,9 +108,14 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ initData: initDataRef.current }),
       });
       const data = await res.json();
-      if (data.user) setUser(data.user);
+      if (data.user) {
+        setUser(data.user);
+        return data.user;
+      }
+      return null;
     } catch (err) {
       console.error("Auth fetch error:", err);
+      return null;
     }
   };
 
