@@ -16,6 +16,7 @@ type RafflyUser = {
   raffly_pass_expires_at: string | null;
   raffly_pass_last_claim_date: string | null;
   referral_count: number;
+  referral_reached_count: number;
 };
 
 type CheckInResult = {

@@ -5,11 +5,15 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 /** Computed live from `referred_by` rather than a stored counter, so it can never drift out of sync. */
 async function withReferralCount<T extends { id: string }>(supabase: SupabaseClient, user: T) {
-  const { count } = await supabase
-    .from("users")
-    .select("id", { count: "exact", head: true })
-    .eq("referred_by", user.id);
-  return { ...user, referral_count: count ?? 0 };
+  const [{ count }, { count: reachedCount }] = await Promise.all([
+    supabase.from("users").select("id", { count: "exact", head: true }).eq("referred_by", user.id),
+    supabase
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .eq("referred_by", user.id)
+      .eq("referral_reward_given", true),
+  ]);
+  return { ...user, referral_count: count ?? 0, referral_reached_count: reachedCount ?? 0 };
 }
 
 export async function POST(req: NextRequest) {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { GiftIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
-import { InviteFriendsModal } from "@/components/raffles/invite-friends-modal";
+import { InviteFriendsDetail } from "@/components/raffles/invite-friends-detail";
 
 export function ReferralCard() {
   const { user, loadingUser } = useTelegram();
@@ -26,9 +26,10 @@ export function ReferralCard() {
         chevron
       />
       {open && (
-        <InviteFriendsModal
+        <InviteFriendsDetail
           referralLink={referralLink}
           referralCount={user.referral_count}
+          referralReachedCount={user.referral_reached_count}
           onClose={() => setOpen(false)}
         />
       )}
