@@ -1,7 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 // Temporary diagnostic endpoint — remove once the Stars invoice hang is root-caused.
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (req.nextUrl.searchParams.get("action") === "setWebhook") {
+    return reregisterWebhook();
+  }
+
   const botToken = process.env.TELEGRAM_BOT_TOKEN!;
 
   const [meRes, webhookRes, invoiceRes] = await Promise.all([
@@ -26,6 +30,10 @@ export async function GET() {
 // Re-registers the bot's webhook using this server's own env vars, so the
 // secret never has to be typed/pasted anywhere by hand.
 export async function POST() {
+  return reregisterWebhook();
+}
+
+async function reregisterWebhook() {
   const botToken = process.env.TELEGRAM_BOT_TOKEN!;
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET!;
   const webhookUrl = "https://telegram-raffly-miniapp.vercel.app/api/telegram/webhook";
