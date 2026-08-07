@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { checkAndRewardReferral } from "@/lib/referral";
+import { checkAndRewardReferral, withReferralCount } from "@/lib/referral";
 import { isPassActive } from "@/lib/raffly-pass";
 
 export async function POST(req: NextRequest) {
@@ -31,7 +31,10 @@ export async function POST(req: NextRequest) {
   const today = new Date().toISOString().slice(0, 10);
 
   if (existing.last_checkin_date === today) {
-    return NextResponse.json({ alreadyCheckedIn: true, user: existing });
+    return NextResponse.json({
+      alreadyCheckedIn: true,
+      user: await withReferralCount(supabase, existing),
+    });
   }
 
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
@@ -64,6 +67,6 @@ export async function POST(req: NextRequest) {
     alreadyCheckedIn: false,
     ticketsEarned,
     streak: newStreak,
-    user: updated,
+    user: await withReferralCount(supabase, updated),
   });
 }

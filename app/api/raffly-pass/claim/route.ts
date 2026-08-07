@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { RAFFLY_PASS_DAILY_TICKETS, isPassActive } from "@/lib/raffly-pass";
+import { withReferralCount } from "@/lib/referral";
 
 export async function POST(req: NextRequest) {
   const { initData } = await req.json();
@@ -33,7 +34,10 @@ export async function POST(req: NextRequest) {
 
   const today = new Date().toISOString().slice(0, 10);
   if (existing.raffly_pass_last_claim_date === today) {
-    return NextResponse.json({ alreadyClaimed: true, user: existing });
+    return NextResponse.json({
+      alreadyClaimed: true,
+      user: await withReferralCount(supabase, existing),
+    });
   }
 
   const { data: updated, error: updateError } = await supabase
@@ -53,6 +57,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     alreadyClaimed: false,
     ticketsEarned: RAFFLY_PASS_DAILY_TICKETS,
-    user: updated,
+    user: await withReferralCount(supabase, updated),
   });
 }

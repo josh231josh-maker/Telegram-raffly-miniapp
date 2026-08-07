@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getOrCreateCurrentRaffle } from "@/lib/raffle-week";
+import { withReferralCount } from "@/lib/referral";
 
 export async function GET(req: NextRequest) {
   const initData = req.nextUrl.searchParams.get("initData");
@@ -134,6 +135,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     success: true,
     ticketsEntered: newTicketsUsed,
-    user: updatedUser,
+    user: await withReferralCount(supabase, updatedUser),
   });
 }

@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-
-/** Computed live from `referred_by` rather than a stored counter, so it can never drift out of sync. */
-async function withReferralCount<T extends { id: string }>(supabase: SupabaseClient, user: T) {
-  const [{ count }, { count: reachedCount }] = await Promise.all([
-    supabase.from("users").select("id", { count: "exact", head: true }).eq("referred_by", user.id),
-    supabase
-      .from("users")
-      .select("id", { count: "exact", head: true })
-      .eq("referred_by", user.id)
-      .eq("referral_reward_given", true),
-  ]);
-  return { ...user, referral_count: count ?? 0, referral_reached_count: reachedCount ?? 0 };
-}
+import { withReferralCount } from "@/lib/referral";
 
 export async function POST(req: NextRequest) {
   const { initData, startParam } = await req.json();

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { withReferralCount } from "@/lib/referral";
 
 export async function POST(req: NextRequest) {
   const { initData } = await req.json();
@@ -52,6 +53,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     success: true,
     amount: (result as { out_amount: number } | null)?.out_amount,
-    user: updatedUser,
+    user: updatedUser ? await withReferralCount(supabase, updatedUser) : updatedUser,
   });
 }
