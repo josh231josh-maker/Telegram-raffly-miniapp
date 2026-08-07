@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   const { data: existing, error: fetchError } = await supabase
     .from("users")
-    .select("*")
+    .select("id")
     .eq("telegram_id", tgUser.id)
     .single();
 
@@ -26,33 +26,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const amount = existing.usdt_balance;
-
-  if (!amount || amount <= 0) {
-    return NextResponse.json({ error: "No balance to withdraw" }, { status: 400 });
-  }
-
-  const { data: updatedUser, error: updateError } = await supabase
-    .from("users")
-    .update({ usdt_balance: 0 })
-    .eq("id", existing.id)
-    .select()
+  // Balance check, wallet check, balance-zeroing, and the withdrawal record
+  // all happen inside a single Postgres transaction (see the
+  // process_withdrawal migration), so a failure partway through can't leave
+  // a zeroed balance with no withdrawal record to show for it.
+  const { data: result, error: withdrawError } = await supabase
+    .rpc("process_withdrawal", { p_user_id: existing.id })
     .single();
 
-  if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
-  }
-
-  const { error: withdrawError } = await supabase.from("withdrawals").insert({
-    user_id: existing.id,
-    amount,
-    wallet_address: existing.ton_wallet_address ?? null,
-    status: "pending",
-  });
-
   if (withdrawError) {
-    return NextResponse.json({ error: withdrawError.message }, { status: 500 });
+    const message = withdrawError.message ?? "Something went wrong";
+    const status =
+      message.includes("No balance") || message.includes("No wallet") || message.includes("not found")
+        ? 400
+        : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 
-  return NextResponse.json({ success: true, amount, user: updatedUser });
+  const { data: updatedUser } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", existing.id)
+    .single();
+
+  return NextResponse.json({
+    success: true,
+    amount: (result as { out_amount: number } | null)?.out_amount,
+    user: updatedUser,
+  });
 }
