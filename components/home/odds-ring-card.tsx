@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { WEEKLY_WINNER_COUNT } from "@/lib/raffle-week";
 import { TicketImage } from "@/components/ticket-image";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type RaffleInfo = {
   totalTickets: number;
@@ -27,8 +28,26 @@ export function OddsRingCard() {
       .catch(() => setInfo(null));
   }, [raffleEntry?.ticketsEntered]);
 
-  if (loadingUser || loadingRaffleEntry || !user) return null;
+  if (loadingUser || loadingRaffleEntry || !user) {
+    return (
+      <section className="card-soft rounded-[28px] border border-border bg-card p-5">
+        <Skeleton className="mb-4 h-3.5 w-20 rounded-full" />
+        <div className="flex items-center gap-5">
+          <Skeleton className="h-24 w-24 shrink-0 rounded-full" />
+          <div className="flex-1 space-y-2.5">
+            <Skeleton className="h-4 w-full rounded-full" />
+            <Skeleton className="h-4 w-full rounded-full" />
+            <Skeleton className="h-4 w-full rounded-full" />
+          </div>
+        </div>
+        <div className="my-4 border-t border-border" />
+        <Skeleton className="mb-3 h-4 w-40 rounded-full" />
+        <Skeleton className="h-16 w-full rounded-2xl" />
+      </section>
+    );
+  }
 
+  const infoLoaded = info !== null;
   const yourTickets = raffleEntry?.ticketsEntered ?? 0;
   const totalTickets = info?.totalTickets ?? 0;
   const totalParticipants = info?.totalParticipants ?? 0;
@@ -93,7 +112,11 @@ export function OddsRingCard() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-heading text-lg font-bold text-text">{chance}%</span>
+            {infoLoaded ? (
+              <span className="font-heading text-lg font-bold text-text">{chance}%</span>
+            ) : (
+              <Skeleton className="h-4 w-10 rounded-full" />
+            )}
           </div>
         </div>
 

@@ -5,13 +5,14 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { CalendarCheckIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
+import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 
 export function DailyCheckIn() {
   const { user, checkIn, loadingUser } = useTelegram();
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "already">("idle");
   const [ticketsEarned, setTicketsEarned] = useState<number | null>(null);
 
-  if (loadingUser || !user) return null;
+  if (loadingUser || !user) return <TaskRowSkeleton />;
 
   const today = new Date().toISOString().slice(0, 10);
   const alreadyCheckedInToday = user.last_checkin_date === today;

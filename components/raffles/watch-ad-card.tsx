@@ -5,6 +5,7 @@ import { useMonetagAd } from "@/hooks/useMonetagAd";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { PlayCircleIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
+import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 
 type Status = "idle" | "ad1" | "ad2" | "checking" | "done" | "no-reward";
 
@@ -41,7 +42,7 @@ export function WatchAdCard() {
     setTimeout(() => setStatus("idle"), 2500);
   };
 
-  if (loadingUser) return null;
+  if (loadingUser) return <TaskRowSkeleton />;
 
   const label =
     status === "ad1"

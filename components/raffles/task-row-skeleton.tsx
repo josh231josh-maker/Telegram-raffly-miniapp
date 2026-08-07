@@ -1,0 +1,14 @@
+import { Skeleton } from "@/components/ui/skeleton";
+
+export function TaskRowSkeleton() {
+  return (
+    <div className="card-soft flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4">
+      <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+      <span className="block min-w-0 flex-1">
+        <Skeleton className="h-3.5 w-28 rounded-full" />
+        <Skeleton className="mt-2 h-2.5 w-20 rounded-full" />
+      </span>
+      <Skeleton className="h-6 w-14 shrink-0 rounded-full" />
+    </div>
+  );
+}

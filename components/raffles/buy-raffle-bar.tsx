@@ -4,12 +4,24 @@ import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { TicketImage } from "@/components/ticket-image";
 import { BuyRaffleModal } from "@/components/raffles/buy-raffle-modal";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function BuyRaffleBar() {
   const { user, loadingUser } = useTelegram();
   const [open, setOpen] = useState(false);
 
-  if (loadingUser) return null;
+  if (loadingUser) {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl bg-[#151b2c] p-4">
+        <Skeleton className="h-11 w-11 shrink-0 rounded-full bg-white/10" />
+        <div className="min-w-0 flex-1">
+          <Skeleton className="h-2.5 w-20 rounded-full bg-white/10" />
+          <Skeleton className="mt-2 h-5 w-12 rounded-full bg-white/10" />
+        </div>
+        <Skeleton className="h-9 w-16 shrink-0 rounded-full bg-white/10" />
+      </div>
+    );
+  }
 
   const balance = user?.ticket_balance ?? 0;
 

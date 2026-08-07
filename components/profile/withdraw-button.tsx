@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { ArrowDownCircleIcon } from "@/components/icons";
 import { WithdrawModal } from "@/components/profile/withdraw-modal";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function WithdrawButton() {
   const { user, loadingUser } = useTelegram();
   const [open, setOpen] = useState(false);
 
-  if (loadingUser || !user) return null;
+  if (loadingUser || !user) return <Skeleton className="h-[46px] w-full rounded-full" />;
 
   const balance = user.usdt_balance ?? 0;
 

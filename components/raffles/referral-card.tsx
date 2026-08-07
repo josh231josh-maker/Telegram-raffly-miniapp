@@ -5,13 +5,14 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { GiftIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
 import { InviteFriendsDetail } from "@/components/raffles/invite-friends-detail";
+import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 import { REFERRAL_REWARD_TICKETS } from "@/lib/referral";
 
 export function ReferralCard() {
   const { user, loadingUser } = useTelegram();
   const [open, setOpen] = useState(false);
 
-  if (loadingUser || !user) return null;
+  if (loadingUser || !user) return <TaskRowSkeleton />;
 
   const referralLink = `https://t.me/Rafflyapp_bot/Raffly?startapp=${user.telegram_id}`;
 

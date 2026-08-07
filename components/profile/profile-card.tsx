@@ -2,6 +2,7 @@
 
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { ChevronRightIcon } from "@/components/icons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const SETTINGS_ROWS: { label: string; href?: string }[] = [
   { label: "Support", href: "https://t.me/RafflySupportBot" },
@@ -16,7 +17,34 @@ function initials(firstName: string | null, username: string | null): string {
 export function ProfileCard() {
   const { user, loadingUser } = useTelegram();
 
-  if (loadingUser || !user) return null;
+  if (loadingUser || !user) {
+    return (
+      <section className="card-soft rounded-2xl border border-border bg-card p-5">
+        <div className="flex items-center gap-3 border-b border-border pb-4">
+          <Skeleton className="h-14 w-14 shrink-0 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28 rounded-full" />
+            <Skeleton className="h-3 w-20 rounded-full" />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 border-b border-border py-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex flex-col items-center gap-1.5">
+              <Skeleton className="h-5 w-8 rounded-full" />
+              <Skeleton className="h-2.5 w-14 rounded-full" />
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-col divide-y divide-border">
+          {[0, 1].map((i) => (
+            <div key={i} className="flex items-center justify-between py-3">
+              <Skeleton className="h-3.5 w-24 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   const displayName = user.first_name || user.username || "Raffler";
 
