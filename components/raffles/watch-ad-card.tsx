@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAdsgram } from "@/hooks/useAdsgram";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { PlayCircleIcon } from "@/components/icons";
-import { IconBadge } from "@/components/icon-badge";
+import { TaskRow } from "@/components/raffles/task-row";
 
 const ADSGRAM_BLOCK_ID = "41260";
 
@@ -29,26 +29,18 @@ export function WatchAdCard() {
 
   if (loadingUser) return null;
 
+  const label =
+    status === "loading" ? "Processing..." : status === "done" ? "Ticket updated!" : "Watch 2 ads";
+
   return (
-    <section className="card-soft rounded-2xl border border-border bg-card p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <IconBadge icon={<PlayCircleIcon />} tone="accent" size="sm" />
-          <span className="text-sm font-medium text-text-dim">Watch & Earn</span>
-        </div>
-        <span className="text-xs text-text-faint">2 ads = 1 ticket</span>
-      </div>
-      <button
-        onClick={showAd}
-        disabled={status !== "idle"}
-        className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
-      >
-        {status === "loading"
-          ? "Processing..."
-          : status === "done"
-          ? "Ticket updated!"
-          : "Watch Ad"}
-      </button>
-    </section>
+    <TaskRow
+      icon={<PlayCircleIcon />}
+      tone="gold"
+      label={label}
+      sublabel={status === "idle" ? "2 ads = 1 ticket" : undefined}
+      rewardLabel="+1"
+      onClick={showAd}
+      disabled={status !== "idle"}
+    />
   );
 }

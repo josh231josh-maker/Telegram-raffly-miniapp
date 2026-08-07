@@ -16,6 +16,7 @@ import { WithdrawButton } from "@/components/profile/withdraw-button";
 import { ProfileCard } from "@/components/profile/profile-card";
 import { RecentActivity } from "@/components/profile/recent-activity";
 import { RafflyPassDetail } from "@/components/raffly-pass/raffly-pass-detail";
+import { TicketIcon } from "@/components/icons";
 
 export default function HomePage() {
   const [tab, setTab] = useState<TabId>("home");
@@ -36,7 +37,10 @@ export default function HomePage() {
 
         {tab === "raffles" && (
           <>
-            <h1 className="font-heading text-2xl font-bold text-text">Raffles</h1>
+            <h1 className="flex items-center justify-center gap-2 text-center font-heading text-xl font-bold text-text">
+              Complete tasks and receive
+              <TicketIcon className="h-5 w-5 text-gold" />
+            </h1>
             <DailyCheckIn />
             <WatchAdCard />
             <ReferralCard />

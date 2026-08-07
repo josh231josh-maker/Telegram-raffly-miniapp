@@ -2,18 +2,23 @@
 
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { isPassActive } from "@/lib/raffly-pass";
 import { CalendarCheckIcon } from "@/components/icons";
-import { IconBadge } from "@/components/icon-badge";
+import { TaskRow } from "@/components/raffles/task-row";
 
 export function DailyCheckIn() {
   const { user, checkIn, loadingUser } = useTelegram();
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "already">("idle");
   const [ticketsEarned, setTicketsEarned] = useState<number | null>(null);
 
-  if (loadingUser) return null;
+  if (loadingUser || !user) return null;
 
   const today = new Date().toISOString().slice(0, 10);
-  const alreadyCheckedInToday = user?.last_checkin_date === today;
+  const alreadyCheckedInToday = user.last_checkin_date === today;
+  const disabled = alreadyCheckedInToday || status !== "idle";
+
+  const nextBase = Math.min((user.streak_count ?? 0) + 1, 5);
+  const nextReward = isPassActive(user.raffly_pass_expires_at) ? nextBase * 2 : nextBase;
 
   const handleCheckIn = async () => {
     setStatus("loading");
@@ -28,33 +33,26 @@ export function DailyCheckIn() {
     }
   };
 
-  const disabled =
-    alreadyCheckedInToday || status === "loading" || status === "done" || status === "already";
+  const label =
+    status === "loading"
+      ? "Claiming..."
+      : status === "done"
+      ? `+${ticketsEarned} tickets claimed!`
+      : alreadyCheckedInToday || status === "already"
+      ? "Already claimed today"
+      : "Daily Check-in";
 
   return (
-    <section className="card-soft rounded-2xl border border-border bg-card p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <IconBadge icon={<CalendarCheckIcon />} tone="accent" size="sm" />
-          <span className="text-sm font-medium text-text-dim">Daily Check-in</span>
-        </div>
-        <span className="text-xs text-text-faint">
-          Streak: {user?.streak_count ?? 0} day{(user?.streak_count ?? 0) === 1 ? "" : "s"}
-        </span>
-      </div>
-      <button
-        onClick={handleCheckIn}
-        disabled={disabled}
-        className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
-      >
-        {alreadyCheckedInToday || status === "already"
-          ? "Already claimed today"
-          : status === "loading"
-          ? "Claiming..."
-          : status === "done"
-          ? `+${ticketsEarned} tickets claimed!`
-          : "Claim today's tickets"}
-      </button>
-    </section>
+    <TaskRow
+      icon={<CalendarCheckIcon />}
+      tone="gold"
+      label={label}
+      sublabel={
+        disabled ? undefined : `Streak: ${user.streak_count ?? 0} day${(user.streak_count ?? 0) === 1 ? "" : "s"}`
+      }
+      rewardLabel={`+${nextReward}`}
+      onClick={handleCheckIn}
+      disabled={disabled}
+    />
   );
 }

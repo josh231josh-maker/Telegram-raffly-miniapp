@@ -3,44 +3,35 @@
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { GiftIcon } from "@/components/icons";
-import { IconBadge } from "@/components/icon-badge";
+import { TaskRow } from "@/components/raffles/task-row";
+import { InviteFriendsModal } from "@/components/raffles/invite-friends-modal";
 
 export function ReferralCard() {
   const { user, loadingUser } = useTelegram();
-  const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(false);
 
   if (loadingUser || !user) return null;
 
   const referralLink = `https://t.me/Rafflyapp_bot/Raffly?startapp=${user.telegram_id}`;
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(referralLink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // clipboard not available, ignore silently
-    }
-  };
-
   return (
-    <section className="card-soft rounded-2xl border border-border bg-card p-5">
-      <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <IconBadge icon={<GiftIcon />} tone="accent" size="sm" />
-          <span className="text-sm font-medium text-text-dim">Invite Friends</span>
-        </div>
-        <span className="text-xs text-text-faint">+50 tickets each</span>
-      </div>
-      <p className="mb-3 text-xs text-text-faint">
-        Earn 50 tickets when a friend you invite reaches 10 tickets.
-      </p>
-      <button
-        onClick={handleCopy}
-        className="btn-accent w-full rounded-xl px-4 py-3 text-sm font-semibold transition"
-      >
-        {copied ? "Link copied!" : "Copy invite link"}
-      </button>
-    </section>
+    <>
+      <TaskRow
+        icon={<GiftIcon />}
+        tone="gold"
+        label="Invite Friends"
+        sublabel="Earn tickets per referral"
+        rewardLabel="+50"
+        onClick={() => setOpen(true)}
+        chevron
+      />
+      {open && (
+        <InviteFriendsModal
+          referralLink={referralLink}
+          referralCount={user.referral_count}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
   );
 }
