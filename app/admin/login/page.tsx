@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,7 +18,7 @@ export default function AdminLoginPage() {
     const res = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ username, password }),
     });
 
     if (res.ok) {
@@ -37,19 +38,28 @@ export default function AdminLoginPage() {
         className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6"
       >
         <h1 className="mb-1 text-lg font-semibold">Raffly Admin</h1>
-        <p className="mb-5 text-sm text-white/50">Enter the admin password to continue.</p>
+        <p className="mb-5 text-sm text-white/50">Enter your admin credentials to continue.</p>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
+          autoFocus
+          autoComplete="username"
+          className="mb-3 w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none focus:border-white/30"
+        />
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
-          autoFocus
+          autoComplete="current-password"
           className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none focus:border-white/30"
         />
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
         <button
           type="submit"
-          disabled={loading || !password}
+          disabled={loading || !username || !password}
           className="mt-4 w-full rounded-xl bg-white py-3 text-sm font-semibold text-black disabled:opacity-40"
         >
           {loading ? "Checking..." : "Log in"}
