@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { shareURL } from "@telegram-apps/sdk";
 import { REFERRAL_REWARD_TICKETS, REFERRAL_TICKET_THRESHOLD } from "@/lib/referral";
-import { CloseIcon, TicketIcon } from "@/components/icons";
+import { CloseIcon } from "@/components/icons";
+import { TicketImage } from "@/components/ticket-image";
 
 type InviteFriendsDetailProps = {
   referralLink: string;
@@ -71,7 +72,7 @@ export function InviteFriendsDetail({
           <span className="text-sm font-semibold text-text">Total profit</span>
           <span className="flex items-center gap-1.5 font-heading text-xl font-bold text-green">
             {totalProfit}
-            <TicketIcon className="h-5 w-5" />
+            <TicketImage size={22} />
           </span>
         </div>
 

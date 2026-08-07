@@ -1,7 +1,8 @@
 "use client";
 
 import { IconBadge } from "@/components/icon-badge";
-import { TicketIcon, ChevronRightIcon } from "@/components/icons";
+import { ChevronRightIcon } from "@/components/icons";
+import { TicketImage } from "@/components/ticket-image";
 
 type TaskRowProps = {
   icon: React.ReactNode;
@@ -37,7 +38,7 @@ export function TaskRow({
       </span>
       <span className="flex shrink-0 items-center gap-1 rounded-full bg-gold-soft px-2.5 py-1 text-xs font-semibold text-gold">
         {rewardLabel}
-        <TicketIcon className="h-3.5 w-3.5" />
+        <TicketImage size={14} />
       </span>
       {chevron && <ChevronRightIcon className="h-4 w-4 shrink-0 text-text-faint" />}
     </button>

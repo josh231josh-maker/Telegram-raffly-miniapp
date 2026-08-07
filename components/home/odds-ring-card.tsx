@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { WEEKLY_WINNER_COUNT } from "@/lib/raffle-week";
-import { TicketIcon } from "@/components/icons";
-import { IconBadge } from "@/components/icon-badge";
+import { TicketImage } from "@/components/ticket-image";
 
 type RaffleInfo = {
   totalTickets: number;
@@ -106,7 +105,7 @@ export function OddsRingCard() {
       <div className="my-4 border-t border-border" />
 
       <div className="mb-3 flex items-center gap-2">
-        <IconBadge icon={<TicketIcon />} tone="gold" size="sm" />
+        <TicketImage size={36} />
         <span className="text-sm font-medium text-text-dim">Enter This Week&apos;s Draw</span>
       </div>
 

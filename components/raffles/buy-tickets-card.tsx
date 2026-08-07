@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
-import { TicketIcon, StarIcon } from "@/components/icons";
-import { IconBadge } from "@/components/icon-badge";
+import { StarIcon } from "@/components/icons";
+import { TicketImage } from "@/components/ticket-image";
 
 // TODO: raise back to real prices (10/50/100) before launch
 // Diagnostic: entry temporarily at 3 stars (not 1), must match app/api/stars/create-invoice/route.ts
@@ -61,7 +61,7 @@ export function BuyTicketsCard() {
     <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <IconBadge icon={<TicketIcon />} tone="gold" size="sm" />
+          <TicketImage size={36} />
           <span className="text-sm font-medium text-text-dim">Buy Tickets</span>
         </div>
         <span className="text-xs text-text-faint">via Telegram Stars</span>

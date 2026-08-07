@@ -16,7 +16,7 @@ import { WithdrawButton } from "@/components/profile/withdraw-button";
 import { ProfileCard } from "@/components/profile/profile-card";
 import { RecentActivity } from "@/components/profile/recent-activity";
 import { RafflyPassDetail } from "@/components/raffly-pass/raffly-pass-detail";
-import { TicketIcon } from "@/components/icons";
+import { TicketImage } from "@/components/ticket-image";
 
 export default function HomePage() {
   const [tab, setTab] = useState<TabId>("home");
@@ -39,7 +39,7 @@ export default function HomePage() {
           <>
             <h1 className="flex items-center justify-center gap-2 text-center font-heading text-xl font-bold text-text">
               Complete tasks and receive
-              <TicketIcon className="h-5 w-5 text-gold" />
+              <TicketImage size={22} />
             </h1>
             <DailyCheckIn />
             <WatchAdCard />

@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getCurrentWeekEnd } from "@/lib/raffle-week";
-import { TrophyIcon } from "@/components/icons";
-import { IconBadge } from "@/components/icon-badge";
+import { TicketImage } from "@/components/ticket-image";
 
 type Segments = { days: string; hours: string; minutes: string; seconds: string };
 
@@ -104,7 +103,7 @@ export function HeroCountdown() {
         className="flex flex-shrink-0 flex-col items-center justify-center gap-2.5 py-3.5"
         style={{ width: STUB_WIDTH }}
       >
-        <IconBadge icon={<TrophyIcon />} tone="gold" size="sm" />
+        <TicketImage size={32} />
         <span
           className="text-[10px] font-semibold tracking-[0.14em] text-[rgba(255,209,102,0.6)]"
           style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
