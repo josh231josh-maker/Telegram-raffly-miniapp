@@ -11,6 +11,11 @@ export async function GET(req: NextRequest) {
   const value = searchParams.get("value");
   const secret = searchParams.get("secret");
 
+  // TEMPORARY: diagnosing why watched ads aren't crediting tickets — remove once resolved.
+  console.log(
+    `[monetag-postback-debug] ymid=${ymid} value=${value} secretMatches=${secret === process.env.MONETAG_SECRET} fullQuery=${searchParams.toString()}`
+  );
+
   if (secret !== process.env.MONETAG_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
