@@ -1,0 +1,103 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { WEEKLY_WINNER_COUNT } from "@/lib/raffle-week";
+
+const PRIZE_AMOUNT_USDT = 100;
+
+type Entrant = { userId: string; tickets: number };
+
+/**
+ * Weighted random pick without replacement — each entrant can win at most
+ * once, so more tickets improve your odds without letting you occupy
+ * multiple winner slots in the same draw.
+ */
+function pickWinners(entrants: Entrant[], count: number): string[] {
+  const pool = entrants.filter((e) => e.tickets > 0).map((e) => ({ ...e }));
+  const winners: string[] = [];
+
+  while (pool.length > 0 && winners.length < count) {
+    const totalWeight = pool.reduce((sum, e) => sum + e.tickets, 0);
+    let roll = Math.random() * totalWeight;
+    let pickedIndex = pool.length - 1;
+    for (let i = 0; i < pool.length; i++) {
+      roll -= pool[i].tickets;
+      if (roll <= 0) {
+        pickedIndex = i;
+        break;
+      }
+    }
+    winners.push(pool[pickedIndex].userId);
+    pool.splice(pickedIndex, 1);
+  }
+
+  return winners;
+}
+
+export async function drawRaffleWinners(supabase: SupabaseClient, raffleId: string) {
+  const { data: raffle } = await supabase
+    .from("raffles")
+    .select("id, status, week_end")
+    .eq("id", raffleId)
+    .single();
+
+  if (!raffle || raffle.status !== "open") {
+    return { drawn: false, reason: "Raffle is not open", winnerIds: [] as string[] };
+  }
+
+  const { data: entries } = await supabase
+    .from("raffle_entries")
+    .select("user_id, tickets_used")
+    .eq("raffle_id", raffleId);
+
+  // Aggregate by user in case more than one entry row ever exists for the
+  // same person — each entrant must appear in the pool exactly once.
+  const ticketsByUser = new Map<string, number>();
+  for (const e of entries ?? []) {
+    if ((e.tickets_used ?? 0) <= 0) continue;
+    const userId = e.user_id as string;
+    ticketsByUser.set(userId, (ticketsByUser.get(userId) ?? 0) + (e.tickets_used as number));
+  }
+  const entrants: Entrant[] = Array.from(ticketsByUser, ([userId, tickets]) => ({ userId, tickets }));
+
+  const winnerIds = pickWinners(entrants, WEEKLY_WINNER_COUNT);
+
+  if (winnerIds.length > 0) {
+    const { data: winnerUsers } = await supabase
+      .from("users")
+      .select("id, username, first_name, usdt_balance")
+      .in("id", winnerIds);
+
+    const weekLabel = `Wk of ${new Date(raffle.week_end).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })}`;
+
+    for (const winnerId of winnerIds) {
+      const winnerUser = winnerUsers?.find((u) => u.id === winnerId);
+      if (!winnerUser) continue;
+
+      await supabase.from("raffle_winners").insert({
+        raffle_id: raffleId,
+        user_id: winnerId,
+        prize_amount: PRIZE_AMOUNT_USDT,
+      });
+
+      await supabase
+        .from("users")
+        .update({ usdt_balance: Number(winnerUser.usdt_balance) + PRIZE_AMOUNT_USDT })
+        .eq("id", winnerId);
+
+      await supabase.from("winner_announcements").insert({
+        display_name: winnerUser.first_name || winnerUser.username || "Winner",
+        prize_amount: PRIZE_AMOUNT_USDT,
+        week_label: weekLabel,
+      });
+    }
+  }
+
+  await supabase
+    .from("raffles")
+    .update({ status: "completed", drawn_at: new Date().toISOString() })
+    .eq("id", raffleId);
+
+  return { drawn: true, winnerIds };
+}
