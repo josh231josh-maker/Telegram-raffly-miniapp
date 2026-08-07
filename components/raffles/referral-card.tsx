@@ -5,6 +5,7 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { GiftIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
 import { InviteFriendsDetail } from "@/components/raffles/invite-friends-detail";
+import { REFERRAL_REWARD_TICKETS } from "@/lib/referral";
 
 export function ReferralCard() {
   const { user, loadingUser } = useTelegram();
@@ -21,7 +22,7 @@ export function ReferralCard() {
         tone="pink"
         label="Invite Friends"
         sublabel="Earn tickets per referral"
-        rewardLabel="+50"
+        rewardLabel={`+${REFERRAL_REWARD_TICKETS}`}
         onClick={() => setOpen(true)}
         chevron
       />
