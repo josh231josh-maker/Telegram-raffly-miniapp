@@ -51,18 +51,18 @@ export function HeroCountdown() {
 
   return (
     <section
-      className="hero-gradient relative flex flex-shrink-0 overflow-hidden rounded-[22px] border border-[rgba(244,202,118,0.16)] text-white shadow-lg"
+      className="hero-gradient relative flex flex-shrink-0 overflow-hidden rounded-[22px] border border-[rgba(255,209,102,0.16)] text-white shadow-lg"
       aria-label="Next weekly draw"
     >
       <div className="min-w-0 flex-1 p-5">
-        <span className="text-xs font-semibold uppercase tracking-widest text-[rgba(255,216,115,0.75)]">
+        <span className="text-xs font-semibold uppercase tracking-widest text-[rgba(255,209,102,0.75)]">
           Next Weekly Draw
         </span>
         <div className="mt-3.5 grid grid-cols-4 gap-1.5 text-center">
           {items.map((item) => (
             <div
               key={item.label}
-              className="rounded-xl border border-[rgba(244,202,118,0.12)] bg-white/[0.06] px-0.5 py-2.5"
+              className="rounded-xl border border-[rgba(255,209,102,0.12)] bg-white/[0.06] px-0.5 py-2.5"
             >
               <p className="font-heading text-xl font-bold tabular-nums text-accent-2">{item.value}</p>
               <p className="mt-0.5 text-[8.5px] uppercase tracking-wide text-white/45">
@@ -86,7 +86,7 @@ export function HeroCountdown() {
         }}
       />
       <div
-        className="absolute bottom-4 top-4 border-l-2 border-dashed border-[rgba(244,202,118,0.28)]"
+        className="absolute bottom-4 top-4 border-l-2 border-dashed border-[rgba(255,209,102,0.28)]"
         style={{ left: dividerLeft }}
       />
       <div
@@ -106,7 +106,7 @@ export function HeroCountdown() {
       >
         <IconBadge icon={<TrophyIcon />} tone="gold" size="sm" />
         <span
-          className="text-[10px] font-semibold tracking-[0.14em] text-[rgba(255,216,115,0.6)]"
+          className="text-[10px] font-semibold tracking-[0.14em] text-[rgba(255,209,102,0.6)]"
           style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
         >
           RAFFLY

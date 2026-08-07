@@ -16,7 +16,7 @@ export function PassBanner({ onOpen }: PassBannerProps) {
   return (
     <button
       onClick={onOpen}
-      className="pass-banner-gradient flex items-center gap-3 rounded-2xl border border-[rgba(244,202,118,0.18)] px-4 py-3 text-left text-white transition active:scale-[0.99]"
+      className="pass-banner-gradient flex items-center gap-3 rounded-2xl border border-[rgba(255,209,102,0.18)] px-4 py-3 text-left text-white transition active:scale-[0.99]"
     >
       <IconBadge icon={<CrownIcon />} tone="gold" size="md" />
       <span className="flex-1">

@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0e24;
-  --card: #131a3d;
-  --border: rgba(244, 202, 118, 0.14);
-  --border-soft: rgba(255, 255, 255, 0.07);
-  --accent: #f0b23e;
-  --accent-2: #ffd873;
-  --accent-soft: rgba(240, 178, 62, 0.15);
-  --gold: #f0b23e;
-  --gold-soft: rgba(240, 178, 62, 0.15);
-  --ruby: #d6336c;
-  --ruby-deep: #4a1030;
-  --ruby-soft: rgba(214, 51, 108, 0.16);
-  --green: #2fd699;
-  --green-soft: rgba(47, 214, 153, 0.15);
-  --text: #f6f2ea;
-  --text-dim: #a8adcf;
-  --text-faint: #6d729a;
+  --background: #1e2749;
+  --card: #262f57;
+  --border: rgba(255, 209, 102, 0.2);
+  --border-soft: rgba(255, 255, 255, 0.1);
+  --accent: #ffb020;
+  --accent-2: #ffd166;
+  --accent-soft: rgba(255, 176, 32, 0.18);
+  --gold: #ffb020;
+  --gold-soft: rgba(255, 176, 32, 0.18);
+  --ruby: #ff4d8d;
+  --ruby-deep: #6b2154;
+  --ruby-soft: rgba(255, 77, 141, 0.18);
+  --green: #2be6a0;
+  --green-soft: rgba(43, 230, 160, 0.18);
+  --text: #ffffff;
+  --text-dim: #c7ccec;
+  --text-faint: #9298c2;
 
-  --hero-from: #1c2456;
-  --hero-to: #0a0d22;
-  --pass-from: #3a1030;
-  --pass-to: #0a0d22;
+  --hero-from: #333f80;
+  --hero-to: #1c2449;
+  --pass-from: #62255a;
+  --pass-to: #1c2449;
 }
 
 @theme inline {
@@ -60,31 +60,31 @@ body {
 
 .app-bg-gradient {
   background:
-    radial-gradient(circle at 18% -6%, rgba(240, 178, 62, 0.14), transparent 42%),
-    radial-gradient(circle at 100% 18%, rgba(214, 51, 108, 0.09), transparent 40%),
+    radial-gradient(circle at 18% -6%, rgba(255, 176, 32, 0.16), transparent 42%),
+    radial-gradient(circle at 100% 18%, rgba(255, 77, 141, 0.11), transparent 40%),
     var(--background);
 }
 
 .hero-gradient {
   background:
-    radial-gradient(circle at 12% -10%, rgba(255, 216, 115, 0.22), transparent 55%),
+    radial-gradient(circle at 12% -10%, rgba(255, 209, 102, 0.28), transparent 55%),
     linear-gradient(150deg, var(--hero-from) 0%, var(--hero-to) 100%);
 }
 
 .pass-gradient {
   background:
-    radial-gradient(circle at 18% -6%, rgba(255, 216, 115, 0.16), transparent 45%),
-    radial-gradient(circle at 100% 100%, rgba(214, 51, 108, 0.18), transparent 55%),
+    radial-gradient(circle at 18% -6%, rgba(255, 209, 102, 0.2), transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(255, 77, 141, 0.22), transparent 55%),
     linear-gradient(160deg, var(--pass-from) 0%, var(--pass-to) 100%);
 }
 
 .pass-banner-gradient {
   background:
-    radial-gradient(circle at 90% -20%, rgba(255, 216, 115, 0.25), transparent 50%),
-    linear-gradient(135deg, #8a2456 0%, var(--ruby-deep) 100%);
+    radial-gradient(circle at 90% -20%, rgba(255, 209, 102, 0.3), transparent 50%),
+    linear-gradient(135deg, #b23a72 0%, var(--ruby-deep) 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.12) inset,
-    0 10px 24px -8px rgba(214, 51, 108, 0.45);
+    0 10px 24px -8px rgba(255, 77, 141, 0.5);
 }
 
 .card-soft {
@@ -98,7 +98,7 @@ body {
   background: linear-gradient(135deg, var(--accent-2) 0%, var(--accent) 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.4) inset,
-    0 10px 22px -8px rgba(240, 178, 62, 0.55);
+    0 10px 22px -8px rgba(255, 176, 32, 0.55);
 }
 
 .btn-accent:active {
@@ -110,7 +110,7 @@ body {
   background: linear-gradient(135deg, #6ff0c2 0%, var(--green) 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.4) inset,
-    0 10px 22px -8px rgba(47, 214, 153, 0.5);
+    0 10px 22px -8px rgba(43, 230, 160, 0.5);
 }
 
 .btn-green:active {
