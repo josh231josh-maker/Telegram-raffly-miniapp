@@ -41,6 +41,12 @@ export default function RootLayout({
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
       >
         <Script src="https://sad.adsgram.ai/js/sad.min.js" strategy="beforeInteractive" />
+        <Script
+          src="//libtl.com/sdk.js"
+          data-zone="11527679"
+          data-sdk="show_11527679"
+          strategy="beforeInteractive"
+        />
         <TonProvider>
           <TelegramProvider>{children}</TelegramProvider>
         </TonProvider>
