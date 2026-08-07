@@ -10,7 +10,7 @@ import { PreviousWinners } from "@/components/home/previous-winners";
 import { DailyCheckIn } from "@/components/raffles/daily-checkin";
 import { WatchAdCard } from "@/components/raffles/watch-ad-card";
 import { ReferralCard } from "@/components/raffles/referral-card";
-import { BuyTicketsCard } from "@/components/raffles/buy-tickets-card";
+import { BuyRaffleBar } from "@/components/raffles/buy-raffle-bar";
 import { BalanceCards } from "@/components/profile/balance-cards";
 import { WithdrawButton } from "@/components/profile/withdraw-button";
 import { ProfileCard } from "@/components/profile/profile-card";
@@ -37,6 +37,7 @@ export default function HomePage() {
 
         {tab === "raffles" && (
           <>
+            <BuyRaffleBar />
             <h1 className="flex items-center justify-center gap-2 text-center font-heading text-xl font-bold text-text">
               Complete tasks and receive
               <TicketImage size={22} />
@@ -44,7 +45,6 @@ export default function HomePage() {
             <DailyCheckIn />
             <WatchAdCard />
             <ReferralCard />
-            <BuyTicketsCard />
           </>
         )}
 
