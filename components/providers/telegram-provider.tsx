@@ -15,6 +15,8 @@ type RafflyUser = {
   ton_wallet_address: string | null;
   raffly_pass_expires_at: string | null;
   raffly_pass_last_claim_date: string | null;
+  referral_count: number;
+  referral_reached_count: number;
 };
 
 type CheckInResult = {
@@ -144,10 +146,10 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         miniApp.ready();
       }
       if (miniApp.setHeaderColor.isAvailable()) {
-        miniApp.setHeaderColor("#f6f5fb");
+        miniApp.setHeaderColor("#faf5f2");
       }
       if (miniApp.setBackgroundColor.isAvailable()) {
-        miniApp.setBackgroundColor("#f6f5fb");
+        miniApp.setBackgroundColor("#faf5f2");
       }
       if (themeParams.mount.isAvailable()) {
         themeParams.mount();

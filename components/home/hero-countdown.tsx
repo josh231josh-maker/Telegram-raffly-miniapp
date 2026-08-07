@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getCurrentWeekEnd } from "@/lib/raffle-week";
-import { TrophyIcon } from "@/components/icons";
 
 type Segments = { days: string; hours: string; minutes: string; seconds: string };
 
@@ -44,28 +43,21 @@ export function HeroCountdown() {
 
   return (
     <section
-      className="hero-gradient relative overflow-hidden rounded-3xl p-6 text-white shadow-lg"
+      className="hero-gradient flex-shrink-0 rounded-[28px] p-5 text-white shadow-lg"
       aria-label="Next weekly draw"
     >
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-widest text-white/60">
-          Next Weekly Draw
-        </span>
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-gold">
-          <TrophyIcon className="h-4 w-4" />
-        </span>
-      </div>
-
-      <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+      <span className="text-xs font-semibold uppercase tracking-widest text-white/70">
+        Next Weekly Draw
+      </span>
+      <div className="mt-3.5 grid grid-cols-4 gap-1.5 text-center">
         {items.map((item) => (
-          <div key={item.label} className="rounded-xl bg-white/10 py-3">
-            <p className="font-heading text-2xl font-bold tabular-nums">{item.value}</p>
-            <p className="mt-1 text-[10px] uppercase tracking-wide text-white/50">{item.label}</p>
+          <div key={item.label} className="rounded-2xl bg-white/15 px-0.5 py-2.5">
+            <p className="font-heading text-xl font-bold tabular-nums">{item.value}</p>
+            <p className="mt-0.5 text-[8.5px] uppercase tracking-wide text-white/60">{item.label}</p>
           </div>
         ))}
       </div>
-
-      <p className="mt-4 text-center text-xs text-white/50">5 random winners · $100 USDT each</p>
+      <p className="mt-3 text-center text-xs text-white/70">5 random winners · $100 USDT each</p>
     </section>
   );
 }

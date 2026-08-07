@@ -15,12 +15,9 @@ export function PassBanner({ onOpen }: PassBannerProps) {
   return (
     <button
       onClick={onOpen}
-      className="btn-accent flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-white transition active:scale-[0.99]"
+      className="pass-banner-gradient flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-white transition active:scale-[0.99]"
     >
-      <span
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-gold"
-        aria-hidden="true"
-      >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/25 text-white">
         <CrownIcon className="h-5 w-5" />
       </span>
       <span className="flex-1">
