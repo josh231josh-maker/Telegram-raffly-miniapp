@@ -30,9 +30,9 @@ export async function POST(req: NextRequest) {
 
   const { display_name, prize_amount, week_label, publish_at } = await req.json();
 
-  if (!display_name || !prize_amount || !week_label) {
+  if (!display_name || !prize_amount) {
     return NextResponse.json(
-      { error: "Missing required fields: display_name, prize_amount, week_label" },
+      { error: "Missing required fields: display_name, prize_amount" },
       { status: 400 }
     );
   }
