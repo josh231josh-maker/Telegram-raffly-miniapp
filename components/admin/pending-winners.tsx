@@ -11,7 +11,6 @@ type Winner = {
   status: string;
   week_label: string | null;
   created_at: string;
-  paid_at: string | null;
   users: {
     id: string;
     telegram_id: number;
@@ -21,14 +20,13 @@ type Winner = {
   };
 };
 
-const TABS = ["pending", "approved", "paid", "rejected"] as const;
+const TABS = ["pending", "approved", "rejected", "revoked"] as const;
 type Tab = (typeof TABS)[number];
 
 export function PendingWinners() {
   const [tab, setTab] = useState<Tab>("pending");
   const [winners, setWinners] = useState<Winner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [txHash, setTxHash] = useState<{ [key: string]: string }>({});
   const [processing, setProcessing] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,15 +50,11 @@ export function PendingWinners() {
       const res = await fetch(`/api/admin/raffle-winners/${winnerId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action,
-          txHash: action === "mark-paid" ? txHash[winnerId] : undefined,
-        }),
+        body: JSON.stringify({ action }),
       });
 
       if (res.ok) {
         await fetchWinners(tab);
-        setTxHash({ ...txHash, [winnerId]: "" });
       }
     } finally {
       setProcessing(null);
@@ -104,7 +98,9 @@ export function PendingWinners() {
                   <p className="text-xs text-white/50">ID: {w.users.telegram_id}</p>
                   {w.week_label && <p className="text-xs text-white/40">{w.week_label}</p>}
                 </div>
-                <p className="text-lg font-semibold text-gold">${Number(w.prize_amount).toFixed(2)}</p>
+                <p className="text-lg font-semibold text-gold tabular-nums">
+                  ${Number(w.prize_amount).toFixed(2)}
+                </p>
               </div>
 
               {tab === "pending" && (
@@ -127,28 +123,27 @@ export function PendingWinners() {
               )}
 
               {tab === "approved" && (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    placeholder="TX hash"
-                    value={txHash[w.id] || ""}
-                    onChange={(e) => setTxHash({ ...txHash, [w.id]: e.target.value })}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-white/30"
-                  />
+                <>
+                  <p className="mb-3 text-xs text-white/40">
+                    Credited to balance — visible on the public winners list.
+                  </p>
                   <button
-                    onClick={() => handleAction(w.id, "mark-paid")}
-                    disabled={processing === w.id || !txHash[w.id]}
-                    className="w-full rounded-lg bg-blue-500/10 px-3 py-2 text-sm font-medium text-blue-400 hover:bg-blue-500/20 disabled:opacity-50"
+                    onClick={() => {
+                      if (confirm("Revoke this win? This reverses the balance credit and removes the public announcement."))
+                        handleAction(w.id, "revoke");
+                    }}
+                    disabled={processing === w.id}
+                    className="w-full rounded-lg bg-red-500/10 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20 disabled:opacity-50"
                   >
-                    Mark Paid
+                    Revoke
                   </button>
-                </div>
+                </>
               )}
 
-              {tab === "paid" && (
-                <p className="text-xs text-white/40">
-                  Paid {w.paid_at ? new Date(w.paid_at).toLocaleString() : ""}
-                </p>
+              {tab === "rejected" && <p className="text-xs text-white/40">Rejected — balance never touched.</p>}
+
+              {tab === "revoked" && (
+                <p className="text-xs text-white/40">Revoked — balance credit was reversed.</p>
               )}
             </div>
           ))}

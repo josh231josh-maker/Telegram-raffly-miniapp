@@ -8,9 +8,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { action, txHash } = await req.json();
+  const { action } = await req.json();
 
-  if (!["approve", "reject", "mark-paid"].includes(action)) {
+  if (!["approve", "reject", "revoke"].includes(action)) {
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
 
@@ -28,8 +28,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   if (action === "approve") {
+    // Approving credits the win straight into the user's in-app balance —
+    // this isn't a real payout, just making their winnings spendable.
+    // Actual money only leaves your hand later, when they withdraw.
+    const { data: user } = await supabase
+      .from("users")
+      .select("usdt_balance, first_name, username")
+      .eq("id", winner.user_id)
+      .single();
+
     // Conditioned on the current status so two concurrent requests (or a
-    // double-click) can't both succeed and double-process the same winner.
+    // double-click) can't both succeed and double-credit the same winner.
     const { data: updated, error } = await supabase
       .from("raffle_winners")
       .update({ status: "approved" })
@@ -45,62 +54,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Winner is no longer pending" }, { status: 409 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Winner approved. Next: mark as paid when funds are sent.",
-    });
-  }
-
-  if (action === "reject") {
-    const { data: updated, error } = await supabase
-      .from("raffle_winners")
-      .update({ status: "rejected" })
-      .eq("id", winnerId)
-      .in("status", ["pending", "approved"])
-      .select()
-      .maybeSingle();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    if (!updated) {
-      return NextResponse.json({ error: "Winner can no longer be rejected" }, { status: 409 });
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Winner rejected. User balance remains unchanged.",
-    });
-  }
-
-  if (action === "mark-paid") {
-    if (!txHash) {
-      return NextResponse.json({ error: "TX hash required" }, { status: 400 });
-    }
-
-    const { data: user } = await supabase
-      .from("users")
-      .select("usdt_balance, first_name, username")
-      .eq("id", winner.user_id)
-      .single();
-
     const currentBalance = user?.usdt_balance || 0;
-
-    const { data: updated, error: updateError } = await supabase
-      .from("raffle_winners")
-      .update({ status: "paid", paid_at: new Date().toISOString(), tx_hash: txHash })
-      .eq("id", winnerId)
-      .eq("status", "approved")
-      .select()
-      .maybeSingle();
-
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
-    }
-    if (!updated) {
-      return NextResponse.json({ error: "Winner must be approved before marking paid" }, { status: 409 });
-    }
-
     const { error: balanceError } = await supabase
       .from("users")
       .update({ usdt_balance: currentBalance + winner.prize_amount })
@@ -124,7 +78,79 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     return NextResponse.json({
       success: true,
-      message: `Marked as paid and credited $${winner.prize_amount} to user balance.`,
+      message: `Approved and credited $${winner.prize_amount} to the user's balance.`,
+    });
+  }
+
+  if (action === "reject") {
+    const { data: updated, error } = await supabase
+      .from("raffle_winners")
+      .update({ status: "rejected" })
+      .eq("id", winnerId)
+      .eq("status", "pending")
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    if (!updated) {
+      return NextResponse.json({ error: "Winner is no longer pending" }, { status: 409 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Winner rejected. User balance remains unchanged.",
+    });
+  }
+
+  if (action === "revoke") {
+    const { data: user } = await supabase
+      .from("users")
+      .select("usdt_balance")
+      .eq("id", winner.user_id)
+      .single();
+
+    const { data: updated, error } = await supabase
+      .from("raffle_winners")
+      .update({ status: "revoked" })
+      .eq("id", winnerId)
+      .eq("status", "approved")
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    if (!updated) {
+      return NextResponse.json({ error: "Only an approved winner can be revoked" }, { status: 409 });
+    }
+
+    // Claw back the credit, floored at 0 — if the user already withdrew some
+    // or all of it, that portion can't be reversed here.
+    const currentBalance = user?.usdt_balance || 0;
+    const newBalance = Math.max(0, currentBalance - winner.prize_amount);
+    const { error: balanceError } = await supabase
+      .from("users")
+      .update({ usdt_balance: newBalance })
+      .eq("id", winner.user_id);
+
+    if (balanceError) {
+      return NextResponse.json({ error: balanceError.message }, { status: 500 });
+    }
+
+    const { error: unannounceError } = await supabase
+      .from("winner_announcements")
+      .delete()
+      .eq("raffle_winner_id", winnerId);
+
+    if (unannounceError) {
+      return NextResponse.json({ error: unannounceError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Winner revoked and balance credit reversed.",
     });
   }
 }
