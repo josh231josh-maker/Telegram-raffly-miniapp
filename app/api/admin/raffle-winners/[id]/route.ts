@@ -19,7 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { data: winner, error: fetchError } = await supabase
     .from("raffle_winners")
-    .select("id, user_id, prize_amount, status, week_label")
+    .select("id, user_id, prize_amount, status")
     .eq("id", winnerId)
     .single();
 
@@ -30,10 +30,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (action === "approve") {
     // Approving credits the win straight into the user's in-app balance —
     // this isn't a real payout, just making their winnings spendable.
-    // Actual money only leaves your hand later, when they withdraw.
+    // Actual money only leaves your hand later, when they withdraw. The
+    // public winners list is never touched automatically here — that's a
+    // separate, fully manual step in Manage Winners.
     const { data: user } = await supabase
       .from("users")
-      .select("usdt_balance, first_name, username")
+      .select("usdt_balance")
       .eq("id", winner.user_id)
       .single();
 
@@ -62,18 +64,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     if (balanceError) {
       return NextResponse.json({ error: balanceError.message }, { status: 500 });
-    }
-
-    const { error: announceError } = await supabase.from("winner_announcements").insert({
-      raffle_winner_id: winnerId,
-      display_name: user?.first_name || user?.username || "Winner",
-      prize_amount: winner.prize_amount,
-      week_label: winner.week_label,
-      publish_at: new Date().toISOString(),
-    });
-
-    if (announceError) {
-      return NextResponse.json({ error: announceError.message }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -137,15 +127,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     if (balanceError) {
       return NextResponse.json({ error: balanceError.message }, { status: 500 });
-    }
-
-    const { error: unannounceError } = await supabase
-      .from("winner_announcements")
-      .delete()
-      .eq("raffle_winner_id", winnerId);
-
-    if (unannounceError) {
-      return NextResponse.json({ error: unannounceError.message }, { status: 500 });
     }
 
     return NextResponse.json({

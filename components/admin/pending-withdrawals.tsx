@@ -20,8 +20,14 @@ type Withdrawal = {
   };
 };
 
-const TABS = ["pending", "approved", "paid", "rejected"] as const;
+const TABS = ["pending", "approved", "paid"] as const;
 type Tab = (typeof TABS)[number];
+
+const TAB_LABELS: Record<Tab, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  paid: "Sent",
+};
 
 export function PendingWithdrawals() {
   const [tab, setTab] = useState<Tab>("pending");
@@ -73,11 +79,11 @@ export function PendingWithdrawals() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
               tab === t ? "bg-white/15 text-white" : "text-white/50 hover:text-white/70"
             }`}
           >
-            {t}
+            {TAB_LABELS[t]}
           </button>
         ))}
       </div>
@@ -92,7 +98,7 @@ export function PendingWithdrawals() {
           ))}
         </div>
       ) : withdrawals.length === 0 ? (
-        <p className="text-sm text-white/50">No {tab} withdrawals.</p>
+        <p className="text-sm text-white/50">No {TAB_LABELS[tab].toLowerCase()} withdrawals.</p>
       ) : (
         <div className="space-y-3">
           {withdrawals.map((w) => (
@@ -105,7 +111,7 @@ export function PendingWithdrawals() {
                     <p className="mt-1 break-all text-xs text-white/40">{w.wallet_address}</p>
                   )}
                 </div>
-                <p className="text-lg font-semibold text-green">${Number(w.amount).toFixed(2)}</p>
+                <p className="text-lg font-semibold text-green tabular-nums">${Number(w.amount).toFixed(2)}</p>
               </div>
 
               {tab === "pending" && (
@@ -141,14 +147,14 @@ export function PendingWithdrawals() {
                     disabled={processing === w.id || !txHash[w.id]}
                     className="w-full rounded-lg bg-blue-500/10 px-3 py-2 text-sm font-medium text-blue-400 hover:bg-blue-500/20 disabled:opacity-50"
                   >
-                    Mark Paid
+                    Mark Sent
                   </button>
                 </div>
               )}
 
               {tab === "paid" && (
                 <p className="text-xs text-white/40">
-                  Paid {w.processed_at ? new Date(w.processed_at).toLocaleString() : ""}
+                  Sent {w.processed_at ? new Date(w.processed_at).toLocaleString() : ""}
                 </p>
               )}
             </div>

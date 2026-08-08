@@ -20,7 +20,7 @@ type Winner = {
   };
 };
 
-const TABS = ["pending", "approved", "rejected", "revoked"] as const;
+const TABS = ["pending", "approved"] as const;
 type Tab = (typeof TABS)[number];
 
 export function PendingWinners() {
@@ -124,12 +124,10 @@ export function PendingWinners() {
 
               {tab === "approved" && (
                 <>
-                  <p className="mb-3 text-xs text-white/40">
-                    Credited to balance — visible on the public winners list.
-                  </p>
+                  <p className="mb-3 text-xs text-white/40">Credited to balance.</p>
                   <button
                     onClick={() => {
-                      if (confirm("Revoke this win? This reverses the balance credit and removes the public announcement."))
+                      if (confirm("Revoke this win? This reverses the balance credit."))
                         handleAction(w.id, "revoke");
                     }}
                     disabled={processing === w.id}
@@ -138,12 +136,6 @@ export function PendingWinners() {
                     Revoke
                   </button>
                 </>
-              )}
-
-              {tab === "rejected" && <p className="text-xs text-white/40">Rejected — balance never touched.</p>}
-
-              {tab === "revoked" && (
-                <p className="text-xs text-white/40">Revoked — balance credit was reversed.</p>
               )}
             </div>
           ))}
