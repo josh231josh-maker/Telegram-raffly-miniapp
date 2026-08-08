@@ -2,6 +2,7 @@
 
 import { init, miniApp, themeParams, retrieveRawInitData } from "@telegram-apps/sdk";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { fetchWithRetry } from "@/lib/fetch-retry";
 
 type RafflyUser = {
   id: string;
@@ -102,7 +103,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const fetchUser = async (): Promise<RafflyUser | null> => {
     if (!initDataRef.current) return null;
     try {
-      const res = await fetch("/api/auth", {
+      const res = await fetchWithRetry("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ initData: initDataRef.current }),
@@ -122,7 +123,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const fetchRaffleEntry = async () => {
     if (!initDataRef.current) return;
     try {
-      const res = await fetch(
+      const res = await fetchWithRetry(
         `/api/raffle-entry?initData=${encodeURIComponent(initDataRef.current)}`
       );
       const data = await res.json();
@@ -185,7 +186,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         startParam = null;
       }
 
-      fetch("/api/auth", {
+      fetchWithRetry("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ initData: rawInitData, startParam }),

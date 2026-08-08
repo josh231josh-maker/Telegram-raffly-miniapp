@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { TrophyIcon, ChevronDownIcon } from "@/components/icons";
 import { IconBadge } from "@/components/icon-badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fetchWithRetry } from "@/lib/fetch-retry";
 
 type Winner = {
   id: string;
@@ -22,10 +23,20 @@ export function PreviousWinners() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/raffle-info")
+    let cancelled = false;
+    fetchWithRetry("/api/raffle-info")
       .then((res) => res.json())
-      .then((data) => setWinners(data.winners ?? []))
-      .catch(() => setWinners([]));
+      .then((data) => {
+        if (!cancelled) setWinners(data.winners ?? []);
+      })
+      .catch(() => {
+        // Retries already exhausted -- stay in the loading state rather than
+        // resolving to an empty list, so this doesn't get mistaken for
+        // "genuinely no winners" and hide the section permanently.
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (winners === null) {
