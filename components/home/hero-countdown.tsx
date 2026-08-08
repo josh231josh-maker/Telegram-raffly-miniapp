@@ -48,7 +48,7 @@ export function HeroCountdown() {
   return (
     <div className="relative mx-1.5 mb-2">
       <section
-        className="relative -rotate-[1.4deg] overflow-hidden rounded-[28px] text-white shadow-lg"
+        className="relative -rotate-[1.4deg] overflow-hidden rounded-[28px] bg-gradient-to-br from-[#cfa354] to-[#8a6a28] text-white shadow-lg"
         aria-label="Next weekly draw"
       >
         <Image
