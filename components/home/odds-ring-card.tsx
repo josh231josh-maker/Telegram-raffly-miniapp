@@ -63,11 +63,6 @@ export function OddsRingCard() {
   const yourTickets = raffleEntry?.ticketsEntered ?? 0;
   const totalTickets = info?.totalTickets ?? 0;
   const totalParticipants = info?.totalParticipants ?? 0;
-  // PRE-LAUNCH PLACEHOLDERS: displayed counts only, not used in the odds math
-  // below. Replace with `totalParticipants`/`totalTickets` before going live
-  // to real users — this is real-money-adjacent and must reflect real numbers.
-  const displayParticipants = 205;
-  const displayTotalTickets = 573;
   // With at most one winner per person, once participants <= the number of
   // weekly winners, every participant with a ticket is effectively certain
   // to win — the ticket-share estimate below only makes sense once there
@@ -149,12 +144,12 @@ export function OddsRingCard() {
           <div className="flex translate-x-5 items-center gap-2 rounded-2xl border border-border-soft bg-white/5 py-2 pl-2.5 pr-3">
             <span className="h-2 w-2 shrink-0 rounded-sm bg-purple" />
             <span className="text-text-dim">Total pool</span>
-            <span className="ml-auto font-heading font-bold tabular-nums text-text">{displayTotalTickets}</span>
+            <span className="ml-auto font-heading font-bold tabular-nums text-text">{totalTickets}</span>
           </div>
           <div className="flex translate-x-2.5 items-center gap-2 rounded-2xl border border-border-soft bg-white/5 py-2 pl-2.5 pr-3">
             <span className="h-2 w-2 shrink-0 rounded-sm bg-accent" />
             <span className="text-text-dim">Players</span>
-            <span className="ml-auto font-heading font-bold tabular-nums text-text">{displayParticipants}</span>
+            <span className="ml-auto font-heading font-bold tabular-nums text-text">{totalParticipants}</span>
           </div>
         </div>
       </div>
