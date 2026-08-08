@@ -9,22 +9,32 @@ type BalanceCardProps = {
   value: string;
   sublabel?: string;
   icon: React.ReactNode;
-  variant: "purple" | "green";
+  variant: "purple" | "gold";
+};
+
+const CARD_CLASSES: Record<BalanceCardProps["variant"], string> = {
+  purple: "card-purple text-white",
+  gold: "card-gold text-[#1a0a33]",
+};
+const SUBTLE_CLASSES: Record<BalanceCardProps["variant"], { icon: string; label: string; sub: string }> = {
+  purple: { icon: "bg-white/20", label: "text-white/80", sub: "text-white/70" },
+  gold: { icon: "bg-black/10", label: "text-[#1a0a33]/70", sub: "text-[#1a0a33]/60" },
 };
 
 function BalanceCard({ label, value, sublabel, icon, variant }: BalanceCardProps) {
-  const cardClass = variant === "purple" ? "card-purple" : "card-green";
+  const cardClass = CARD_CLASSES[variant];
+  const subtle = SUBTLE_CLASSES[variant];
 
   return (
-    <article className={`${cardClass} rounded-[24px] p-5 text-white`}>
+    <article className={`${cardClass} rounded-[24px] p-5`}>
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-white/80">{label}</span>
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20">
+        <span className={`text-sm font-medium ${subtle.label}`}>{label}</span>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${subtle.icon}`}>
           {icon}
         </span>
       </div>
       <p className="font-heading text-3xl font-bold tracking-tight">{value}</p>
-      {sublabel && <p className="mt-1 text-xs text-white/70">{sublabel}</p>}
+      {sublabel && <p className={`mt-1 text-xs ${subtle.sub}`}>{sublabel}</p>}
     </article>
   );
 }
@@ -48,7 +58,7 @@ export function BalanceCards() {
         label="USDT"
         value={loadingUser ? "…" : `$${usdtBalance}`}
         icon={<UsdtIcon className="h-4 w-4" />}
-        variant="green"
+        variant="gold"
       />
     </section>
   );

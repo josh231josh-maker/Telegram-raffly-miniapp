@@ -28,33 +28,59 @@ export default function HomePage() {
         {tab === "home" && (
           <>
             <HomeHeader />
-            <HeroCountdown />
-            <PassBanner onOpen={() => setPassOpen(true)} />
-            <OddsRingCard />
-            <PreviousWinners />
+            <div className="rise-in" style={{ animationDelay: "0.02s" }}>
+              <HeroCountdown />
+            </div>
+            <div className="rise-in" style={{ animationDelay: "0.08s" }}>
+              <PassBanner onOpen={() => setPassOpen(true)} />
+            </div>
+            <div className="rise-in" style={{ animationDelay: "0.14s" }}>
+              <OddsRingCard />
+            </div>
+            <div className="rise-in" style={{ animationDelay: "0.2s" }}>
+              <PreviousWinners />
+            </div>
           </>
         )}
 
         {tab === "raffles" && (
           <>
-            <BuyRaffleBar />
-            <h1 className="flex items-center justify-center gap-2 text-center font-heading text-xl font-bold text-text">
+            <div className="rise-in" style={{ animationDelay: "0.02s" }}>
+              <BuyRaffleBar />
+            </div>
+            <h1 className="rise-in flex items-center justify-center gap-2 text-center font-heading text-xl font-bold text-text" style={{ animationDelay: "0.06s" }}>
               Complete tasks and receive
               <TicketImage size={22} />
             </h1>
-            <DailyCheckIn />
-            <WatchAdCard />
-            <ReferralCard />
+            <div className="rise-in" style={{ animationDelay: "0.1s" }}>
+              <DailyCheckIn />
+            </div>
+            <div className="rise-in" style={{ animationDelay: "0.14s" }}>
+              <WatchAdCard />
+            </div>
+            <div className="rise-in" style={{ animationDelay: "0.18s" }}>
+              <ReferralCard />
+            </div>
           </>
         )}
 
         {tab === "profile" && (
           <>
-            <h1 className="font-heading text-2xl font-bold text-text">Profile</h1>
-            <BalanceCards />
-            <WithdrawButton />
-            <ProfileCard />
-            <RecentActivity />
+            <h1 className="rise-in font-heading text-2xl font-bold text-text" style={{ animationDelay: "0.02s" }}>
+              Profile
+            </h1>
+            <div className="rise-in" style={{ animationDelay: "0.06s" }}>
+              <BalanceCards />
+            </div>
+            <div className="rise-in" style={{ animationDelay: "0.1s" }}>
+              <WithdrawButton />
+            </div>
+            <div className="rise-in" style={{ animationDelay: "0.14s" }}>
+              <ProfileCard />
+            </div>
+            <div className="rise-in" style={{ animationDelay: "0.18s" }}>
+              <RecentActivity />
+            </div>
           </>
         )}
       </div>

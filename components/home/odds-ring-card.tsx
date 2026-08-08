@@ -105,17 +105,25 @@ export function OddsRingCard() {
 
   return (
     <section className="card-soft rounded-[28px] border border-border bg-card p-5">
-      <p className="mb-4 text-sm font-medium text-text-dim">Your Odds</p>
-      <div className="flex items-center gap-5">
-        <div className="relative h-24 w-24 shrink-0">
+      <p className="mb-4 flex items-center gap-2 text-sm font-medium text-text-dim">
+        <span className="float-bob">🎟</span>Your Odds
+      </p>
+      <div className="flex items-center gap-3">
+        <div className="relative h-24 w-24 shrink-0 drop-shadow-[0_8px_16px_rgba(59,124,255,0.35)]">
           <svg viewBox="0 0 100 100" className="h-24 w-24 -rotate-90">
             <circle cx="50" cy="50" r={RADIUS} fill="none" stroke="var(--border)" strokeWidth="10" />
+            <defs>
+              <linearGradient id="oddsRingGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="var(--pink)" />
+                <stop offset="100%" stopColor="var(--purple)" />
+              </linearGradient>
+            </defs>
             <circle
               cx="50"
               cy="50"
               r={RADIUS}
               fill="none"
-              stroke="var(--accent)"
+              stroke="url(#oddsRingGradient)"
               strokeWidth="10"
               strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE}
@@ -132,18 +140,21 @@ export function OddsRingCard() {
           </div>
         </div>
 
-        <div className="flex-1 text-sm">
-          <div className="flex items-center justify-between border-b border-border py-1.5">
+        <div className="flex flex-1 flex-col gap-2 pl-1 text-xs">
+          <div className="flex translate-x-2.5 items-center gap-2 rounded-2xl border border-border-soft bg-white/5 py-2 pl-2.5 pr-3">
+            <span className="h-2 w-2 shrink-0 rounded-sm bg-pink" />
             <span className="text-text-dim">Your tickets</span>
-            <span className="font-semibold text-text">{yourTickets}</span>
+            <span className="ml-auto font-heading font-bold tabular-nums text-text">{yourTickets}</span>
           </div>
-          <div className="flex items-center justify-between border-b border-border py-1.5">
+          <div className="flex translate-x-5 items-center gap-2 rounded-2xl border border-border-soft bg-white/5 py-2 pl-2.5 pr-3">
+            <span className="h-2 w-2 shrink-0 rounded-sm bg-purple" />
             <span className="text-text-dim">Total pool</span>
-            <span className="font-semibold text-text">{displayTotalTickets}</span>
+            <span className="ml-auto font-heading font-bold tabular-nums text-text">{displayTotalTickets}</span>
           </div>
-          <div className="flex items-center justify-between py-1.5">
-            <span className="text-text-dim">Participants</span>
-            <span className="font-semibold text-text">{displayParticipants}</span>
+          <div className="flex translate-x-2.5 items-center gap-2 rounded-2xl border border-border-soft bg-white/5 py-2 pl-2.5 pr-3">
+            <span className="h-2 w-2 shrink-0 rounded-sm bg-accent" />
+            <span className="text-text-dim">Players</span>
+            <span className="ml-auto font-heading font-bold tabular-nums text-text">{displayParticipants}</span>
           </div>
         </div>
       </div>

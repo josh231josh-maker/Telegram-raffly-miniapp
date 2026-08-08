@@ -75,16 +75,21 @@ export function PreviousWinners() {
       </button>
 
       {open && (
-        <div className="mt-3 flex flex-col divide-y divide-border border-t border-border">
+        <div className="winners-board mt-3">
           {winners.map((w) => (
-            <div key={w.id} className="flex items-center justify-between py-2 text-sm">
+            <div
+              key={w.id}
+              className="winner-stub mb-3 ml-1.5 flex items-center justify-between rounded-2xl bg-white/[0.06] px-4 py-3 text-sm"
+            >
               <span className="text-text">
                 {w.display_name}
                 {w.week_label ? (
                   <span className="ml-2 text-xs text-text-faint">{w.week_label}</span>
                 ) : null}
               </span>
-              <span className="font-semibold text-green">${Number(w.prize_amount).toFixed(0)}</span>
+              <span className="font-heading font-bold tabular-nums text-accent">
+                ${Number(w.prize_amount).toFixed(0)}
+              </span>
             </div>
           ))}
         </div>

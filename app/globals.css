@@ -1,31 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf5f2;
-  --card: #ffffff;
-  --border: #f1e9f7;
-  --border-soft: rgba(28, 21, 35, 0.06);
-  --purple: #7c4dff;
-  --purple-2: #9b6bff;
-  --purple-soft: #f1ecff;
-  --orange: #ff7a45;
-  --orange-2: #ff9a66;
-  --orange-soft: #fff0e8;
-  --pink: #ff5ca8;
-  --pink-soft: #ffe8f3;
-  --green: #16a34a;
-  --green-2: #22c55e;
-  --green-soft: #e8f8ee;
-  --text: #1c1523;
-  --text-dim: #6b6478;
-  --text-faint: #a79fb8;
+  --background: #150a33;
+  --card: #241354;
+  --border: rgba(245, 239, 255, 0.14);
+  --border-soft: rgba(245, 239, 255, 0.08);
+  --purple: #3b7cff;
+  --purple-2: #7fb0ff;
+  --purple-soft: rgba(59, 124, 255, 0.16);
+  --orange: #ffc72c;
+  --orange-2: #ffe08a;
+  --orange-soft: rgba(255, 199, 44, 0.16);
+  --pink: #ff3e9e;
+  --pink-2: #ff86c6;
+  --pink-soft: rgba(255, 62, 158, 0.16);
+  --green: #1fe08a;
+  --green-2: #6bffc0;
+  --green-soft: rgba(31, 224, 138, 0.16);
+  --text: #f5efff;
+  --text-dim: #b3a6db;
+  --text-faint: #8677b8;
 
-  --hero-from: #7c5cff;
-  --hero-to: #ec4899;
-  --pass-from: #ff9a56;
-  --pass-to: #ff5f3d;
+  --hero-from: #ff3e9e;
+  --hero-to: #3b7cff;
+  --pass-from: #ffc72c;
+  --pass-to: #ff3e9e;
 
-  --surface-dark: #12141f;
+  --surface-dark: #0d0726;
 }
 
 @theme inline {
@@ -67,7 +68,10 @@ body {
 }
 
 .app-bg-gradient {
-  background: var(--background);
+  background:
+    radial-gradient(120% 60% at 15% -10%, rgba(255, 62, 158, 0.22), transparent 60%),
+    radial-gradient(120% 60% at 85% 0%, rgba(59, 124, 255, 0.2), transparent 55%),
+    var(--background);
 }
 
 .hero-gradient {
@@ -82,22 +86,22 @@ body {
   background: linear-gradient(135deg, var(--pass-from) 0%, var(--pass-to) 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.25) inset,
-    0 10px 24px -8px rgba(255, 95, 61, 0.45);
+    0 10px 24px -8px rgba(255, 62, 158, 0.45);
 }
 
 .card-soft {
   box-shadow:
-    0 1px 2px rgba(28, 21, 51, 0.05),
-    0 2px 6px rgba(28, 21, 51, 0.04),
-    0 16px 32px -12px rgba(28, 21, 51, 0.1);
+    0 1px 2px rgba(5, 2, 20, 0.3),
+    0 2px 6px rgba(5, 2, 20, 0.25),
+    0 16px 32px -12px rgba(5, 2, 20, 0.55);
 }
 
 .btn-accent {
-  color: #fff;
-  background: linear-gradient(135deg, var(--orange-2) 0%, var(--orange) 100%);
+  color: #1a0a33;
+  background: linear-gradient(95deg, var(--orange-2) 0%, var(--orange) 100%);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.3) inset,
-    0 10px 22px -8px rgba(255, 122, 69, 0.5);
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 10px 22px -8px rgba(255, 199, 44, 0.55);
 }
 
 .btn-accent:active {
@@ -109,7 +113,7 @@ body {
   background: linear-gradient(135deg, var(--purple-2) 0%, var(--purple) 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.3) inset,
-    0 10px 22px -8px rgba(124, 77, 255, 0.5);
+    0 10px 22px -8px rgba(59, 124, 255, 0.5);
 }
 
 .btn-purple:active {
@@ -117,11 +121,11 @@ body {
 }
 
 .btn-green {
-  color: #fff;
+  color: #06301d;
   background: linear-gradient(135deg, var(--green-2) 0%, var(--green) 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.3) inset,
-    0 10px 22px -8px rgba(22, 163, 74, 0.4);
+    0 10px 22px -8px rgba(31, 224, 138, 0.4);
 }
 
 .btn-green:active {
@@ -130,16 +134,138 @@ body {
 
 .card-purple {
   background: linear-gradient(135deg, var(--purple-2) 0%, var(--purple) 100%);
-  box-shadow: 0 10px 22px -10px rgba(124, 77, 255, 0.55);
+  box-shadow: 0 10px 22px -10px rgba(59, 124, 255, 0.55);
 }
 
 .card-green {
   background: linear-gradient(135deg, var(--green-2) 0%, var(--green) 100%);
-  box-shadow: 0 10px 22px -10px rgba(22, 163, 74, 0.4);
+  box-shadow: 0 10px 22px -10px rgba(31, 224, 138, 0.4);
+}
+
+.card-gold {
+  background: linear-gradient(135deg, var(--orange-2) 0%, var(--orange) 100%);
+  box-shadow: 0 10px 22px -10px rgba(255, 199, 44, 0.45);
+}
+
+@keyframes jackpot-pulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(255, 199, 44, 0));
+  }
+  50% {
+    transform: scale(1.025);
+    filter: drop-shadow(0 0 16px rgba(255, 199, 44, 0.55));
+  }
+}
+
+.jackpot-text {
+  background: linear-gradient(180deg, #fff 10%, var(--orange-2) 60%, var(--orange));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  animation: jackpot-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes float-bob {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-4px) rotate(6deg); }
+}
+
+.float-bob {
+  display: inline-block;
+  animation: float-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0% { box-shadow: 0 0 0 0 rgba(255, 199, 44, 0.65); }
+  70% { box-shadow: 0 0 0 9px rgba(255, 199, 44, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 199, 44, 0); }
+}
+
+.pulse-dot {
+  animation: pulse-dot 1.8s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jackpot-text,
+  .float-bob,
+  .pulse-dot {
+    animation: none;
+  }
 }
 
 .nav-shadow {
   box-shadow:
-    0 1px 2px rgba(28, 21, 51, 0.04),
-    0 12px 28px -8px rgba(28, 21, 51, 0.16);
+    0 1px 2px rgba(5, 2, 20, 0.3),
+    0 16px 34px -10px rgba(5, 2, 20, 0.65);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise-in {
+  opacity: 0;
+  animation: rise-in 0.6s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise-in {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+.winners-board {
+  background-image: radial-gradient(rgba(245, 239, 255, 0.07) 1px, transparent 1.4px);
+  background-size: 13px 13px;
+  background-color: rgba(0, 0, 0, 0.16);
+  border-radius: 18px;
+  padding: 14px 12px 2px;
+}
+
+.winner-stub {
+  position: relative;
+  box-shadow: 0 8px 16px -8px rgba(5, 2, 20, 0.6);
+}
+
+.winner-stub:nth-child(odd) {
+  transform: rotate(-0.8deg);
+}
+
+.winner-stub:nth-child(even) {
+  transform: rotate(0.8deg);
+}
+
+/* Perforation notches along the left edge, like this stub was torn off a
+   ticket roll -- positioned at the edge itself, not pushed into the content. */
+.winner-stub::before,
+.winner-stub::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  /* Approximates the winners-board's dark overlay atop the card background,
+     so the notch reads as a punched hole rather than a mismatched dot. */
+  background: #1e1047;
+}
+
+.winner-stub::before {
+  top: 50%;
+  transform: translateY(-16px);
+}
+
+.winner-stub::after {
+  top: 50%;
+  transform: translateY(4px);
 }

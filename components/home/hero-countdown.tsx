@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getCurrentWeekEnd } from "@/lib/raffle-week";
+import { WEEKLY_WINNER_COUNT } from "@/lib/raffle-week";
 
 type Segments = { days: string; hours: string; minutes: string; seconds: string };
 
@@ -17,6 +18,8 @@ function toSegments(ms: number): Segments {
   const seconds = totalSeconds % 60;
   return { days: pad(days), hours: pad(hours), minutes: pad(minutes), seconds: pad(seconds) };
 }
+
+const PRIZE_PER_WINNER = 100;
 
 export function HeroCountdown() {
   const [target] = useState(() => getCurrentWeekEnd());
@@ -36,28 +39,50 @@ export function HeroCountdown() {
 
   const items = [
     { label: "Days", value: segments.days },
-    { label: "Hours", value: segments.hours },
-    { label: "Mins", value: segments.minutes },
-    { label: "Secs", value: segments.seconds },
+    { label: "Hrs", value: segments.hours },
+    { label: "Min", value: segments.minutes },
+    { label: "Sec", value: segments.seconds },
   ];
 
   return (
-    <section
-      className="hero-gradient flex-shrink-0 rounded-[28px] p-5 text-white shadow-lg"
-      aria-label="Next weekly draw"
-    >
-      <span className="text-xs font-semibold uppercase tracking-widest text-white/70">
-        Next Weekly Draw
-      </span>
-      <div className="mt-3.5 grid grid-cols-4 gap-1.5 text-center">
-        {items.map((item) => (
-          <div key={item.label} className="rounded-2xl bg-white/15 px-0.5 py-2.5">
-            <p className="font-heading text-xl font-bold tabular-nums">{item.value}</p>
-            <p className="mt-0.5 text-[8.5px] uppercase tracking-wide text-white/60">{item.label}</p>
-          </div>
-        ))}
-      </div>
-      <p className="mt-3 text-center text-xs text-white/70">5 random winners · $100 USDT each</p>
-    </section>
+    <div className="relative mx-1.5 mb-2">
+      <div
+        aria-hidden="true"
+        className="absolute -right-3.5 top-5 -z-10 h-28 w-20 rotate-[11deg] rounded-xl opacity-90"
+        style={{
+          background:
+            "repeating-linear-gradient(-55deg, var(--orange), var(--orange) 10px, var(--orange-2) 10px, var(--orange-2) 20px)",
+          boxShadow: "0 14px 24px -8px rgba(0,0,0,0.45)",
+        }}
+      />
+      <section
+        className="hero-gradient relative -rotate-[1.4deg] overflow-hidden rounded-[28px] p-5 text-white shadow-lg"
+        aria-label="Next weekly draw"
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 rounded-full opacity-40"
+          style={{ background: "radial-gradient(circle, var(--orange), transparent 65%)" }}
+        />
+        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/80">
+          <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-accent" />
+          This week&apos;s pool · {WEEKLY_WINNER_COUNT} winners
+        </span>
+        <p className="jackpot-text font-heading mt-1.5 text-[42px] font-extrabold leading-none tracking-tight text-balance">
+          ${WEEKLY_WINNER_COUNT * PRIZE_PER_WINNER}
+        </p>
+        <p className="mt-1.5 text-xs font-medium text-white/75">
+          ${PRIZE_PER_WINNER} USDT to each of {WEEKLY_WINNER_COUNT} winners, every week
+        </p>
+        <div className="mt-4 grid grid-cols-4 gap-1.5 text-center">
+          {items.map((item) => (
+            <div key={item.label} className="rounded-2xl bg-black/20 px-0.5 py-2.5">
+              <p className="font-heading text-xl font-bold tabular-nums">{item.value}</p>
+              <p className="mt-0.5 text-[8.5px] uppercase tracking-wide text-white/60">{item.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
