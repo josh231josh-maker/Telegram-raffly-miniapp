@@ -78,18 +78,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "TX hash required" }, { status: 400 });
     }
 
-    const { data: user } = await supabase
-      .from("users")
-      .select("usdt_balance")
-      .eq("id", withdrawal.user_id)
-      .single();
-
-    // Subtract only the withdrawn amount rather than zeroing outright — the
-    // user's balance may have grown from unrelated sources (e.g. a raffle
-    // win credited) while this withdrawal sat pending/approved.
-    const currentBalance = user?.usdt_balance || 0;
-    const newBalance = Math.max(0, currentBalance - withdrawal.amount);
-
     const { data: updated, error: updateError } = await supabase
       .from("withdrawals")
       .update({ status: "paid", processed_at: new Date().toISOString(), tx_hash: txHash })
@@ -108,10 +96,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       );
     }
 
-    const { error: balanceError } = await supabase
-      .from("users")
-      .update({ usdt_balance: newBalance })
-      .eq("id", withdrawal.user_id);
+    // Subtract only the withdrawn amount (atomically, floored at 0 inside
+    // the RPC) rather than zeroing outright — the user's balance may have
+    // grown from unrelated sources (e.g. a raffle win credited) while this
+    // withdrawal sat pending/approved.
+    const { error: balanceError } = await supabase.rpc("increment_usdt_balance", {
+      p_user_id: withdrawal.user_id,
+      p_delta: -withdrawal.amount,
+    });
 
     if (balanceError) {
       return NextResponse.json({ error: balanceError.message }, { status: 500 });

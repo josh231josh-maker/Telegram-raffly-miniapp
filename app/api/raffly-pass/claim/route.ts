@@ -40,19 +40,24 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const { data: updated, error: updateError } = await supabase
-    .from("users")
-    .update({
-      ticket_balance: existing.ticket_balance + RAFFLY_PASS_DAILY_TICKETS,
-      raffly_pass_last_claim_date: today,
-    })
-    .eq("id", existing.id)
-    .select()
-    .single();
+  const { data: newBalance, error: rpcError } = await supabase.rpc("try_claim_pass_tickets", {
+    p_user_id: existing.id,
+    p_today: today,
+    p_tickets: RAFFLY_PASS_DAILY_TICKETS,
+  });
 
-  if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (rpcError) {
+    return NextResponse.json({ error: rpcError.message }, { status: 500 });
   }
+
+  if (newBalance === null) {
+    return NextResponse.json({
+      alreadyClaimed: true,
+      user: await withReferralCount(supabase, existing),
+    });
+  }
+
+  const { data: updated } = await supabase.from("users").select("*").eq("id", existing.id).single();
 
   return NextResponse.json({
     alreadyClaimed: false,

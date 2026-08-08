@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { checkAndRewardReferral } from "@/lib/referral";
 import { isPassActive } from "@/lib/raffly-pass";
+import { timingSafeEqual } from "@/lib/timing-safe";
 
 const ADS_TO_TICKET_RATIO = 2;
 
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest) {
   const userId = searchParams.get("userid");
   const secret = searchParams.get("secret");
 
-  if (secret !== process.env.ADSGRAM_SECRET) {
+  if (!timingSafeEqual(secret, process.env.ADSGRAM_SECRET)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
 
   const { data: user, error: userError } = await supabase
     .from("users")
-    .select("id, ticket_balance, raffly_pass_expires_at")
+    .select("id, raffly_pass_expires_at")
     .eq("telegram_id", telegramId)
     .single();
 
@@ -35,30 +36,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  await supabase.from("ad_views").insert({ user_id: user.id, converted: false });
+  const baseReward = isPassActive(user.raffly_pass_expires_at) ? 2 : 1;
 
-  const { data: unconverted } = await supabase
-    .from("ad_views")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("converted", false)
-    .order("viewed_at", { ascending: true });
+  // Atomic: records the view and, once enough have piled up, converts and
+  // credits in one row-locked transaction -- a retried postback for the
+  // same user can't double-convert or double-credit.
+  const { data: ticketsAwarded, error: rpcError } = await supabase.rpc("record_ad_view", {
+    p_user_id: user.id,
+    p_ratio: ADS_TO_TICKET_RATIO,
+    p_reward: baseReward,
+  });
 
-  if (unconverted && unconverted.length >= ADS_TO_TICKET_RATIO) {
-    const toConvert = unconverted.slice(0, ADS_TO_TICKET_RATIO).map((v) => v.id);
+  if (rpcError) {
+    return NextResponse.json({ error: rpcError.message }, { status: 500 });
+  }
 
-    await supabase
-      .from("ad_views")
-      .update({ converted: true })
-      .in("id", toConvert);
-
-    const ticketsAwarded = isPassActive(user.raffly_pass_expires_at) ? 2 : 1;
-
-    await supabase
-      .from("users")
-      .update({ ticket_balance: user.ticket_balance + ticketsAwarded })
-      .eq("id", user.id);
-
+  if (ticketsAwarded > 0) {
     await checkAndRewardReferral(supabase, user.id);
   }
 

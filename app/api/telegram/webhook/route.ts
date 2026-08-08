@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { checkAndRewardReferral } from "@/lib/referral";
 import { RAFFLY_PASS_DURATION_DAYS } from "@/lib/raffly-pass";
-
-
+import { STARS_TIERS } from "@/lib/stars-tiers";
 
 export async function POST(req: NextRequest) {
   const secretHeader = req.headers.get("x-telegram-bot-api-secret-token");
@@ -16,10 +15,32 @@ export async function POST(req: NextRequest) {
 
   if (update.pre_checkout_query) {
     const query = update.pre_checkout_query;
+
+    // Verify the payload and charge amount against our own tier prices
+    // before approving — this is the only checkpoint before Telegram
+    // actually takes the user's Stars, so a mismatch here must block it.
+    const [, ticketsStr, tier] = String(query.invoice_payload).split(":");
+    const expectedTickets = Number(ticketsStr);
+    const selected = STARS_TIERS[tier];
+
+    const valid =
+      !!selected &&
+      !Number.isNaN(expectedTickets) &&
+      selected.tickets === expectedTickets &&
+      selected.stars === query.total_amount;
+
     await fetch(`https://api.telegram.org/bot${botToken}/answerPreCheckoutQuery`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pre_checkout_query_id: query.id, ok: true }),
+      body: JSON.stringify(
+        valid
+          ? { pre_checkout_query_id: query.id, ok: true }
+          : {
+              pre_checkout_query_id: query.id,
+              ok: false,
+              error_message: "This invoice is no longer valid. Please try again.",
+            }
+      ),
     });
     return NextResponse.json({ ok: true });
   }
@@ -34,27 +55,40 @@ export async function POST(req: NextRequest) {
       const supabase = getSupabaseAdmin();
       const { data: user } = await supabase
         .from("users")
-        .select("id, ticket_balance, raffly_pass_expires_at")
+        .select("id")
         .eq("telegram_id", telegramId)
         .single();
 
       if (user) {
-        if (tier === "pass") {
-          const base =
-            user.raffly_pass_expires_at && new Date(user.raffly_pass_expires_at) > new Date()
-              ? new Date(user.raffly_pass_expires_at)
-              : new Date();
-          base.setUTCDate(base.getUTCDate() + RAFFLY_PASS_DURATION_DAYS);
+        // Telegram retries webhook delivery on timeout/non-2xx, so the same
+        // successful_payment can arrive more than once. This charge ID is
+        // unique per payment, so a duplicate insert fails and we skip
+        // crediting again rather than double-paying out.
+        const { error: dedupeError } = await supabase.from("transactions").insert({
+          user_id: user.id,
+          type: "stars_purchase",
+          currency: "STARS",
+          amount: payment.total_amount,
+          tickets_granted: tickets,
+          status: "completed",
+          external_ref: payment.telegram_payment_charge_id,
+        });
 
-          await supabase
-            .from("users")
-            .update({ raffly_pass_expires_at: base.toISOString() })
-            .eq("id", user.id);
+        if (dedupeError) {
+          // Unique violation on external_ref means this charge was already processed.
+          return NextResponse.json({ ok: true });
+        }
+
+        if (tier === "pass") {
+          await supabase.rpc("extend_raffly_pass", {
+            p_user_id: user.id,
+            p_days: RAFFLY_PASS_DURATION_DAYS,
+          });
         } else {
-          await supabase
-            .from("users")
-            .update({ ticket_balance: user.ticket_balance + tickets })
-            .eq("id", user.id);
+          await supabase.rpc("increment_ticket_balance", {
+            p_user_id: user.id,
+            p_delta: tickets,
+          });
         }
 
         await checkAndRewardReferral(supabase, user.id);

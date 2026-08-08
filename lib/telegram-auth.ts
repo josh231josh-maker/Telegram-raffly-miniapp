@@ -1,10 +1,14 @@
 import crypto from "crypto";
+import { timingSafeEqual } from "@/lib/timing-safe";
 
 export type TelegramUser = {
   id: number;
   first_name: string;
   username?: string;
 };
+
+/** Beyond this, a captured/leaked initData string is rejected as a replay rather than trusted forever. */
+const MAX_AUTH_AGE_SECONDS = 15 * 60;
 
 export function verifyTelegramInitData(
   initData: string,
@@ -32,7 +36,18 @@ export function verifyTelegramInitData(
     .update(dataCheckString)
     .digest("hex");
 
-  if (computedHash !== hash) return null;
+  if (!timingSafeEqual(computedHash, hash)) return null;
+
+  const authDateStr = params.get("auth_date");
+  const authDate = Number(authDateStr);
+  if (!authDateStr || Number.isNaN(authDate)) return null;
+
+  const ageSeconds = Date.now() / 1000 - authDate;
+  if (ageSeconds > MAX_AUTH_AGE_SECONDS || ageSeconds < -60) {
+    // Negative age beyond a small clock-skew allowance means auth_date is in
+    // the future, which is just as suspicious as an expired one.
+    return null;
+  }
 
   const userStr = params.get("user");
   if (!userStr) return null;

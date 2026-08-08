@@ -91,45 +91,30 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { data: existingEntry } = await supabase
-    .from("raffle_entries")
-    .select("*")
-    .eq("raffle_id", raffle.id)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // Atomic: spends the tickets and records the entry in one statement, so a
+  // raced double-submit can never spend more tickets than the user has.
+  const { data: newTicketsUsed, error: rpcError } = await supabase.rpc("enter_raffle", {
+    p_user_id: user.id,
+    p_raffle_id: raffle.id,
+    p_tickets: ticketsToEnter,
+  });
 
-  const newTicketsUsed = (existingEntry?.tickets_used ?? 0) + ticketsToEnter;
-
-  if (existingEntry) {
-    const { error: updateEntryError } = await supabase
-      .from("raffle_entries")
-      .update({ tickets_used: newTicketsUsed })
-      .eq("id", existingEntry.id);
-
-    if (updateEntryError) {
-      return NextResponse.json({ error: updateEntryError.message }, { status: 500 });
-    }
-  } else {
-    const { error: insertEntryError } = await supabase.from("raffle_entries").insert({
-      raffle_id: raffle.id,
-      user_id: user.id,
-      tickets_used: newTicketsUsed,
-    });
-
-    if (insertEntryError) {
-      return NextResponse.json({ error: insertEntryError.message }, { status: 500 });
-    }
+  if (rpcError) {
+    return NextResponse.json({ error: rpcError.message }, { status: 500 });
   }
 
-  const { data: updatedUser, error: updateUserError } = await supabase
+  if (newTicketsUsed === null) {
+    return NextResponse.json({ error: "Not enough tickets" }, { status: 400 });
+  }
+
+  const { data: updatedUser, error: fetchUpdatedError } = await supabase
     .from("users")
-    .update({ ticket_balance: user.ticket_balance - ticketsToEnter })
+    .select("*")
     .eq("id", user.id)
-    .select()
     .single();
 
-  if (updateUserError) {
-    return NextResponse.json({ error: updateUserError.message }, { status: 500 });
+  if (fetchUpdatedError || !updatedUser) {
+    return NextResponse.json({ error: "Failed to load updated balance" }, { status: 500 });
   }
 
   return NextResponse.json({

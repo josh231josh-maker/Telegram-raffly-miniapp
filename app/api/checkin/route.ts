@@ -44,24 +44,30 @@ export async function POST(req: NextRequest) {
   const ticketsEarned = isPassActive(existing.raffly_pass_expires_at)
     ? baseTicketsEarned * 2
     : baseTicketsEarned;
-  const newTicketBalance = existing.ticket_balance + ticketsEarned;
 
-  const { data: updated, error: updateError } = await supabase
-    .from("users")
-    .update({
-      ticket_balance: newTicketBalance,
-      streak_count: newStreak,
-      last_checkin_date: today,
-    })
-    .eq("id", existing.id)
-    .select()
-    .single();
+  // Atomic: the DB-side guard on last_checkin_date means a duplicated
+  // request (double-tap, retry) can never award the daily bonus twice.
+  const { data: newBalance, error: rpcError } = await supabase.rpc("try_daily_checkin", {
+    p_user_id: existing.id,
+    p_today: today,
+    p_new_streak: newStreak,
+    p_tickets_earned: ticketsEarned,
+  });
 
-  if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (rpcError) {
+    return NextResponse.json({ error: rpcError.message }, { status: 500 });
+  }
+
+  if (newBalance === null) {
+    return NextResponse.json({
+      alreadyCheckedIn: true,
+      user: await withReferralCount(supabase, existing),
+    });
   }
 
   await checkAndRewardReferral(supabase, existing.id);
+
+  const { data: updated } = await supabase.from("users").select("*").eq("id", existing.id).single();
 
   return NextResponse.json({
     alreadyCheckedIn: false,

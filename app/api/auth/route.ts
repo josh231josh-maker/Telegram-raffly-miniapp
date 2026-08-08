@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { withReferralCount } from "@/lib/referral";
+import { sanitizeProfileText } from "@/lib/sanitize";
 
 export async function POST(req: NextRequest) {
   const { initData, startParam } = await req.json();
@@ -46,8 +47,8 @@ export async function POST(req: NextRequest) {
     .from("users")
     .insert({
       telegram_id: tgUser.id,
-      username: tgUser.username ?? null,
-      first_name: tgUser.first_name ?? null,
+      username: sanitizeProfileText(tgUser.username),
+      first_name: sanitizeProfileText(tgUser.first_name),
       referred_by: referredBy,
     })
     .select()

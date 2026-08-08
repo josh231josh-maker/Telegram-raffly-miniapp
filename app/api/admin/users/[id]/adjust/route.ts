@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: existing, error: fetchError } = await supabase
     .from("users")
-    .select("ticket_balance, usdt_balance")
+    .select("id")
     .eq("id", id)
     .single();
 
@@ -29,18 +29,35 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const newTicketBalance = Math.max(0, existing.ticket_balance + ticketAdjust);
-  const newUsdtBalance = Math.max(0, Number(existing.usdt_balance) + usdtAdjust);
+  if (ticketAdjust !== 0) {
+    // Floored at 0 inside the RPC, same as every other ticket-balance mutation.
+    const { error } = await supabase.rpc("increment_ticket_balance", {
+      p_user_id: id,
+      p_delta: ticketAdjust,
+    });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  }
 
-  const { data: updated, error } = await supabase
+  if (usdtAdjust !== 0) {
+    const { error } = await supabase.rpc("increment_usdt_balance", {
+      p_user_id: id,
+      p_delta: usdtAdjust,
+    });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  }
+
+  const { data: updated, error: refetchError } = await supabase
     .from("users")
-    .update({ ticket_balance: newTicketBalance, usdt_balance: newUsdtBalance })
+    .select("*")
     .eq("id", id)
-    .select()
     .single();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (refetchError || !updated) {
+    return NextResponse.json({ error: "Failed to load updated user" }, { status: 500 });
   }
 
   return NextResponse.json({ user: updated });

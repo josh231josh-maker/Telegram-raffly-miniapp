@@ -33,12 +33,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     // Actual money only leaves your hand later, when they withdraw. The
     // public winners list is never touched automatically here — that's a
     // separate, fully manual step in Manage Winners.
-    const { data: user } = await supabase
-      .from("users")
-      .select("usdt_balance")
-      .eq("id", winner.user_id)
-      .single();
-
+    //
     // Conditioned on the current status so two concurrent requests (or a
     // double-click) can't both succeed and double-credit the same winner.
     const { data: updated, error } = await supabase
@@ -56,11 +51,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Winner is no longer pending" }, { status: 409 });
     }
 
-    const currentBalance = user?.usdt_balance || 0;
-    const { error: balanceError } = await supabase
-      .from("users")
-      .update({ usdt_balance: currentBalance + winner.prize_amount })
-      .eq("id", winner.user_id);
+    const { error: balanceError } = await supabase.rpc("increment_usdt_balance", {
+      p_user_id: winner.user_id,
+      p_delta: winner.prize_amount,
+    });
 
     if (balanceError) {
       return NextResponse.json({ error: balanceError.message }, { status: 500 });
@@ -95,12 +89,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   if (action === "revoke") {
-    const { data: user } = await supabase
-      .from("users")
-      .select("usdt_balance")
-      .eq("id", winner.user_id)
-      .single();
-
     const { data: updated, error } = await supabase
       .from("raffle_winners")
       .update({ status: "revoked" })
@@ -116,14 +104,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Only an approved winner can be revoked" }, { status: 409 });
     }
 
-    // Claw back the credit, floored at 0 — if the user already withdrew some
-    // or all of it, that portion can't be reversed here.
-    const currentBalance = user?.usdt_balance || 0;
-    const newBalance = Math.max(0, currentBalance - winner.prize_amount);
-    const { error: balanceError } = await supabase
-      .from("users")
-      .update({ usdt_balance: newBalance })
-      .eq("id", winner.user_id);
+    // Claw back the credit, floored at 0 (inside the RPC) — if the user
+    // already withdrew some or all of it, that portion can't be reversed here.
+    const { error: balanceError } = await supabase.rpc("increment_usdt_balance", {
+      p_user_id: winner.user_id,
+      p_delta: -winner.prize_amount,
+    });
 
     if (balanceError) {
       return NextResponse.json({ error: balanceError.message }, { status: 500 });

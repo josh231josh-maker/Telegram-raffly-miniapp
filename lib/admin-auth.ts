@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { cookies } from "next/headers";
+import { timingSafeEqual } from "@/lib/timing-safe";
 
 export const ADMIN_COOKIE_NAME = "admin_session";
 
@@ -18,18 +19,7 @@ function sign(expiresAt: number): string {
   return crypto.createHmac("sha256", sessionSecret()).update(String(expiresAt)).digest("hex");
 }
 
-/** Constant-time string comparison that tolerates length mismatches and missing input. */
-export function safeEqual(input: unknown, expected: string | undefined): boolean {
-  if (typeof input !== "string" || !expected) return false;
-  const a = Buffer.from(input);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) {
-    // Still run a comparison so failure timing doesn't leak the length mismatch.
-    crypto.timingSafeEqual(a, a);
-    return false;
-  }
-  return crypto.timingSafeEqual(a, b);
-}
+export const safeEqual = timingSafeEqual;
 
 /** Session token = expiry + HMAC signature, so it expires on its own and can't be forged without the password. */
 export function createSessionToken(): string {

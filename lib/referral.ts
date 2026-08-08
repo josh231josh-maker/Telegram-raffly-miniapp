@@ -24,38 +24,17 @@ export async function withReferralCount<T extends { id: string }>(
   return { ...user, referral_count: count ?? 0, referral_reached_count: reachedCount ?? 0 };
 }
 
+/**
+ * Called from many different endpoints (check-in, ad rewards, raffle entry,
+ * Stars purchases, pass claims) any time a user's balance might have just
+ * crossed the threshold, so concurrent calls for the same user are routine,
+ * not an edge case. The whole check-and-pay sequence runs atomically inside
+ * claim_referral_reward (row-locked), so it can't double-pay a referrer.
+ */
 export async function checkAndRewardReferral(supabase: SupabaseClient, userId: string) {
-  const { data: user } = await supabase
-    .from("users")
-    .select("id, referred_by, referral_reward_given, ticket_balance")
-    .eq("id", userId)
-    .single();
-
-  if (!user || !user.referred_by || user.referral_reward_given) {
-    return;
-  }
-
-  if (user.ticket_balance < REFERRAL_TICKET_THRESHOLD) {
-    return;
-  }
-
-  const { data: referrer } = await supabase
-    .from("users")
-    .select("id, ticket_balance")
-    .eq("id", user.referred_by)
-    .single();
-
-  if (!referrer) {
-    return;
-  }
-
-  await supabase
-    .from("users")
-    .update({ ticket_balance: referrer.ticket_balance + REFERRAL_REWARD_TICKETS })
-    .eq("id", referrer.id);
-
-  await supabase
-    .from("users")
-    .update({ referral_reward_given: true })
-    .eq("id", user.id);
+  await supabase.rpc("claim_referral_reward", {
+    p_user_id: userId,
+    p_threshold: REFERRAL_TICKET_THRESHOLD,
+    p_reward: REFERRAL_REWARD_TICKETS,
+  });
 }
