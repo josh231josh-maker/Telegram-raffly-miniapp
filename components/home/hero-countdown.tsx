@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { getCurrentWeekEnd } from "@/lib/raffle-week";
 import { WEEKLY_WINNER_COUNT } from "@/lib/raffle-week";
 
@@ -46,15 +47,6 @@ export function HeroCountdown() {
 
   return (
     <div className="relative mx-1.5 mb-2">
-      <div
-        aria-hidden="true"
-        className="absolute -right-3.5 top-5 -z-10 h-28 w-20 rotate-[11deg] rounded-xl opacity-90"
-        style={{
-          background:
-            "repeating-linear-gradient(-55deg, var(--orange), var(--orange) 10px, var(--orange-2) 10px, var(--orange-2) 20px)",
-          boxShadow: "0 14px 24px -8px rgba(0,0,0,0.45)",
-        }}
-      />
       <section
         className="hero-gradient relative -rotate-[1.4deg] overflow-hidden rounded-[28px] p-5 text-white shadow-lg"
         aria-label="Next weekly draw"
@@ -82,6 +74,13 @@ export function HeroCountdown() {
             </div>
           ))}
         </div>
+        <Image
+          src="/images/hero-ticket.png"
+          alt=""
+          width={700}
+          height={304}
+          className="float-bob-subtle mx-auto mt-4 h-auto w-full max-w-[280px] drop-shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
+        />
       </section>
     </div>
   );
