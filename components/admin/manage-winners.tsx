@@ -65,8 +65,13 @@ function computeSlots(list: Announcement[]): { present: Batch | null; scheduled:
   };
 }
 
-function toDatetimeLocal(iso: string): string {
-  return new Date(iso).toISOString().slice(0, 16);
+/** Formats a Date as the wall-clock string a <input type="datetime-local">
+ *  expects, using LOCAL time components -- .toISOString() would give UTC,
+ *  which the input then silently reinterprets as local, shifting the
+ *  chosen time by the browser's UTC offset every time it round-trips. */
+function toDatetimeLocal(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export function ManageWinners() {
@@ -111,14 +116,13 @@ export function ManageWinners() {
       });
       setRows(nextRows);
       setWeekLabel(batch.weekLabel || "");
-      setPublishAt(batch.publishAt ? toDatetimeLocal(batch.publishAt) : toDatetimeLocal(new Date().toISOString()));
+      setPublishAt(toDatetimeLocal(batch.publishAt ? new Date(batch.publishAt) : new Date()));
     } else {
       setRows(emptyRows());
       setWeekLabel("");
       // Default a new scheduled batch an hour out so it doesn't accidentally
       // land in the past and jump straight to "present".
-      const defaultTime = new Date(Date.now() + 60 * 60 * 1000);
-      setPublishAt(toDatetimeLocal(defaultTime.toISOString()));
+      setPublishAt(toDatetimeLocal(new Date(Date.now() + 60 * 60 * 1000)));
     }
   }
 
