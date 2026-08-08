@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.23",
     "@supabase/supabase-js": "^2.49.8",
     "@telegram-apps/sdk": "^3.11.4",
     "@tonconnect/ui-react": "^3.0.0",

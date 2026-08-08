@@ -24,6 +24,8 @@
   --hero-to: #ec4899;
   --pass-from: #ff9a56;
   --pass-to: #ff5f3d;
+
+  --surface-dark: #12141f;
 }
 
 @theme inline {
@@ -48,6 +50,7 @@
   --color-text: var(--text);
   --color-text-dim: var(--text-dim);
   --color-text-faint: var(--text-faint);
+  --color-surface-dark: var(--surface-dark);
   --font-sans: var(--font-body);
   --font-heading: var(--font-heading);
 }
