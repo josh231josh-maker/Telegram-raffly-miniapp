@@ -26,7 +26,8 @@ export async function GET() {
   const { data: winners } = await supabase
     .from("winner_announcements")
     .select("id, display_name, prize_amount, week_label, created_at")
-    .order("created_at", { ascending: false })
+    .lte("publish_at", new Date().toISOString())
+    .order("publish_at", { ascending: false })
     .limit(10);
 
   return NextResponse.json({

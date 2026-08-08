@@ -51,3 +51,8 @@ export async function isAdminAuthed(): Promise<boolean> {
   const store = await cookies();
   return isValidSessionToken(store.get(ADMIN_COOKIE_NAME)?.value);
 }
+
+export async function verifyAdminAuth(): Promise<{ id: string } | null> {
+  const isAuthed = await isAdminAuthed();
+  return isAuthed ? { id: "admin" } : null;
+}

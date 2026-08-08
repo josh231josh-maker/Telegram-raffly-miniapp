@@ -17,42 +17,63 @@ export async function POST(req: NextRequest) {
 
   const supabase = getSupabaseAdmin();
 
-  const { data: existing, error: fetchError } = await supabase
+  const { data: user, error: fetchError } = await supabase
     .from("users")
-    .select("id")
+    .select("id, usdt_balance, ton_wallet_address")
     .eq("telegram_id", tgUser.id)
     .single();
 
-  if (fetchError || !existing) {
+  if (fetchError || !user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  // Balance check, wallet check, balance-zeroing, and the withdrawal record
-  // all happen inside a single Postgres transaction (see the
-  // process_withdrawal migration), so a failure partway through can't leave
-  // a zeroed balance with no withdrawal record to show for it.
-  const { data: result, error: withdrawError } = await supabase
-    .rpc("process_withdrawal", { p_user_id: existing.id })
-    .single();
+  if (!user.usdt_balance || user.usdt_balance <= 0) {
+    return NextResponse.json({ error: "No balance available for withdrawal" }, { status: 400 });
+  }
 
-  if (withdrawError) {
-    const message = withdrawError.message ?? "Something went wrong";
-    const status =
-      message.includes("No balance") || message.includes("No wallet") || message.includes("not found")
-        ? 400
-        : 500;
-    return NextResponse.json({ error: message }, { status });
+  if (!user.ton_wallet_address) {
+    return NextResponse.json({ error: "No wallet connected" }, { status: 400 });
+  }
+
+  // Balance isn't zeroed until an admin marks the withdrawal paid, so without
+  // this check the same balance could be requested repeatedly, stacking up
+  // duplicate outstanding withdrawals for funds that only exist once.
+  const { data: outstanding } = await supabase
+    .from("withdrawals")
+    .select("id")
+    .eq("user_id", user.id)
+    .in("status", ["pending", "approved"])
+    .maybeSingle();
+
+  if (outstanding) {
+    return NextResponse.json(
+      { error: "A withdrawal is already in progress for this account." },
+      { status: 400 }
+    );
+  }
+
+  const amount = user.usdt_balance;
+
+  const { error: createError } = await supabase.from("withdrawals").insert({
+    user_id: user.id,
+    amount: amount,
+    wallet_address: user.ton_wallet_address,
+    status: "pending",
+  });
+
+  if (createError) {
+    return NextResponse.json({ error: "Failed to create withdrawal request" }, { status: 500 });
   }
 
   const { data: updatedUser } = await supabase
     .from("users")
     .select("*")
-    .eq("id", existing.id)
+    .eq("id", user.id)
     .single();
 
   return NextResponse.json({
     success: true,
-    amount: (result as { out_amount: number } | null)?.out_amount,
+    amount: amount,
     user: updatedUser ? await withReferralCount(supabase, updatedUser) : updatedUser,
   });
 }

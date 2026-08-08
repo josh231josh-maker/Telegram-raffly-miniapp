@@ -57,12 +57,23 @@ All tables use **snake_case** and **uuid** primary keys. Do not recreate — con
 | `users` | Telegram user profiles, ticket balance, USDT balance |
 | `raffles` | Weekly raffle periods |
 | `raffle_entries` | User ticket entries per raffle |
-| `raffle_winners` | Selected winners per draw |
+| `raffle_winners` | Selected winners per draw — `status`: pending/approved/rejected/paid |
+| `winner_announcements` | Public "Previous Winners" list — has its own `publish_at` for scheduled visibility, decoupled from `raffle_winners` |
 | `ad_views` | Ad watch events (3 = 1 ticket) |
 | `transactions` | Stars, TON, and internal ledger |
-| `withdrawals` | USDT withdrawal requests |
+| `withdrawals` | USDT withdrawal requests — `status`: pending/approved/paid/rejected |
 
 Client: `lib/supabase.ts` → `getSupabase()` using anon key + RLS.
+
+### Withdrawal & raffle-winner approval workflow
+
+Both withdrawals and raffle winnings go through a manual admin approval step before any money moves, and users see **no trace of the pending state** anywhere in the app:
+
+1. **Withdrawals**: user requests → `withdrawals` row inserted as `pending`, balance untouched → admin approves/rejects in `/admin` → reject leaves balance untouched and the request just disappears → admin sends funds manually outside the app → admin clicks "Mark Paid" with a tx hash → **only then** is the balance debited by the withdrawn amount (not zeroed outright, since the balance may have grown from other sources in the meantime).
+2. **Raffle winners**: the weekly cron (`lib/raffle-draw.ts`) still does the weighted random draw (no repeat winner in the same week), but inserts winners into `raffle_winners` as `pending` — no balance credit, no public announcement yet. Admin approves/rejects each in `/admin` → admin sends funds manually → admin clicks "Mark Paid" with a tx hash → **only then** is the balance credited and a row inserted into `winner_announcements` (which the public "Previous Winners" section reads).
+3. **Previous Winners editor**: admin can independently add/edit/delete `winner_announcements` rows with a scheduled `publish_at`, for full editorial control over what's shown and when — decoupled from the raffle draw itself.
+
+Since `raffle_winners` and `withdrawals` are never queried by any user-facing API (`/api/raffle-info` only reads `winner_announcements` filtered by `publish_at <= now()`), there is no pending/rejected state exposed to end users.
 
 ---
 

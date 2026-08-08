@@ -61,34 +61,17 @@ export async function drawRaffleWinners(supabase: SupabaseClient, raffleId: stri
   const winnerIds = pickWinners(entrants, WEEKLY_WINNER_COUNT);
 
   if (winnerIds.length > 0) {
-    const { data: winnerUsers } = await supabase
-      .from("users")
-      .select("id, username, first_name, usdt_balance")
-      .in("id", winnerIds);
-
     const weekLabel = `Wk of ${new Date(raffle.week_end).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
     })}`;
 
     for (const winnerId of winnerIds) {
-      const winnerUser = winnerUsers?.find((u) => u.id === winnerId);
-      if (!winnerUser) continue;
-
       await supabase.from("raffle_winners").insert({
         raffle_id: raffleId,
         user_id: winnerId,
         prize_amount: PRIZE_AMOUNT_USDT,
-      });
-
-      await supabase
-        .from("users")
-        .update({ usdt_balance: Number(winnerUser.usdt_balance) + PRIZE_AMOUNT_USDT })
-        .eq("id", winnerId);
-
-      await supabase.from("winner_announcements").insert({
-        display_name: winnerUser.first_name || winnerUser.username || "Winner",
-        prize_amount: PRIZE_AMOUNT_USDT,
+        status: "pending",
         week_label: weekLabel,
       });
     }
