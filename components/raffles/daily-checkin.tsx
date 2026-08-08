@@ -10,7 +10,7 @@ import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 export function DailyCheckIn() {
   const { user, checkIn, loadingUser } = useTelegram();
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "already">("idle");
-  const [ticketsEarned, setTicketsEarned] = useState<number | null>(null);
+  const [claimedLabel, setClaimedLabel] = useState<string | null>(null);
 
   if (loadingUser || !user) return <TaskRowSkeleton />;
 
@@ -18,16 +18,17 @@ export function DailyCheckIn() {
   const alreadyCheckedInToday = user.last_checkin_date === today;
   const disabled = alreadyCheckedInToday || status !== "idle";
 
+  const hasPass = isPassActive(user.raffly_pass_expires_at);
   const nextBase = Math.min((user.streak_count ?? 0) + 1, 5);
-  const nextReward = isPassActive(user.raffly_pass_expires_at) ? nextBase * 2 : nextBase;
+  const rewardLabel = hasPass ? `+${nextBase}x2` : `+${nextBase}`;
 
   const handleCheckIn = async () => {
     setStatus("loading");
+    setClaimedLabel(rewardLabel);
     const result = await checkIn();
     if (result.alreadyCheckedIn) {
       setStatus("already");
     } else if (result.user) {
-      setTicketsEarned(result.ticketsEarned ?? null);
       setStatus("done");
     } else {
       setStatus("idle");
@@ -38,7 +39,7 @@ export function DailyCheckIn() {
     status === "loading"
       ? "Claiming..."
       : status === "done"
-      ? `+${ticketsEarned} tickets claimed!`
+      ? `${claimedLabel} tickets claimed!`
       : alreadyCheckedInToday || status === "already"
       ? "Already claimed today"
       : "Daily Check-in";
@@ -51,7 +52,7 @@ export function DailyCheckIn() {
       sublabel={
         disabled ? undefined : `Streak: ${user.streak_count ?? 0} day${(user.streak_count ?? 0) === 1 ? "" : "s"}`
       }
-      rewardLabel={`+${nextReward}`}
+      rewardLabel={rewardLabel}
       onClick={handleCheckIn}
       disabled={disabled}
     />

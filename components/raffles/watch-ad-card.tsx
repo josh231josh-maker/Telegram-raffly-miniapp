@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMonetagAd } from "@/hooks/useMonetagAd";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { isPassActive } from "@/lib/raffly-pass";
 import { PlayCircleIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
@@ -44,6 +45,9 @@ export function WatchAdCard() {
 
   if (loadingUser) return <TaskRowSkeleton />;
 
+  const hasPass = isPassActive(user?.raffly_pass_expires_at ?? null);
+  const rewardLabel = hasPass ? "+1x2" : "+1";
+
   const label =
     status === "ad1"
       ? "Watching ad 1 of 2..."
@@ -52,7 +56,7 @@ export function WatchAdCard() {
       : status === "checking"
       ? "Checking..."
       : status === "done"
-      ? "Ticket updated!"
+      ? rewardLabel
       : status === "no-reward"
       ? "No reward yet"
       : "Watch Ad";
@@ -63,7 +67,7 @@ export function WatchAdCard() {
       tone="orange"
       label={label}
       sublabel={status === "idle" ? "2 ads = 1 ticket" : undefined}
-      rewardLabel="+1"
+      rewardLabel={rewardLabel}
       onClick={handleWatch}
       disabled={status !== "idle"}
     />
