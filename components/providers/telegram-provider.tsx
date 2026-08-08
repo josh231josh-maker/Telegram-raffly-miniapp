@@ -178,18 +178,13 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     initDataRef.current = rawInitData;
 
     if (rawInitData) {
-      let startParam: string | null = null;
-      try {
-        const params = new URLSearchParams(rawInitData);
-        startParam = params.get("start_param");
-      } catch {
-        startParam = null;
-      }
-
+      // The referrer's start_param travels inside rawInitData itself (and is
+      // covered by its HMAC signature) -- the server reads it from there
+      // rather than trusting a second, unsigned copy from the client.
       fetchWithRetry("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData: rawInitData, startParam }),
+        body: JSON.stringify({ initData: rawInitData }),
       })
         .then((res) => res.json())
         .then((data) => {

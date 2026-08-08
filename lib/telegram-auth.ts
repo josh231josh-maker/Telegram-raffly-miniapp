@@ -5,6 +5,13 @@ export type TelegramUser = {
   id: number;
   first_name: string;
   username?: string;
+  /**
+   * The Mini App's `?startapp=` deep-link value, if any — e.g. the referrer's
+   * telegram_id from an invite link. Read here (from inside the HMAC-covered
+   * initData) rather than trusted from a client-supplied field, since
+   * anything outside initData is unauthenticated and trivially spoofable.
+   */
+  startParam: string | null;
 };
 
 /** Beyond this, a captured/leaked initData string is rejected as a replay rather than trusted forever. */
@@ -54,7 +61,12 @@ export function verifyTelegramInitData(
 
   try {
     const user = JSON.parse(userStr);
-    return { id: user.id, first_name: user.first_name, username: user.username };
+    return {
+      id: user.id,
+      first_name: user.first_name,
+      username: user.username,
+      startParam: params.get("start_param"),
+    };
   } catch {
     return null;
   }

@@ -5,7 +5,7 @@ import { withReferralCount } from "@/lib/referral";
 import { sanitizeProfileText } from "@/lib/sanitize";
 
 export async function POST(req: NextRequest) {
-  const { initData, startParam } = await req.json();
+  const { initData } = await req.json();
   if (!initData) {
     return NextResponse.json({ error: "Missing initData" }, { status: 400 });
   }
@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
   }
 
   let referredBy: string | null = null;
-  if (startParam) {
-    const referrerTelegramId = Number(startParam);
+  if (tgUser.startParam) {
+    const referrerTelegramId = Number(tgUser.startParam);
     if (!Number.isNaN(referrerTelegramId) && referrerTelegramId !== tgUser.id) {
       const { data: referrer } = await supabase
         .from("users")
