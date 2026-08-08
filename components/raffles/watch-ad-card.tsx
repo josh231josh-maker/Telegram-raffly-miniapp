@@ -24,7 +24,7 @@ export function WatchAdCard() {
     const ymid = String(user.telegram_id);
 
     setStatus("ad1");
-    if (!(await showAd(ymid))) {
+    if (!(await showAd(ymid, "pop"))) {
       setStatus("idle");
       return;
     }
