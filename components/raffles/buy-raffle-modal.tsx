@@ -27,13 +27,11 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
   const openInvoice = useTelegramInvoice();
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorTier, setErrorTier] = useState<{ id: string; message: string } | null>(null);
 
   const balance = user?.ticket_balance ?? 0;
 
   const handleBuy = async (tierId: string) => {
     setSuccessMessage(null);
-    setErrorTier(null);
     setLoadingTier(tierId);
     try {
       const res = await fetch("/api/stars/create-invoice", {
@@ -43,7 +41,6 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
       });
       const data = await res.json();
       if (!data.invoiceUrl) {
-        setErrorTier({ id: tierId, message: data.error ?? "Could not start payment" });
         setLoadingTier(null);
         return;
       }
@@ -52,13 +49,7 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
       if (status === "paid") {
         setSuccessMessage("Payment successful! Raffle tickets added.");
         setTimeout(() => refreshUser(), 1500);
-      } else if (status === "cancelled") {
-        setErrorTier({ id: tierId, message: "Payment cancelled" });
-      } else if (status !== "pending") {
-        setErrorTier({ id: tierId, message: "Payment did not complete" });
       }
-    } catch {
-      setErrorTier({ id: tierId, message: "Something went wrong" });
     } finally {
       setLoadingTier(null);
     }
@@ -97,26 +88,22 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
 
           <div className="grid grid-cols-3 gap-2.5">
             {TIERS.map((t) => (
-              <div key={t.id} className="flex flex-col items-center gap-1">
-                <button
-                  onClick={() => handleBuy(t.id)}
-                  disabled={loadingTier !== null}
-                  className="flex w-full flex-col items-center gap-1 rounded-2xl bg-white/5 px-2 py-3.5 transition disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <TicketImage size={34} />
-                  <span className="font-heading text-base font-bold text-white tabular-nums">
-                    {t.tickets}
-                  </span>
-                  <span className="text-[10px] text-white/45">raffle</span>
-                  <span className="mt-1 flex items-center gap-1 rounded-full bg-accent/20 px-2 py-1 text-[11px] font-semibold text-accent-2 tabular-nums">
-                    {loadingTier === t.id ? "..." : t.stars}
-                    <StarIcon className="h-2.5 w-2.5" />
-                  </span>
-                </button>
-                {errorTier?.id === t.id && (
-                  <p className="text-center text-[9px] text-pink text-pretty">{errorTier.message}</p>
-                )}
-              </div>
+              <button
+                key={t.id}
+                onClick={() => handleBuy(t.id)}
+                disabled={loadingTier !== null}
+                className="flex w-full flex-col items-center gap-1 rounded-2xl bg-white/5 px-2 py-3.5 transition disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <TicketImage size={34} />
+                <span className="font-heading text-base font-bold text-white tabular-nums">
+                  {t.tickets}
+                </span>
+                <span className="text-[10px] text-white/45">raffle</span>
+                <span className="mt-1 flex items-center gap-1 rounded-full bg-accent/20 px-2 py-1 text-[11px] font-semibold text-accent-2 tabular-nums">
+                  {loadingTier === t.id ? "..." : t.stars}
+                  <StarIcon className="h-2.5 w-2.5" />
+                </span>
+              </button>
             ))}
           </div>
 
