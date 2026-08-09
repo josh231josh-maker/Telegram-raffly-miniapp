@@ -1,7 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { WEEKLY_WINNER_COUNT } from "@/lib/raffle-week";
-
-const PRIZE_AMOUNT_USDT = 100;
+import { WEEKLY_WINNER_COUNT, PRIZE_PER_WINNER_USDT } from "@/lib/raffle-week";
 
 type Entrant = { userId: string; tickets: number };
 
@@ -70,7 +68,7 @@ export async function drawRaffleWinners(supabase: SupabaseClient, raffleId: stri
       await supabase.from("raffle_winners").insert({
         raffle_id: raffleId,
         user_id: winnerId,
-        prize_amount: PRIZE_AMOUNT_USDT,
+        prize_amount: PRIZE_PER_WINNER_USDT,
         status: "pending",
         week_label: weekLabel,
       });

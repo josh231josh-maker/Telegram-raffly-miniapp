@@ -1,6 +1,6 @@
 # Raffly
 
-Weekly Telegram Mini App raffle — 5 winners, $100 USDT each.
+Weekly Telegram Mini App raffle — $1,000 USDT prize pool split among 5 winners ($200 USDT each).
 
 ## Quick start
 

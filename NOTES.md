@@ -4,7 +4,7 @@
 
 ## Overview
 
-**Raffly** is a Telegram Mini App for weekly random raffles. Every week, **5 random winners** each receive **$100 USDT**.
+**Raffly** is a Telegram Mini App for weekly random raffles. Every week, a **$1,000 USDT prize pool** is split among **5 random winners** ($200 USDT each).
 
 - **Bot:** [@Rafflyapp_bot](https://t.me/Rafflyapp_bot)
 - **Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · Supabase · Vercel
@@ -16,7 +16,7 @@
 
 | Rule | Detail |
 |------|--------|
-| Draw frequency | Weekly — 5 winners × $100 USDT |
+| Draw frequency | Weekly — $1,000 pool split across 5 winners ($200 USDT each) |
 | Ticket sources | Ads (3 ads = 1 ticket), daily check-in, referrals, Telegram Stars, TON (TON Connect) |
 | Ad limit | No daily cap for now |
 | Ticket expiry | Tickets do **not** carry over — reset each week |

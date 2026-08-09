@@ -205,3 +205,60 @@ body {
     animation: none;
   }
 }
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-rise {
+  animation: hero-rise 0.6s ease-out both;
+}
+
+@keyframes hero-shine {
+  0%,
+  15% {
+    transform: translateX(0%);
+  }
+  55%,
+  100% {
+    transform: translateX(420%);
+  }
+}
+
+.hero-shine-bar {
+  animation: hero-shine 3.4s ease-in-out infinite;
+}
+
+@keyframes hero-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.hero-twinkle {
+  animation: hero-twinkle 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-shine-bar,
+  .hero-twinkle {
+    animation: none;
+  }
+  .hero-shine-bar {
+    opacity: 0;
+  }
+}

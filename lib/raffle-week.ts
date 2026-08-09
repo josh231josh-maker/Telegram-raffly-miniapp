@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const WEEKLY_WINNER_COUNT = 5;
+export const PRIZE_POOL_USDT = 1000;
+export const PRIZE_PER_WINNER_USDT = PRIZE_POOL_USDT / WEEKLY_WINNER_COUNT;
 
 /** Weekly draw is 12am UTC Monday — keep in sync with the cron schedule in vercel.json */
 export function getCurrentWeekEnd(now = new Date()): Date {
