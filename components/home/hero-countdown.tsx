@@ -48,12 +48,12 @@ export function HeroCountdown() {
       aria-label="Next weekly draw"
     >
       <Image
-        src="/images/hero-ticket-bg.jpg"
+        src="/images/hero-ticket-full.png"
         alt=""
         fill
         priority
         sizes="(max-width: 480px) 100vw, 420px"
-        className="object-cover"
+        className="object-fill"
       />
       <span className="relative text-xs font-semibold uppercase tracking-widest text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
         Next Weekly Draw
