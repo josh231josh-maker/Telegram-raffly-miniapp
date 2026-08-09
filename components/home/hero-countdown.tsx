@@ -53,7 +53,7 @@ export function HeroCountdown() {
         fill
         priority
         sizes="(max-width: 480px) 100vw, 420px"
-        className="object-fill"
+        className="object-fill opacity-50"
       />
       <span className="relative text-xs font-semibold uppercase tracking-widest text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
         Next Weekly Draw
