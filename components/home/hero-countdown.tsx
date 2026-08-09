@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { getCurrentWeekEnd } from "@/lib/raffle-week";
 
 type Segments = { days: string; hours: string; minutes: string; seconds: string };
@@ -43,21 +44,33 @@ export function HeroCountdown() {
 
   return (
     <section
-      className="hero-gradient flex-shrink-0 rounded-[28px] p-5 text-white shadow-lg"
+      className="relative flex-shrink-0 overflow-hidden rounded-[28px] p-5 text-white shadow-lg"
       aria-label="Next weekly draw"
     >
-      <span className="text-xs font-semibold uppercase tracking-widest text-white/70">
+      <Image
+        src="/images/hero-ticket-bg.jpg"
+        alt=""
+        fill
+        priority
+        sizes="(max-width: 480px) 100vw, 420px"
+        className="object-cover"
+      />
+      <span className="relative text-xs font-semibold uppercase tracking-widest text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
         Next Weekly Draw
       </span>
-      <div className="mt-3.5 grid grid-cols-4 gap-1.5 text-center">
+      <div className="relative mt-3.5 grid grid-cols-4 gap-1.5 text-center">
         {items.map((item) => (
-          <div key={item.label} className="rounded-2xl bg-white/15 px-0.5 py-2.5">
-            <p className="font-heading text-xl font-bold tabular-nums">{item.value}</p>
-            <p className="mt-0.5 text-[8.5px] uppercase tracking-wide text-white/60">{item.label}</p>
+          <div key={item.label} className="rounded-2xl bg-black/40 px-0.5 py-2.5 backdrop-blur-[2px]">
+            <p className="font-heading text-xl font-bold tabular-nums text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+              {item.value}
+            </p>
+            <p className="mt-0.5 text-[8.5px] uppercase tracking-wide text-white/80">{item.label}</p>
           </div>
         ))}
       </div>
-      <p className="mt-3 text-center text-xs text-white/70">5 random winners · $100 USDT each</p>
+      <p className="relative mt-3 text-center text-xs font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+        5 random winners · $100 USDT each
+      </p>
     </section>
   );
 }
