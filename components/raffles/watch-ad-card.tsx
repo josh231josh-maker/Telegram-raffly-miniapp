@@ -17,8 +17,8 @@ const AD_GAP_MS = 3000;
 // Polls for the postback's credit instead of one blind wait-then-check --
 // picks up a fast postback in well under a second instead of always paying
 // the full wait, while still tolerating a slow one up to the cap below.
-const POSTBACK_POLL_INTERVAL_MS = 600;
-const POSTBACK_MAX_ATTEMPTS = 10;
+const POSTBACK_POLL_INTERVAL_MS = 700;
+const POSTBACK_MAX_ATTEMPTS = 12;
 
 export function WatchAdCard() {
   const { user, refreshUser, loadingUser } = useTelegram();
@@ -82,7 +82,7 @@ export function WatchAdCard() {
       : status === "done"
       ? rewardLabel
       : status === "no-reward"
-      ? "No reward yet"
+      ? "Ad not rewarded"
       : "Watch Ad";
 
   return (
@@ -90,7 +90,13 @@ export function WatchAdCard() {
       icon={<PlayCircleIcon />}
       tone="orange"
       label={label}
-      sublabel={status === "idle" ? "2 ads = 1 ticket" : undefined}
+      sublabel={
+        status === "idle"
+          ? "2 ads = 1 ticket"
+          : status === "no-reward"
+          ? "One of the ads didn't qualify — try again"
+          : undefined
+      }
       rewardLabel={rewardLabel}
       onClick={handleWatch}
       disabled={status !== "idle"}
