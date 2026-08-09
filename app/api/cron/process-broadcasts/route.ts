@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { processBroadcastBatch } from "@/lib/broadcast";
+import type { ButtonInput } from "@/lib/telegram-bot";
 
 export const maxDuration = 60;
 
@@ -28,7 +29,8 @@ export async function GET(req: NextRequest) {
 
   const results = [];
   for (const broadcast of stuck ?? []) {
-    if (broadcast.button_type === "webapp" && !appUrl) {
+    const buttons = (broadcast.buttons ?? []) as ButtonInput[];
+    if (buttons.some((b) => b.type === "webapp") && !appUrl) {
       console.error(`[broadcast:${broadcast.id}] skipped -- webapp button but NEXT_PUBLIC_APP_URL is unset`);
       results.push({ broadcastId: broadcast.id, status: broadcast.status, sent: broadcast.sent_count, failed: broadcast.failed_count, skipped: true });
       continue;

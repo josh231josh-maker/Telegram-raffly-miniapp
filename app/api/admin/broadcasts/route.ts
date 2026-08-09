@@ -1,9 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { TEXT_MESSAGE_LIMIT, CAPTION_LIMIT, type ButtonInput } from "@/lib/telegram-bot";
 
 const SEGMENTS = ["all", "active_pass", "no_pass", "has_tickets", "selected"] as const;
 type Segment = (typeof SEGMENTS)[number];
+
+const MAX_BUTTONS = 8;
+
+function validateButtons(buttons: unknown): ButtonInput[] | { error: string } {
+  if (!buttons) return [];
+  if (!Array.isArray(buttons)) return { error: "Buttons must be a list" };
+  if (buttons.length > MAX_BUTTONS) return { error: `At most ${MAX_BUTTONS} buttons are allowed` };
+
+  const cleaned: ButtonInput[] = [];
+  for (const b of buttons) {
+    const text = typeof b?.text === "string" ? b.text.trim() : "";
+    const type = b?.type === "webapp" ? "webapp" : b?.type === "url" ? "url" : null;
+    const value = typeof b?.value === "string" ? b.value.trim() : "";
+    if (!text || !type || !value) {
+      return { error: "Every button needs text, an action, and a destination" };
+    }
+    if (type === "url" && !/^https?:\/\//i.test(value)) {
+      return { error: `Button "${text}" needs a valid http(s) URL` };
+    }
+    cleaned.push({ text, type, value });
+  }
+  return cleaned;
+}
 
 export async function GET() {
   const adminUser = await verifyAdminAuth();
@@ -32,21 +56,11 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const {
-    title,
-    messageHtml,
-    buttonText,
-    buttonType,
-    buttonValue,
-    segment,
-    selectedTelegramIds,
-    idempotencyKey,
-  } = body as {
+  const { title, messageHtml, imageUrl, buttons, segment, selectedTelegramIds, idempotencyKey } = body as {
     title?: string;
     messageHtml?: string;
-    buttonText?: string;
-    buttonType?: "url" | "webapp";
-    buttonValue?: string;
+    imageUrl?: string;
+    buttons?: unknown;
     segment?: Segment;
     selectedTelegramIds?: number[];
     idempotencyKey?: string;
@@ -55,17 +69,27 @@ export async function POST(req: NextRequest) {
   if (!messageHtml || !messageHtml.trim()) {
     return NextResponse.json({ error: "Message is required" }, { status: 400 });
   }
+  const limit = imageUrl ? CAPTION_LIMIT : TEXT_MESSAGE_LIMIT;
+  if (messageHtml.length > limit) {
+    return NextResponse.json(
+      {
+        error: `Message is ${messageHtml.length} characters, over the ${limit}-character limit for ${
+          imageUrl ? "an image caption" : "a text message"
+        }.`,
+      },
+      { status: 400 }
+    );
+  }
   if (!segment || !SEGMENTS.includes(segment)) {
     return NextResponse.json({ error: "Invalid segment" }, { status: 400 });
   }
   if (segment === "selected" && (!selectedTelegramIds || selectedTelegramIds.length === 0)) {
     return NextResponse.json({ error: "No users selected" }, { status: 400 });
   }
-  if ((buttonText && !buttonValue) || (!buttonText && buttonValue)) {
-    return NextResponse.json({ error: "Button text and destination are both required together" }, { status: 400 });
-  }
-  if (buttonText && !["url", "webapp"].includes(buttonType ?? "")) {
-    return NextResponse.json({ error: "Invalid button type" }, { status: 400 });
+
+  const cleanButtons = validateButtons(buttons);
+  if ("error" in cleanButtons) {
+    return NextResponse.json({ error: cleanButtons.error }, { status: 400 });
   }
 
   const supabase = getSupabaseAdmin();
@@ -115,9 +139,8 @@ export async function POST(req: NextRequest) {
     .insert({
       title: title?.trim() || null,
       message_html: messageHtml,
-      button_text: buttonText?.trim() || null,
-      button_type: buttonText ? buttonType : null,
-      button_value: buttonValue?.trim() || null,
+      image_url: imageUrl?.trim() || null,
+      buttons: cleanButtons,
       segment,
       selected_telegram_ids: segment === "selected" ? selectedTelegramIds : null,
       total_recipients: recipients.length,

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { sendTelegramMessage, buildInlineButton, type InlineButton } from "@/lib/telegram-bot";
+import { sendTelegramContent, buildInlineButtons, type ButtonInput } from "@/lib/telegram-bot";
 
 const BATCH_SIZE = 60;
 // Telegram allows roughly 30 messages/sec across all chats -- 70ms between
@@ -12,9 +12,8 @@ const TIME_BUDGET_MS = 45_000;
 type Broadcast = {
   id: string;
   message_html: string;
-  button_text: string | null;
-  button_type: "url" | "webapp" | null;
-  button_value: string | null;
+  image_url: string | null;
+  buttons: ButtonInput[] | null;
   status: string;
 };
 
@@ -38,11 +37,7 @@ export async function processBroadcastBatch(
   appUrl: string
 ): Promise<ProcessResult> {
   const startedAt = Date.now();
-
-  let button: InlineButton | undefined;
-  if (broadcast.button_text && broadcast.button_type && broadcast.button_value) {
-    button = buildInlineButton(broadcast.button_type, broadcast.button_text, broadcast.button_value, appUrl);
-  }
+  const buttons = broadcast.buttons && broadcast.buttons.length > 0 ? buildInlineButtons(broadcast.buttons, appUrl) : undefined;
 
   while (Date.now() - startedAt < TIME_BUDGET_MS) {
     // Re-check cancellation between batches so a "Cancel" click mid-send
@@ -62,7 +57,10 @@ export async function processBroadcastBatch(
     if (!claimed || claimed.length === 0) break;
 
     for (const recipient of claimed) {
-      const result = await sendTelegramMessage(botToken, recipient.telegram_id, broadcast.message_html, button);
+      const result = await sendTelegramContent(botToken, recipient.telegram_id, broadcast.message_html, {
+        imageUrl: broadcast.image_url,
+        buttons,
+      });
 
       if (result.ok) {
         await supabase
@@ -74,7 +72,10 @@ export async function processBroadcastBatch(
         // anything else (blocked, bad chat, malformed message) is final.
         if (result.retryAfter && result.retryAfter <= 5) {
           await new Promise((resolve) => setTimeout(resolve, result.retryAfter! * 1000));
-          const retry = await sendTelegramMessage(botToken, recipient.telegram_id, broadcast.message_html, button);
+          const retry = await sendTelegramContent(botToken, recipient.telegram_id, broadcast.message_html, {
+            imageUrl: broadcast.image_url,
+            buttons,
+          });
           if (retry.ok) {
             await supabase
               .from("broadcast_recipients")

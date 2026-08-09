@@ -1,15 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const TEXT_MESSAGE_LIMIT = 4096;
+const CAPTION_LIMIT = 1024;
+const MAX_BUTTONS = 8;
+
+type ButtonInput = { text: string; type: "url" | "webapp"; value: string };
 
 type Broadcast = {
   id: string;
   title: string | null;
   message_html: string;
-  button_text: string | null;
-  button_type: "url" | "webapp" | null;
-  button_value: string | null;
+  image_url: string | null;
+  buttons: ButtonInput[];
   segment: string;
   status: "draft" | "queued" | "sending" | "completed" | "canceled";
   total_recipients: number;
@@ -54,6 +60,10 @@ function parseSelectedIds(raw: string): number[] {
   );
 }
 
+function emptyButton(): ButtonInput {
+  return { text: "", type: "webapp", value: "" };
+}
+
 export function BroadcastManager() {
   const [view, setView] = useState<"list" | "compose" | "review">("list");
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
@@ -62,14 +72,16 @@ export function BroadcastManager() {
   // Compose form state
   const [title, setTitle] = useState("");
   const [messageHtml, setMessageHtml] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [buttons, setButtons] = useState<ButtonInput[]>([]);
   const [segment, setSegment] = useState("all");
   const [selectedIdsText, setSelectedIdsText] = useState("");
-  const [buttonText, setButtonText] = useState("");
-  const [buttonType, setButtonType] = useState<"url" | "webapp">("webapp");
-  const [buttonValue, setButtonValue] = useState("");
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const [composeError, setComposeError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Review/send state
   const [reviewBroadcast, setReviewBroadcast] = useState<Broadcast | null>(null);
@@ -96,15 +108,51 @@ export function BroadcastManager() {
   function startCompose() {
     setTitle("");
     setMessageHtml("");
+    setImageUrl(null);
+    setImageError(null);
+    setButtons([]);
     setSegment("all");
     setSelectedIdsText("");
-    setButtonText("");
-    setButtonType("webapp");
-    setButtonValue("");
     setIdempotencyKey(crypto.randomUUID());
     setComposeError(null);
     setView("compose");
   }
+
+  async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageError(null);
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/admin/upload-image", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setImageError(data.error ?? "Upload failed");
+        return;
+      }
+      setImageUrl(data.url);
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  function addButton() {
+    setButtons((prev) => (prev.length >= MAX_BUTTONS ? prev : [...prev, emptyButton()]));
+  }
+
+  function updateButton(index: number, patch: Partial<ButtonInput>) {
+    setButtons((prev) => prev.map((b, i) => (i === index ? { ...b, ...patch } : b)));
+  }
+
+  function removeButton(index: number) {
+    setButtons((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  const charLimit = imageUrl ? CAPTION_LIMIT : TEXT_MESSAGE_LIMIT;
+  const overLimit = messageHtml.length > charLimit;
 
   async function handleCreateDraft(e: React.FormEvent) {
     e.preventDefault();
@@ -114,9 +162,19 @@ export function BroadcastManager() {
       setComposeError("Message is required");
       return;
     }
-    if (buttonText.trim() && !buttonValue.trim()) {
-      setComposeError("Button destination is required when a button label is set");
+    if (overLimit) {
+      setComposeError(`Message is over the ${charLimit}-character limit for ${imageUrl ? "an image caption" : "a text message"}`);
       return;
+    }
+    for (const b of buttons) {
+      if (!b.text.trim() || !b.value.trim()) {
+        setComposeError("Every button needs text and a destination");
+        return;
+      }
+      if (b.type === "url" && !/^https?:\/\//i.test(b.value.trim())) {
+        setComposeError(`Button "${b.text}" needs a valid http(s) URL`);
+        return;
+      }
     }
 
     const selectedTelegramIds = segment === "selected" ? parseSelectedIds(selectedIdsText) : undefined;
@@ -133,9 +191,8 @@ export function BroadcastManager() {
         body: JSON.stringify({
           title: title.trim() || undefined,
           messageHtml,
-          buttonText: buttonText.trim() || undefined,
-          buttonType: buttonText.trim() ? buttonType : undefined,
-          buttonValue: buttonValue.trim() || undefined,
+          imageUrl: imageUrl || undefined,
+          buttons: buttons.map((b) => ({ text: b.text.trim(), type: b.type, value: b.value.trim() })),
           segment,
           selectedTelegramIds,
           idempotencyKey,
@@ -242,15 +299,63 @@ export function BroadcastManager() {
         </div>
 
         <div>
-          <label className="text-xs text-white/70">
-            Message (Telegram HTML — supports &lt;b&gt;, &lt;i&gt;, &lt;u&gt;, &lt;s&gt;, &lt;a href&gt;, &lt;code&gt;, &lt;pre&gt;)
-          </label>
+          <label className="text-xs text-white/70">Image (optional)</label>
+          {imageUrl ? (
+            <div className="mt-1 flex items-center gap-3">
+              <Image
+                src={imageUrl}
+                alt="Selected"
+                width={64}
+                height={64}
+                className="h-16 w-16 rounded-lg border border-white/10 object-cover"
+                unoptimized
+              />
+              <button
+                type="button"
+                onClick={() => setImageUrl(null)}
+                className="text-xs text-red-400 hover:text-red-300"
+              >
+                Remove image
+              </button>
+            </div>
+          ) : (
+            <div className="mt-1">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleImageSelect}
+                disabled={uploadingImage}
+                className="block w-full text-xs text-white/60 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:text-white hover:file:bg-white/15"
+              />
+              {uploadingImage && <p className="mt-1 text-xs text-white/40">Uploading...</p>}
+            </div>
+          )}
+          {imageError && <p className="mt-1 text-xs text-red-400">{imageError}</p>}
+          {imageUrl && (
+            <p className="mt-1 text-xs text-white/40">
+              With an image, the message is sent as its caption (limit {CAPTION_LIMIT} characters instead of {TEXT_MESSAGE_LIMIT}).
+            </p>
+          )}
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between">
+            <label className="text-xs text-white/70">
+              Message (Telegram HTML — &lt;b&gt;, &lt;i&gt;, &lt;u&gt;, &lt;s&gt;, &lt;a href&gt;, &lt;code&gt;, &lt;pre&gt;)
+            </label>
+            <span className={`text-xs tabular-nums ${overLimit ? "text-red-400" : "text-white/40"}`}>
+              {messageHtml.length}/{charLimit}
+            </span>
+          </div>
           <textarea
             value={messageHtml}
             onChange={(e) => setMessageHtml(e.target.value)}
             rows={5}
             placeholder={"🎉 <b>Weekly Draw Reminder</b>\n\nThe next draw is coming soon. Make sure you have your tickets before the draw closes."}
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-white/30"
+            className={`w-full rounded-lg border bg-white/5 px-3 py-2 text-sm outline-none focus:border-white/30 ${
+              overLimit ? "border-red-500/50" : "border-white/10"
+            }`}
           />
         </div>
 
@@ -283,53 +388,76 @@ export function BroadcastManager() {
         )}
 
         <div className="rounded-lg border border-white/10 p-3">
-          <p className="mb-2 text-xs font-medium text-white/70">Button (optional)</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-white/50">Button text</label>
-              <input
-                type="text"
-                value={buttonText}
-                onChange={(e) => setButtonText(e.target.value)}
-                placeholder="🎟️ Open Raffly"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-white/30"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-white/50">Action</label>
-              <select
-                value={buttonType}
-                onChange={(e) => setButtonType(e.target.value as "url" | "webapp")}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-white/30"
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-medium text-white/70">Buttons (optional)</p>
+            {buttons.length < MAX_BUTTONS && (
+              <button
+                type="button"
+                onClick={addButton}
+                className="text-xs text-blue-400 hover:text-blue-300"
               >
-                <option value="webapp" className="bg-[#0d0d14]">
-                  Open Mini App
-                </option>
-                <option value="url" className="bg-[#0d0d14]">
-                  Open a link
-                </option>
-              </select>
-            </div>
+                + Add button
+              </button>
+            )}
           </div>
-          <div className="mt-3">
-            <label className="text-xs text-white/50">
-              {buttonType === "webapp" ? "Path inside the app (optional, defaults to /)" : "URL"}
-            </label>
-            <input
-              type="text"
-              value={buttonValue}
-              onChange={(e) => setButtonValue(e.target.value)}
-              placeholder={buttonType === "webapp" ? "/" : "https://..."}
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-white/30"
-            />
+          {buttons.length === 0 && <p className="text-xs text-white/40">No buttons added.</p>}
+          <div className="space-y-3">
+            {buttons.map((b, i) => (
+              <div key={i} className="rounded-lg border border-white/10 bg-black/20 p-2.5">
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    value={b.text}
+                    onChange={(e) => updateButton(i, { text: e.target.value })}
+                    placeholder="🎟️ Open Raffly"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs outline-none focus:border-white/30"
+                  />
+                  <select
+                    value={b.type}
+                    onChange={(e) => updateButton(i, { type: e.target.value as "url" | "webapp" })}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-white outline-none focus:border-white/30"
+                  >
+                    <option value="webapp" className="bg-[#0d0d14]">
+                      Open Mini App
+                    </option>
+                    <option value="url" className="bg-[#0d0d14]">
+                      Open a link
+                    </option>
+                  </select>
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={b.value}
+                    onChange={(e) => updateButton(i, { value: e.target.value })}
+                    placeholder={b.type === "webapp" ? "/ (path inside the app, optional)" : "https://..."}
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs outline-none focus:border-white/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeButton(i)}
+                    className="shrink-0 text-xs text-red-400 hover:text-red-300"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+
+        {(messageHtml || imageUrl || buttons.length > 0) && (
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-white/40">Preview</p>
+            <MessagePreview imageUrl={imageUrl} messageHtml={messageHtml} buttons={buttons} />
+          </div>
+        )}
 
         {composeError && <p className="text-xs text-red-400">{composeError}</p>}
 
         <button
           type="submit"
-          disabled={creating}
+          disabled={creating || uploadingImage}
           className="w-full rounded-lg bg-blue-500/15 px-3 py-2.5 text-sm font-medium text-blue-300 hover:bg-blue-500/25 disabled:opacity-50"
         >
           {creating ? "Preparing..." : "Preview Recipients"}
@@ -352,17 +480,9 @@ export function BroadcastManager() {
           </button>
         </div>
 
-        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-          <p className="mb-1 text-xs text-white/40">Preview</p>
-          <div
-            className="text-sm text-white/90 [&_a]:text-blue-400 [&_a]:underline"
-            dangerouslySetInnerHTML={{ __html: b.message_html }}
-          />
-          {b.button_text && (
-            <div className="mt-3 inline-block rounded-lg border border-white/15 px-3 py-1.5 text-xs text-white/70">
-              {b.button_text}
-            </div>
-          )}
+        <div>
+          <p className="mb-2 text-xs text-white/40">Preview</p>
+          <MessagePreview imageUrl={b.image_url} messageHtml={b.message_html} buttons={b.buttons ?? []} />
         </div>
 
         <div className="grid grid-cols-3 gap-3 text-center">
@@ -466,13 +586,25 @@ export function BroadcastManager() {
               onClick={() => openDetail(b)}
               className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 p-4 text-left hover:bg-white/10"
             >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-white">
-                  {b.title || b.message_html.replace(/<[^>]+>/g, "").slice(0, 60)}
-                </p>
-                <p className="text-xs text-white/40">
-                  {SEGMENT_LABELS[b.segment] ?? b.segment} · {new Date(b.created_at).toLocaleString()}
-                </p>
+              <div className="flex min-w-0 items-center gap-3">
+                {b.image_url && (
+                  <Image
+                    src={b.image_url}
+                    alt=""
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 shrink-0 rounded-lg object-cover"
+                    unoptimized
+                  />
+                )}
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-white">
+                    {b.title || b.message_html.replace(/<[^>]+>/g, "").slice(0, 60)}
+                  </p>
+                  <p className="text-xs text-white/40">
+                    {SEGMENT_LABELS[b.segment] ?? b.segment} · {new Date(b.created_at).toLocaleString()}
+                  </p>
+                </div>
               </div>
               <div className="flex shrink-0 items-center gap-3 pl-3">
                 <span className="text-xs tabular-nums text-white/50">
@@ -484,6 +616,44 @@ export function BroadcastManager() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+export function MessagePreview({
+  imageUrl,
+  messageHtml,
+  buttons,
+}: {
+  imageUrl: string | null;
+  messageHtml: string;
+  buttons: ButtonInput[];
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-white/10 bg-black/20">
+      {imageUrl && (
+        <div className="relative aspect-video w-full bg-black/30">
+          <Image src={imageUrl} alt="" fill className="object-cover" unoptimized />
+        </div>
+      )}
+      <div className="p-3">
+        <div
+          className="whitespace-pre-wrap text-sm text-white/90 [&_a]:text-blue-400 [&_a]:underline"
+          dangerouslySetInnerHTML={{ __html: messageHtml || "<span class='text-white/30'>Nothing yet</span>" }}
+        />
+        {buttons.length > 0 && (
+          <div className="mt-3 space-y-1.5">
+            {buttons.map((btn, i) => (
+              <div
+                key={i}
+                className="w-full rounded-lg border border-white/15 px-3 py-1.5 text-center text-xs text-white/70"
+              >
+                {btn.text || "Button"}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

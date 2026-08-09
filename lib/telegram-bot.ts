@@ -1,6 +1,7 @@
-// Thin wrapper around the Telegram Bot API's sendMessage — the rest of the
-// codebase calls api.telegram.org ad hoc per route; this centralizes it for
-// the broadcast feature so error/rate-limit handling lives in one place.
+// Thin wrapper around the Telegram Bot API — the rest of the codebase calls
+// api.telegram.org ad hoc per route; this centralizes it for the broadcast
+// and welcome-message features so payload shape, error, and rate-limit
+// handling all live in one place.
 
 export type InlineButton = { text: string; url: string } | { text: string; web_app: { url: string } };
 
@@ -8,25 +9,54 @@ export type SendMessageResult =
   | { ok: true }
   | { ok: false; errorCode: number; description: string; retryAfter?: number; blocked: boolean };
 
-export async function sendTelegramMessage(
+// Telegram's own limits: 4096 chars for a plain text message, 1024 for a
+// photo's caption. Enforced both here (last line of defense before the API
+// call) and at the API-route/UI layer (so the admin sees it before saving).
+export const TEXT_MESSAGE_LIMIT = 4096;
+export const CAPTION_LIMIT = 1024;
+
+type SendOptions = {
+  imageUrl?: string | null;
+  buttons?: InlineButton[];
+};
+
+/**
+ * Sends a message that's either plain text (sendMessage) or an image with
+ * the text as its caption (sendPhoto) — same call site either way, so
+ * broadcast processing and the /start handler don't need two code paths.
+ */
+export async function sendTelegramContent(
   botToken: string,
   chatId: number,
   html: string,
-  button?: InlineButton
+  options: SendOptions = {}
 ): Promise<SendMessageResult> {
-  const body: Record<string, unknown> = {
-    chat_id: chatId,
-    text: html,
-    parse_mode: "HTML",
-    disable_web_page_preview: true,
-  };
-  if (button) {
-    body.reply_markup = { inline_keyboard: [[button]] };
+  const { imageUrl, buttons } = options;
+  const replyMarkup = buttons && buttons.length > 0 ? { inline_keyboard: buttons.map((b) => [b]) } : undefined;
+
+  const limit = imageUrl ? CAPTION_LIMIT : TEXT_MESSAGE_LIMIT;
+  if (html.length > limit) {
+    return {
+      ok: false,
+      errorCode: 0,
+      description: `Message is ${html.length} characters, over the ${limit}-character limit for ${
+        imageUrl ? "an image caption" : "a text message"
+      }.`,
+      blocked: false,
+    };
+  }
+
+  const method = imageUrl ? "sendPhoto" : "sendMessage";
+  const body: Record<string, unknown> = imageUrl
+    ? { chat_id: chatId, photo: imageUrl, caption: html, parse_mode: "HTML" }
+    : { chat_id: chatId, text: html, parse_mode: "HTML", disable_web_page_preview: true };
+  if (replyMarkup) {
+    body.reply_markup = replyMarkup;
   }
 
   let res: Response;
   try {
-    res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    res = await fetch(`https://api.telegram.org/bot${botToken}/${method}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -52,23 +82,24 @@ export async function sendTelegramMessage(
   return { ok: false, errorCode, description, retryAfter, blocked };
 }
 
+export type ButtonInput = { text: string; type: "url" | "webapp"; value: string };
+
 /**
- * Builds the inline keyboard button for a broadcast. "webapp" produces a
- * real Telegram Web App button (`reply_markup.inline_keyboard[].web_app.url`)
- * so tapping it opens the Mini App directly, rather than a plain link.
+ * Builds one inline keyboard button. "webapp" produces a real Telegram Web
+ * App button (`reply_markup.inline_keyboard[].web_app.url`) so tapping it
+ * opens the Mini App directly, rather than a plain link.
  */
-export function buildInlineButton(
-  type: "url" | "webapp",
-  text: string,
-  value: string,
-  appUrl: string
-): InlineButton {
-  if (type === "webapp") {
-    const path = value.trim() || "/";
+export function buildInlineButton(input: ButtonInput, appUrl: string): InlineButton {
+  if (input.type === "webapp") {
+    const path = input.value.trim() || "/";
     const url = path.startsWith("http")
       ? path
       : `${appUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
-    return { text, web_app: { url } };
+    return { text: input.text, web_app: { url } };
   }
-  return { text, url: value };
+  return { text: input.text, url: input.value };
+}
+
+export function buildInlineButtons(inputs: ButtonInput[], appUrl: string): InlineButton[] {
+  return inputs.map((b) => buildInlineButton(b, appUrl));
 }

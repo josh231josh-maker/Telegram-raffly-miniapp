@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { processBroadcastBatch } from "@/lib/broadcast";
+import type { ButtonInput } from "@/lib/telegram-bot";
 
 // Sending a large list can take a while at Telegram's rate limit -- give
 // this route more headroom than the default so a batch isn't cut off mid-send.
@@ -31,6 +32,29 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ status: "completed", sent: broadcast.sent_count, failed: broadcast.failed_count, remaining: 0 });
   }
 
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (!botToken) {
+    return NextResponse.json({ error: "Server is missing TELEGRAM_BOT_TOKEN" }, { status: 500 });
+  }
+
+  // Only a "Mini App" button actually needs the app URL -- a plain link
+  // button or no button at all shouldn't be blocked by it being unset.
+  // Checked (and can fail) BEFORE the draft->sending transition below, so a
+  // broadcast never gets stuck "sending" with zero progress because of a
+  // config problem that was caught too late.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const buttons = (broadcast.buttons ?? []) as ButtonInput[];
+  const needsAppUrl = buttons.some((b) => b.type === "webapp");
+  if (needsAppUrl && !appUrl) {
+    return NextResponse.json(
+      {
+        error:
+          "This broadcast has a Mini App button, but NEXT_PUBLIC_APP_URL isn't set on the server. Set it in Vercel's project settings, or edit this broadcast to use a plain link button instead.",
+      },
+      { status: 500 }
+    );
+  }
+
   if (broadcast.status === "draft") {
     // Best-effort guarded transition -- if it's already moved on (a
     // concurrent send request got here first), we just proceed to process
@@ -41,24 +65,6 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       .update({ status: "sending", started_at: new Date().toISOString() })
       .eq("id", id)
       .eq("status", "draft");
-  }
-
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  if (!botToken) {
-    return NextResponse.json({ error: "Server is missing TELEGRAM_BOT_TOKEN" }, { status: 500 });
-  }
-
-  // Only a "Mini App" button actually needs the app URL -- a plain link
-  // button or no button at all shouldn't be blocked by it being unset.
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  if (broadcast.button_type === "webapp" && !appUrl) {
-    return NextResponse.json(
-      {
-        error:
-          "This broadcast's button opens the Mini App, but NEXT_PUBLIC_APP_URL isn't set on the server. Set it in Vercel's project settings, or edit this broadcast to use a plain link button instead.",
-      },
-      { status: 500 }
-    );
   }
 
   const result = await processBroadcastBatch(supabase, broadcast, botToken, appUrl);
