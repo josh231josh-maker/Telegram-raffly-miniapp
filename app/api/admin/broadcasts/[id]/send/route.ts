@@ -44,9 +44,21 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (!botToken || !appUrl) {
-    return NextResponse.json({ error: "Server is missing TELEGRAM_BOT_TOKEN or NEXT_PUBLIC_APP_URL" }, { status: 500 });
+  if (!botToken) {
+    return NextResponse.json({ error: "Server is missing TELEGRAM_BOT_TOKEN" }, { status: 500 });
+  }
+
+  // Only a "Mini App" button actually needs the app URL -- a plain link
+  // button or no button at all shouldn't be blocked by it being unset.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  if (broadcast.button_type === "webapp" && !appUrl) {
+    return NextResponse.json(
+      {
+        error:
+          "This broadcast's button opens the Mini App, but NEXT_PUBLIC_APP_URL isn't set on the server. Set it in Vercel's project settings, or edit this broadcast to use a plain link button instead.",
+      },
+      { status: 500 }
+    );
   }
 
   const result = await processBroadcastBatch(supabase, broadcast, botToken, appUrl);

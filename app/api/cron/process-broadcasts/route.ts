@@ -16,16 +16,23 @@ export async function GET(req: NextRequest) {
   }
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (!botToken || !appUrl) {
-    return NextResponse.json({ error: "Server is missing TELEGRAM_BOT_TOKEN or NEXT_PUBLIC_APP_URL" }, { status: 500 });
+  if (!botToken) {
+    return NextResponse.json({ error: "Server is missing TELEGRAM_BOT_TOKEN" }, { status: 500 });
   }
+  // Only a "Mini App" button actually needs this -- a broadcast using a
+  // plain link button or no button at all shouldn't be blocked by it being unset.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
   const supabase = getSupabaseAdmin();
   const { data: stuck } = await supabase.from("broadcasts").select("*").eq("status", "sending");
 
   const results = [];
   for (const broadcast of stuck ?? []) {
+    if (broadcast.button_type === "webapp" && !appUrl) {
+      console.error(`[broadcast:${broadcast.id}] skipped -- webapp button but NEXT_PUBLIC_APP_URL is unset`);
+      results.push({ broadcastId: broadcast.id, status: broadcast.status, sent: broadcast.sent_count, failed: broadcast.failed_count, skipped: true });
+      continue;
+    }
     results.push({ broadcastId: broadcast.id, ...(await processBroadcastBatch(supabase, broadcast, botToken, appUrl)) });
   }
 
