@@ -7,6 +7,7 @@ import { PendingWithdrawals } from "./pending-withdrawals";
 import { PendingWinners } from "./pending-winners";
 import { ManageWinners } from "./manage-winners";
 import { BroadcastManager } from "./broadcast-manager";
+import { WelcomeMessageEditor } from "./welcome-message-editor";
 
 type AdminUser = {
   id: string;
@@ -43,7 +44,7 @@ function hasActivePass(user: AdminUser): boolean {
   return !!user.raffly_pass_expires_at && new Date(user.raffly_pass_expires_at) > new Date();
 }
 
-type TabType = "users" | "withdrawals" | "winners" | "manage-winners" | "notifications";
+type TabType = "users" | "withdrawals" | "winners" | "manage-winners" | "notifications" | "welcome-message";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -109,7 +110,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="mb-4 flex gap-1 border-b border-white/10">
-        {["users", "withdrawals", "winners", "manage-winners", "notifications"].map((tab) => (
+        {["users", "withdrawals", "winners", "manage-winners", "notifications", "welcome-message"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as TabType)}
@@ -124,6 +125,7 @@ export default function AdminDashboard() {
             {tab === "winners" && "Winners"}
             {tab === "manage-winners" && "Manage Winners"}
             {tab === "notifications" && "Notifications"}
+            {tab === "welcome-message" && "Welcome Message"}
           </button>
         ))}
       </div>
@@ -224,6 +226,7 @@ export default function AdminDashboard() {
       {activeTab === "winners" && <PendingWinners />}
       {activeTab === "manage-winners" && <ManageWinners />}
       {activeTab === "notifications" && <BroadcastManager />}
+      {activeTab === "welcome-message" && <WelcomeMessageEditor />}
     </div>
   );
 }
