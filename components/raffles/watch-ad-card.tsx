@@ -94,14 +94,13 @@ export function WatchAdCard() {
       ? "Checking..."
       : status === "done"
       ? rewardLabel
-      : "Watch Ad";
+      : "Watch 2 Ads";
 
   return (
     <TaskRow
       icon={<PlayCircleIcon />}
       tone="orange"
       label={label}
-      sublabel={status === "idle" ? "2 ads = 1 ticket" : undefined}
       rewardLabel={rewardLabel}
       onClick={handleWatch}
       disabled={status !== "idle"}
