@@ -166,13 +166,25 @@ export function BroadcastManager() {
       setComposeError(`Message is over the ${charLimit}-character limit for ${imageUrl ? "an image caption" : "a text message"}`);
       return;
     }
-    for (const b of buttons) {
-      if (!b.text.trim() || !b.value.trim()) {
-        setComposeError("Every button needs text and a destination");
+    for (const [i, b] of buttons.entries()) {
+      if (!b.text.trim()) {
+        setComposeError(`Button ${i + 1} needs button text`);
         return;
       }
-      if (b.type === "url" && !/^https?:\/\//i.test(b.value.trim())) {
-        setComposeError(`Button "${b.text}" needs a valid http(s) URL`);
+      if (b.type === "url") {
+        if (!b.value.trim()) {
+          setComposeError(`Button ${i + 1} ("${b.text}") needs a destination URL`);
+          return;
+        }
+        if (!/^https?:\/\//i.test(b.value.trim())) {
+          setComposeError(`Button "${b.text}" needs a valid http(s) URL`);
+          return;
+        }
+      }
+      if (b.type === "webapp" && /^https?:\/\/(www\.)?(t|telegram)\.me\//i.test(b.value.trim())) {
+        setComposeError(
+          `Button "${b.text}" is set to "Open Mini App" but its destination is a t.me link — leave this blank to open your app's home screen, or switch the button to "Open a link" to use a t.me link.`
+        );
         return;
       }
     }
@@ -430,7 +442,7 @@ export function BroadcastManager() {
                     type="text"
                     value={b.value}
                     onChange={(e) => updateButton(i, { value: e.target.value })}
-                    placeholder={b.type === "webapp" ? "/ (path inside the app, optional)" : "https://..."}
+                    placeholder={b.type === "webapp" ? "Leave blank for home, or enter a path like /raffle" : "https://..."}
                     className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs outline-none focus:border-white/30"
                   />
                   <button
@@ -441,6 +453,11 @@ export function BroadcastManager() {
                     Remove
                   </button>
                 </div>
+                {b.type === "webapp" && (
+                  <p className="mt-1.5 text-[11px] text-white/35">
+                    Opens your Mini App directly — don&apos;t paste a t.me link here. Want a plain t.me link instead? Use &quot;Open a link&quot;.
+                  </p>
+                )}
               </div>
             ))}
           </div>

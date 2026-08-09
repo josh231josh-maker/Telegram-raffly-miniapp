@@ -15,11 +15,21 @@ function validateButtons(buttons: unknown): ButtonInput[] | { error: string } {
     const text = typeof b?.text === "string" ? b.text.trim() : "";
     const type = b?.type === "webapp" ? "webapp" : b?.type === "url" ? "url" : null;
     const value = typeof b?.value === "string" ? b.value.trim() : "";
-    if (!text || !type || !value) {
-      return { error: "Every button needs text, an action, and a destination" };
+    if (!text || !type) {
+      return { error: "Every button needs text and an action" };
+    }
+    // A Mini App button's destination is a path within the app and can be left
+    // blank (defaults to the home screen) -- only a plain link button needs a URL.
+    if (type === "url" && !value) {
+      return { error: `Button "${text}" needs a destination URL` };
     }
     if (type === "url" && !/^https?:\/\//i.test(value)) {
       return { error: `Button "${text}" needs a valid http(s) URL` };
+    }
+    if (type === "webapp" && /^https?:\/\/(www\.)?(t|telegram)\.me\//i.test(value)) {
+      return {
+        error: `Button "${text}" is set to "Open Mini App" but its destination is a t.me link -- leave it blank or use "Open a link" instead`,
+      };
     }
     cleaned.push({ text, type, value });
   }
