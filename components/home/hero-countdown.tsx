@@ -57,9 +57,10 @@ export function HeroCountdown() {
       <Image
         src="/images/hero-ticket-full.png"
         alt=""
-        width={168}
-        height={168}
-        className="pointer-events-none absolute -bottom-7 -right-7 h-40 w-40 rotate-[14deg] object-contain opacity-15"
+        fill
+        priority
+        sizes="(max-width: 480px) 100vw, 420px"
+        className="pointer-events-none object-fill opacity-50"
       />
 
       {SPARKLES.map((className, i) => (
