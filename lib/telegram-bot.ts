@@ -41,9 +41,13 @@ export async function sendTelegramMessage(
   const errorCode: number = data?.error_code ?? res.status;
   const description: string = data?.description ?? "Unknown Telegram API error";
   const retryAfter: number | undefined = data?.parameters?.retry_after;
-  // 403 covers both "bot was blocked by the user" and "user is deactivated" --
-  // either way, this chat can never be messaged again until they re-open the bot.
-  const blocked = errorCode === 403;
+  // Both are permanent, not transient: 403 covers "bot was blocked" and "user
+  // is deactivated"; a 400 "chat not found" means Telegram has no private
+  // chat on record for this user at all (they've never actually opened a
+  // conversation with the bot, even if they have a row in our users table
+  // via the Mini App). Neither will resolve itself on retry, so this chat
+  // should be excluded from future broadcasts the same way a block is.
+  const blocked = errorCode === 403 || (errorCode === 400 && /chat not found/i.test(description));
 
   return { ok: false, errorCode, description, retryAfter, blocked };
 }
