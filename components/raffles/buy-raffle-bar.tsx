@@ -5,6 +5,7 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { TicketImage } from "@/components/ticket-image";
 import { BuyRaffleModal } from "@/components/raffles/buy-raffle-modal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AnimatedTicketValue } from "@/components/animated-ticket-value";
 
 export function BuyRaffleBar() {
   const { user, loadingUser } = useTelegram();
@@ -33,7 +34,9 @@ export function BuyRaffleBar() {
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-xs text-white/50">Raffle tickets</p>
-          <p className="font-heading text-xl font-bold text-white">{balance}</p>
+          <p className="font-heading text-xl font-bold text-white">
+            <AnimatedTicketValue value={balance} />
+          </p>
         </div>
         <button
           onClick={() => setOpen(true)}
