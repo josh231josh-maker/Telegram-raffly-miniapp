@@ -47,7 +47,7 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
 
       const status = await openInvoice(data.invoiceUrl);
       if (status === "paid") {
-        setSuccessMessage("Payment successful! Raffle tickets added.");
+        setSuccessMessage("Payment successful! Tickets added.");
         setTimeout(() => refreshUser(), 1500);
       }
     } finally {
@@ -82,7 +82,7 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
           <div className="flex flex-col items-center py-3">
             <TicketImage size={56} />
             <Dialog.Title className="mt-3 font-heading text-xl font-bold text-white text-balance">
-              Top Up Raffle
+              Purchase Tickets
             </Dialog.Title>
           </div>
 
@@ -98,7 +98,7 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
                 <span className="font-heading text-base font-bold text-white tabular-nums">
                   {t.tickets}
                 </span>
-                <span className="text-[10px] text-white/45">raffle</span>
+                <span className="text-[10px] text-white/45">tickets</span>
                 <span className="mt-1 flex items-center gap-1 rounded-full bg-accent/20 px-2 py-1 text-[11px] font-semibold text-accent-2 tabular-nums">
                   {loadingTier === t.id ? "..." : t.stars}
                   <StarIcon className="h-2.5 w-2.5" />
