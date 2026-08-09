@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
@@ -10,12 +11,12 @@ import { TicketImage } from "@/components/ticket-image";
 // pay `stars`, receive `tickets` — must match app/api/stars/create-invoice/route.ts
 // TODO: raise back to real prices (10/50/100/250/500/1000) before launch — set to 1 for testing
 const TIERS = [
-  { id: "raffle10", stars: 1, tickets: 12 },
-  { id: "raffle50", stars: 1, tickets: 70 },
-  { id: "raffle100", stars: 1, tickets: 150 },
-  { id: "raffle250", stars: 1, tickets: 400 },
-  { id: "raffle500", stars: 1, tickets: 850 },
-  { id: "raffle1000", stars: 1, tickets: 1800 },
+  { id: "raffle10", stars: 1, tickets: 12, icon: "/images/tier-1.png" },
+  { id: "raffle50", stars: 1, tickets: 70, icon: "/images/tier-2.png" },
+  { id: "raffle100", stars: 1, tickets: 150, icon: "/images/tier-3.png" },
+  { id: "raffle250", stars: 1, tickets: 400, icon: "/images/tier-4.png" },
+  { id: "raffle500", stars: 1, tickets: 850, icon: "/images/tier-5.png" },
+  { id: "raffle1000", stars: 1, tickets: 1800, icon: "/images/tier-6.png" },
 ];
 
 type BuyRaffleModalProps = {
@@ -94,7 +95,7 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
                 disabled={loadingTier !== null}
                 className="flex w-full flex-col items-center gap-1 rounded-2xl bg-white/5 px-2 py-3.5 transition disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <TicketImage size={34} />
+                <Image src={t.icon} alt="" width={44} height={44} />
                 <span className="font-heading text-base font-bold text-white tabular-nums">
                   {t.tickets}
                 </span>
