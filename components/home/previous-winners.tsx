@@ -14,10 +14,6 @@ type Winner = {
   created_at: string;
 };
 
-// PRE-LAUNCH PLACEHOLDER: replace with a real total-raffles-held count before
-// going live to real users — this is real-money-adjacent and must be accurate.
-const TOTAL_RAFFLES_DISPLAY = "500+";
-
 export function PreviousWinners() {
   const [winners, setWinners] = useState<Winner[] | null>(null);
   const [open, setOpen] = useState(false);
@@ -66,7 +62,6 @@ export function PreviousWinners() {
           <IconBadge icon={<TrophyIcon />} tone="gold" size="sm" />
           <div className="flex flex-col items-start">
             <span className="text-sm font-medium text-text-dim">Previous Winners</span>
-            <span className="text-[11px] text-text-faint">{TOTAL_RAFFLES_DISPLAY} raffles held</span>
           </div>
         </div>
         <ChevronDownIcon
