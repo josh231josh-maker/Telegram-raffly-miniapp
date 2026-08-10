@@ -30,7 +30,7 @@ export default function HomePage() {
             <HomeHeader />
             <HeroCountdown />
             <PassBanner onOpen={() => setPassOpen(true)} />
-            <OddsRingCard />
+            <OddsRingCard onGetMore={() => setTab("raffles")} />
             <PreviousWinners />
           </>
         )}

@@ -40,7 +40,11 @@ function winProbabilityPct(yourTickets: number, totalTickets: number, winners: n
   return Math.min(100, Math.max(0, (1 - missRatio) * 100));
 }
 
-export function OddsRingCard() {
+type OddsRingCardProps = {
+  onGetMore?: () => void;
+};
+
+export function OddsRingCard({ onGetMore }: OddsRingCardProps) {
   const { user, raffleEntry, loadingUser, loadingRaffleEntry, enterRaffle } = useTelegram();
   const [info, setInfo] = useState<RaffleInfo | null>(null);
   const [amount, setAmount] = useState(0);
@@ -168,9 +172,16 @@ export function OddsRingCard() {
           Entries are closed while this week&apos;s draw is in progress.
         </p>
       ) : available <= 0 ? (
-        <p className="text-center text-xs text-text-faint">
-          You have no tickets to enter. Earn tickets from check-ins, ads, or referrals.
-        </p>
+        <div className="flex flex-col items-center gap-3 py-1">
+          <p className="text-center text-xs text-text-faint">You have no tickets to enter.</p>
+          <button
+            onClick={onGetMore}
+            className="btn-accent flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition"
+          >
+            Get More
+            <TicketImage size={14} />
+          </button>
+        </div>
       ) : (
         <>
           <div className="flex items-center justify-between gap-3 rounded-2xl bg-background p-3">
