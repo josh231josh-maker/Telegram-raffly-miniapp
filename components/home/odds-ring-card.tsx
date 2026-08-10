@@ -65,16 +65,9 @@ export function OddsRingCard() {
   const yourTickets = raffleEntry?.ticketsEntered ?? 0;
   const totalTickets = info?.totalTickets ?? 0;
   const totalParticipants = info?.totalParticipants ?? 0;
-  // With at most one winner per person, once participants <= the number of
-  // weekly winners, every participant with a ticket is effectively certain
-  // to win — the ticket-share estimate below only makes sense once there
-  // are more participants than prizes to go around.
-  const pct =
-    yourTickets > 0 && totalParticipants > 0 && totalParticipants <= WEEKLY_WINNER_COUNT
-      ? 100
-      : totalTickets > 0
-      ? Math.min(100, (yourTickets / totalTickets) * WEEKLY_WINNER_COUNT * 100)
-      : 0;
+  // Always your share of the total ticket pool, regardless of how many
+  // people have entered -- a small pool doesn't get bumped to a flat 100%.
+  const pct = totalTickets > 0 ? Math.min(100, (yourTickets / totalTickets) * WEEKLY_WINNER_COUNT * 100) : 0;
   const chance = pct.toFixed(2);
   const dashOffset = CIRCUMFERENCE * (1 - pct / 100);
 
