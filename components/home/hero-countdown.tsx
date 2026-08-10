@@ -52,7 +52,7 @@ export function HeroCountdown() {
 
   return (
     <section
-      className="hero-rise hero-gradient relative isolate overflow-hidden rounded-[28px] p-5 text-white shadow-lg"
+      className="hero-rise relative isolate overflow-hidden rounded-[28px] p-5 text-white shadow-lg"
       aria-label="Next weekly draw"
     >
       <Image
