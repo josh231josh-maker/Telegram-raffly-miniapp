@@ -61,7 +61,7 @@ export function HeroCountdown() {
         fill
         priority
         sizes="(max-width: 480px) 100vw, 420px"
-        className="pointer-events-none object-fill opacity-35"
+        className="pointer-events-none object-fill opacity-65"
       />
 
       {SPARKLES.map((className, i) => (
