@@ -62,7 +62,7 @@ type TelegramContextValue = {
   loadingUser: boolean;
   checkIn: () => Promise<CheckInResult>;
   refreshUser: () => Promise<RafflyUser | null>;
-  requestWithdrawal: (amount: number, walletAddress: string) => Promise<WithdrawResult>;
+  requestWithdrawal: () => Promise<WithdrawResult>;
   getInitData: () => string;
   raffleEntry: RaffleEntry | null;
   loadingRaffleEntry: boolean;
@@ -227,18 +227,18 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const requestWithdrawal = async (
-    amount: number,
-    walletAddress: string
-  ): Promise<WithdrawResult> => {
+  const requestWithdrawal = async (): Promise<WithdrawResult> => {
     if (!initDataRef.current) {
       return { error: "Not ready" };
     }
     try {
+      // amount and the destination wallet are both derived server-side
+      // (from the caller's own balance and saved ton_wallet_address) --
+      // the client was never able to specify either, so it doesn't send them.
       const res = await fetch("/api/withdraw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData: initDataRef.current, amount, walletAddress }),
+        body: JSON.stringify({ initData: initDataRef.current }),
       });
       const data: WithdrawResult = await res.json();
       if (data.user) setUser(data.user);

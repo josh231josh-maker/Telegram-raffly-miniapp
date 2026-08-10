@@ -35,6 +35,7 @@ export function PendingWithdrawals() {
   const [loading, setLoading] = useState(true);
   const [txHash, setTxHash] = useState<{ [key: string]: string }>({});
   const [processing, setProcessing] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWithdrawals(tab);
@@ -42,6 +43,7 @@ export function PendingWithdrawals() {
 
   async function fetchWithdrawals(status: Tab) {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/admin/withdrawals?status=${status}`);
       const data = await res.json();
@@ -53,6 +55,7 @@ export function PendingWithdrawals() {
 
   async function handleAction(withdrawalId: string, action: string) {
     setProcessing(withdrawalId);
+    setError(null);
     try {
       const res = await fetch(`/api/admin/withdrawals/${withdrawalId}`, {
         method: "PATCH",
@@ -62,11 +65,16 @@ export function PendingWithdrawals() {
           txHash: action === "mark-paid" ? txHash[withdrawalId] : undefined,
         }),
       });
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
         await fetchWithdrawals(tab);
         setTxHash({ ...txHash, [withdrawalId]: "" });
+      } else {
+        setError(data.error ?? `Failed to ${action.replace("-", " ")} this withdrawal.`);
       }
+    } catch {
+      setError(`Failed to ${action.replace("-", " ")} this withdrawal -- check your connection and try again.`);
     } finally {
       setProcessing(null);
     }
@@ -87,6 +95,12 @@ export function PendingWithdrawals() {
           </button>
         ))}
       </div>
+
+      {error && (
+        <p className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+          {error}
+        </p>
+      )}
 
       {loading ? (
         <div className="space-y-3">

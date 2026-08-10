@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
@@ -19,6 +19,12 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "done">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
+  // React's disabled={} only takes effect after a re-render, which leaves a
+  // window for a very fast double-tap to fire handleWithdraw twice before
+  // the button visually disables. This ref is set synchronously, so the
+  // second call bails out immediately regardless of render timing -- on top
+  // of (not instead of) the server's own one-active-withdrawal constraint.
+  const submittingRef = useRef(false);
 
   const balance = user?.usdt_balance ?? 0;
   const walletConnected = !!user?.ton_wallet_address;
@@ -94,15 +100,21 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
   };
 
   const handleWithdraw = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setMessage(null);
     setStatus("loading");
-    const result = await requestWithdrawal(balance, "");
-    if (result.success) {
-      setStatus("done");
-      setMessage("Withdrawal requested! We'll process it shortly.");
-    } else {
-      setStatus("idle");
-      setMessage(result.error ?? "Something went wrong");
+    try {
+      const result = await requestWithdrawal();
+      if (result.success) {
+        setStatus("done");
+        setMessage("Withdrawal requested! We'll process it shortly.");
+      } else {
+        setStatus("idle");
+        setMessage(result.error ?? "Something went wrong");
+      }
+    } finally {
+      submittingRef.current = false;
     }
   };
 

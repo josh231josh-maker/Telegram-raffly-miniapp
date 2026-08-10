@@ -1,39 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { TrophyIcon, ChevronDownIcon } from "@/components/icons";
 import { IconBadge } from "@/components/icon-badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchWithRetry } from "@/lib/fetch-retry";
+import type { RaffleWinner } from "@/hooks/useRaffleInfo";
 
-type Winner = {
-  id: string;
-  display_name: string;
-  prize_amount: number;
-  week_label: string | null;
-  created_at: string;
+type PreviousWinnersProps = {
+  winners: RaffleWinner[] | null;
 };
 
-export function PreviousWinners() {
-  const [winners, setWinners] = useState<Winner[] | null>(null);
+export function PreviousWinners({ winners }: PreviousWinnersProps) {
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchWithRetry("/api/raffle-info")
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled) setWinners(data.winners ?? []);
-      })
-      .catch(() => {
-        // Retries already exhausted -- stay in the loading state rather than
-        // resolving to an empty list, so this doesn't get mistaken for
-        // "genuinely no winners" and hide the section permanently.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   if (winners === null) {
     return (

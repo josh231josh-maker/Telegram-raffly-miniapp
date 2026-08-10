@@ -40,12 +40,15 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
       >
-        <Script src="https://sad.adsgram.ai/js/sad.min.js" strategy="beforeInteractive" />
+        {/* Ad SDKs are only needed once a user taps "Watch Ads" -- loading them
+            beforeInteractive would block the whole app's startup on two
+            third-party ad CDNs that most sessions never even use. */}
+        <Script src="https://sad.adsgram.ai/js/sad.min.js" strategy="afterInteractive" />
         <Script
           src="//libtl.com/sdk.js"
           data-zone="11527679"
           data-sdk="show_11527679"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
         />
         <TonProvider>
           <TelegramProvider>{children}</TelegramProvider>

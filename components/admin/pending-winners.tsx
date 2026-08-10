@@ -28,6 +28,7 @@ export function PendingWinners() {
   const [winners, setWinners] = useState<Winner[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWinners(tab);
@@ -35,6 +36,7 @@ export function PendingWinners() {
 
   async function fetchWinners(status: Tab) {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/admin/raffle-winners?status=${status}`);
       const data = await res.json();
@@ -46,16 +48,22 @@ export function PendingWinners() {
 
   async function handleAction(winnerId: string, action: string) {
     setProcessing(winnerId);
+    setError(null);
     try {
       const res = await fetch(`/api/admin/raffle-winners/${winnerId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
         await fetchWinners(tab);
+      } else {
+        setError(data.error ?? `Failed to ${action} this winner.`);
       }
+    } catch {
+      setError(`Failed to ${action} this winner -- check your connection and try again.`);
     } finally {
       setProcessing(null);
     }
@@ -76,6 +84,12 @@ export function PendingWinners() {
           </button>
         ))}
       </div>
+
+      {error && (
+        <p className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+          {error}
+        </p>
+      )}
 
       {loading ? (
         <div className="space-y-3">

@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { WEEKLY_WINNER_COUNT } from "@/lib/raffle-week";
 import { TicketImage } from "@/components/ticket-image";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchWithRetry } from "@/lib/fetch-retry";
-
-type RaffleInfo = {
-  totalTickets: number;
-  totalParticipants: number;
-};
+import type { RaffleInfo } from "@/hooks/useRaffleInfo";
 
 const RADIUS = 42;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -42,32 +37,14 @@ function winProbabilityPct(yourTickets: number, totalTickets: number, winners: n
 
 type OddsRingCardProps = {
   onGetMore?: () => void;
+  info: RaffleInfo | null;
 };
 
-export function OddsRingCard({ onGetMore }: OddsRingCardProps) {
+export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
   const { user, raffleEntry, loadingUser, loadingRaffleEntry, enterRaffle } = useTelegram();
-  const [info, setInfo] = useState<RaffleInfo | null>(null);
   const [amount, setAmount] = useState(0);
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [message, setMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchWithRetry("/api/raffle-info")
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled) setInfo(data);
-      })
-      .catch(() => {
-        // Retries in fetchWithRetry are already exhausted by this point --
-        // leave `info` as-is (keeps showing the loading state) rather than
-        // resetting to null, so a later successful retry from a re-render
-        // isn't fighting a false "empty" state.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [raffleEntry?.ticketsEntered]);
 
   if (loadingUser || loadingRaffleEntry || !user) {
     return (

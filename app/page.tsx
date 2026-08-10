@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useTelegram } from "@/components/providers/telegram-provider";
+import { useRaffleInfo } from "@/hooks/useRaffleInfo";
 import { BottomNav, type TabId } from "@/components/layout/bottom-nav";
 import { HomeHeader } from "@/components/home/home-header";
 import { HeroCountdown } from "@/components/home/hero-countdown";
@@ -21,6 +23,12 @@ import { TicketImage } from "@/components/ticket-image";
 export default function HomePage() {
   const [tab, setTab] = useState<TabId>("home");
   const [passOpen, setPassOpen] = useState(false);
+  const { raffleEntry } = useTelegram();
+  // Fetched once here rather than separately inside OddsRingCard and
+  // PreviousWinners, which both need data from this same endpoint. Still
+  // refetches when ticketsEntered changes, same trigger OddsRingCard used on
+  // its own before.
+  const raffleInfo = useRaffleInfo(raffleEntry?.ticketsEntered);
 
   return (
     <main className="app-bg-gradient min-h-dvh pb-28">
@@ -30,8 +38,8 @@ export default function HomePage() {
             <HomeHeader />
             <HeroCountdown />
             <PassBanner onOpen={() => setPassOpen(true)} />
-            <OddsRingCard onGetMore={() => setTab("raffles")} />
-            <PreviousWinners />
+            <OddsRingCard onGetMore={() => setTab("raffles")} info={raffleInfo} />
+            <PreviousWinners winners={raffleInfo?.winners ?? null} />
           </>
         )}
 

@@ -28,7 +28,7 @@ const SPARKLES = [
 ];
 
 export function HeroCountdown() {
-  const [target] = useState(() => getCurrentWeekEnd());
+  const [target, setTarget] = useState(() => getCurrentWeekEnd());
   const [segments, setSegments] = useState<Segments>({
     days: "--",
     hours: "--",
@@ -37,7 +37,17 @@ export function HeroCountdown() {
   });
 
   useEffect(() => {
-    const tick = () => setSegments(toSegments(target.getTime() - Date.now()));
+    // If the app is left open across the weekly rollover, the old target
+    // reaches zero and would otherwise stay frozen there forever -- roll it
+    // forward to the new week's end instead of just clamping at 00:00:00:00.
+    const tick = () => {
+      const remaining = target.getTime() - Date.now();
+      if (remaining <= 0) {
+        setTarget(getCurrentWeekEnd());
+        return;
+      }
+      setSegments(toSegments(remaining));
+    };
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);

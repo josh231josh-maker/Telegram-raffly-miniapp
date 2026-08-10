@@ -92,9 +92,9 @@ export function ProfileCard() {
               <ChevronRightIcon className="h-4 w-4 text-text-faint" />
             </a>
           ) : (
-            <div key={row.label} className="flex items-center justify-between py-3 text-sm text-text">
+            <div key={row.label} className="flex items-center justify-between py-3 text-sm text-text-faint">
               <span>{row.label}</span>
-              <ChevronRightIcon className="h-4 w-4 text-text-faint" />
+              <span className="text-xs">Coming soon</span>
             </div>
           )
         )}

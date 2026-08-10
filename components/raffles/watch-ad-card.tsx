@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMonetagAd } from "@/hooks/useMonetagAd";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { isPassActive } from "@/lib/raffly-pass";
@@ -29,17 +29,37 @@ export function WatchAdCard() {
   const [gapSecondsLeft, setGapSecondsLeft] = useState(0);
   const showAd = useMonetagAd();
 
-  const pollForReward = async (startingBalance: number, attempts: number): Promise<boolean> => {
+  // Bumped whenever a new watch starts, and once on unmount. A poll loop
+  // checks this before every step and against the generation it was started
+  // with, so starting a second watch (or navigating away) invalidates any
+  // still-running poll from a previous one instead of leaving it to keep
+  // hitting refreshUser in the background alongside a newer poll -- and
+  // stops it from touching this component's own state after unmount.
+  const generationRef = useRef(0);
+  useEffect(() => {
+    return () => {
+      generationRef.current += 1;
+    };
+  }, []);
+
+  const pollForReward = async (
+    startingBalance: number,
+    attempts: number,
+    generation: number
+  ): Promise<boolean> => {
     for (let i = 0; i < attempts; i++) {
       await new Promise((resolve) => setTimeout(resolve, POSTBACK_POLL_INTERVAL_MS));
+      if (generationRef.current !== generation) return false;
       const updated = await refreshUser();
       if (updated && updated.ticket_balance > startingBalance) return true;
+      if (generationRef.current !== generation) return false;
     }
     return false;
   };
 
   const handleWatch = async () => {
     if (!user) return;
+    const generation = (generationRef.current += 1);
     const startingBalance = user.ticket_balance;
 
     // A signed, short-lived token standing in for the raw Telegram id --
@@ -53,32 +73,38 @@ export function WatchAdCard() {
     }).catch(() => null);
     const tokenData = await tokenRes?.json().catch(() => null);
     const ymid = tokenData?.token;
-    if (!ymid) return;
+    if (!ymid || generationRef.current !== generation) return;
 
     setStatus("ad1");
     if (!(await showAd(ymid))) {
-      setStatus("idle");
+      if (generationRef.current === generation) setStatus("idle");
       return;
     }
+    if (generationRef.current !== generation) return;
 
     setStatus("gap");
     for (let secondsLeft = AD_GAP_MS / 1000; secondsLeft > 0; secondsLeft--) {
       setGapSecondsLeft(secondsLeft);
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
+    if (generationRef.current !== generation) return;
 
     setStatus("ad2");
     if (!(await showAd(ymid))) {
-      setStatus("idle");
+      if (generationRef.current === generation) setStatus("idle");
       return;
     }
+    if (generationRef.current !== generation) return;
 
     setStatus("checking");
-    const rewardedQuickly = await pollForReward(startingBalance, POSTBACK_VISIBLE_ATTEMPTS);
+    const rewardedQuickly = await pollForReward(startingBalance, POSTBACK_VISIBLE_ATTEMPTS, generation);
+    if (generationRef.current !== generation) return;
 
     if (rewardedQuickly) {
       setStatus("done");
-      setTimeout(() => setStatus("idle"), 2500);
+      setTimeout(() => {
+        if (generationRef.current === generation) setStatus("idle");
+      }, 2500);
       return;
     }
 
@@ -87,7 +113,7 @@ export function WatchAdCard() {
     // updates the balance wherever it's shown; if it never does (the ad
     // genuinely wasn't valued), this just quietly stops.
     setStatus("idle");
-    pollForReward(startingBalance, POSTBACK_BACKGROUND_ATTEMPTS);
+    pollForReward(startingBalance, POSTBACK_BACKGROUND_ATTEMPTS, generation);
   };
 
   if (loadingUser) return <TaskRowSkeleton />;
