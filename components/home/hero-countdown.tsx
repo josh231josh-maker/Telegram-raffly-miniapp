@@ -21,9 +21,10 @@ function toSegments(ms: number): Segments {
 }
 
 const SPARKLES = [
-  "left-9 top-4 h-3 w-3 text-white/70 [animation-delay:0s]",
-  "right-16 top-9 h-2.5 w-2.5 text-white/55 [animation-delay:0.7s]",
-  "left-20 top-[4.25rem] h-2 w-2 text-white/45 [animation-delay:1.4s]",
+  "left-8 top-4 h-3 w-3 text-white/70 [animation-delay:0s]",
+  "right-8 top-6 h-2.5 w-2.5 text-white/55 [animation-delay:0.7s]",
+  "right-14 top-20 h-2 w-2 text-white/45 [animation-delay:1.4s]",
+  "left-14 top-20 h-2 w-2 text-white/45 [animation-delay:2.1s]",
 ];
 
 export function HeroCountdown() {
@@ -67,7 +68,7 @@ export function HeroCountdown() {
         <StarIcon key={i} className={`hero-twinkle pointer-events-none absolute ${className}`} />
       ))}
 
-      <div className="relative flex items-center gap-1.5">
+      <div className="relative flex items-center justify-center gap-1.5">
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20">
           <TrophyIcon className="h-3.5 w-3.5 text-white" />
         </span>
@@ -76,14 +77,14 @@ export function HeroCountdown() {
         </span>
       </div>
 
-      <div className="relative mt-1.5 w-fit overflow-hidden">
+      <div className="relative mx-auto mt-1.5 w-fit overflow-hidden">
         <p className="font-heading text-[54px] font-extrabold leading-none tracking-tight text-balance text-white">
           ${PRIZE_POOL_USDT.toLocaleString()}
         </p>
         <span aria-hidden className="hero-shine-bar absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/30" />
       </div>
 
-      <p className="relative mt-1.5 text-sm font-medium text-pretty text-white/85">
+      <p className="relative mt-1.5 text-center text-sm font-medium text-pretty text-white/85">
         Split among {WEEKLY_WINNER_COUNT} winners · ${PRIZE_PER_WINNER_USDT} USDT each
       </p>
 
