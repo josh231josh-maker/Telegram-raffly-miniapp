@@ -24,7 +24,7 @@ const POSTBACK_VISIBLE_ATTEMPTS = 12; // ~8.4s on-screen as "Checking..."
 const POSTBACK_BACKGROUND_ATTEMPTS = 40; // ~28s more, quietly, after the button is usable again
 
 export function WatchAdCard() {
-  const { user, refreshUser, loadingUser } = useTelegram();
+  const { user, refreshUser, loadingUser, getInitData } = useTelegram();
   const [status, setStatus] = useState<Status>("idle");
   const [gapSecondsLeft, setGapSecondsLeft] = useState(0);
   const showAd = useMonetagAd();
@@ -41,7 +41,19 @@ export function WatchAdCard() {
   const handleWatch = async () => {
     if (!user) return;
     const startingBalance = user.ticket_balance;
-    const ymid = String(user.telegram_id);
+
+    // A signed, short-lived token standing in for the raw Telegram id --
+    // Monetag relays whatever we hand it straight back in its postback with
+    // no verification of its own, so the postback route checks this token's
+    // signature instead of trusting a client-supplied id outright.
+    const tokenRes = await fetch("/api/ads/mint-reward-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ initData: getInitData() }),
+    }).catch(() => null);
+    const tokenData = await tokenRes?.json().catch(() => null);
+    const ymid = tokenData?.token;
+    if (!ymid) return;
 
     setStatus("ad1");
     if (!(await showAd(ymid))) {

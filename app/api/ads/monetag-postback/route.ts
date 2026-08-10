@@ -3,8 +3,9 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { checkAndRewardReferral } from "@/lib/referral";
 import { isPassActive } from "@/lib/raffly-pass";
 import { timingSafeEqual } from "@/lib/timing-safe";
+import { verifyAdRewardToken } from "@/lib/ad-reward-token";
 import { RATE_LIMITS, rateLimitByIp, rateLimitByUser, rateLimitResponse } from "@/lib/rate-limit";
-import { safeServerError } from "@/lib/logger";
+import { logger, safeServerError } from "@/lib/logger";
 
 const ADS_TO_TICKET_RATIO = 2;
 
@@ -29,9 +30,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing ymid" }, { status: 400 });
   }
 
-  const telegramId = Number(ymid);
-  if (Number.isNaN(telegramId)) {
-    return NextResponse.json({ error: "Invalid ymid" }, { status: 400 });
+  // ymid is a signed token (lib/ad-reward-token.ts), not a raw Telegram id --
+  // Monetag has no way to carry Telegram's own signature through its
+  // postback, so this is what proves the id being credited is really the
+  // one that started the ad-watch flow, rather than whatever a hostile
+  // client chose to hand the ad SDK.
+  const telegramId = verifyAdRewardToken(ymid);
+  if (telegramId === null) {
+    logger.warn("ads.monetag_invalid_token", { ymid });
+    return NextResponse.json({ error: "Invalid or expired ymid" }, { status: 401 });
   }
 
   const userCheck = await rateLimitByUser(req, "adReward", telegramId, RATE_LIMITS.adReward.user);

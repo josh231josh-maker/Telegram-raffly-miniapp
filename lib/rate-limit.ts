@@ -82,6 +82,12 @@ export const RATE_LIMITS = {
   telegramWebhook: {
     ip: { requests: 120, window: "60 s" },
   },
+  // Mints the signed token that binds an ad-watch session to a verified
+  // Telegram id -- called once per ad-watch attempt from the Mini App.
+  adRewardTokenMint: {
+    ip: { requests: 20, window: "60 s" },
+    user: { requests: 10, window: "60 s" },
+  },
   // Ad-network postback endpoints: shared secret proves the call really
   // came from the ad network, then both the caller's IP and the target
   // Telegram id are capped. Note: unlike every other `user` limit below,
