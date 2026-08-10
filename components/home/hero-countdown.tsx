@@ -77,11 +77,10 @@ export function HeroCountdown() {
         </span>
       </div>
 
-      <div className="relative mx-auto mt-1.5 w-fit overflow-hidden">
-        <p className="font-heading text-[54px] font-extrabold leading-none tracking-tight text-balance text-white">
+      <div className="relative mx-auto mt-1.5 w-fit">
+        <p className="hero-prize-glow font-heading text-[54px] font-extrabold leading-none tracking-tight text-balance text-white">
           ${PRIZE_POOL_USDT.toLocaleString()}
         </p>
-        <span aria-hidden className="hero-shine-bar absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/30" />
       </div>
 
       <div className="relative mt-2 border-t border-white/15 pt-2.5">
