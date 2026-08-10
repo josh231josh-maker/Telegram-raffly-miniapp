@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { logger } from "@/lib/logger";
 
 /**
  * Distributed (Upstash Redis) rate limiting — safe across Vercel's many
@@ -127,7 +128,13 @@ async function check(cacheKey: string, identifier: string, rule: RateLimitRule):
   try {
     const result = await limiter.limit(identifier);
     if (result.success) return { allowed: true };
-    return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((result.reset - Date.now()) / 1000)) };
+    const retryAfterSeconds = Math.max(1, Math.ceil((result.reset - Date.now()) / 1000));
+    // Tracks rate-limit violations for monitoring, and doubles as a way to
+    // see exactly which identifier (IP or verified user id) tripped which
+    // limiter -- useful for telling apart a real abuse pattern from a
+    // shared/rotating IP innocently bumping into the limit.
+    logger.warn("rate_limit.blocked", { scope: cacheKey, identifier, retryAfterSeconds });
+    return { allowed: false, retryAfterSeconds };
   } catch (err) {
     // Fail open on Redis errors — a rate-limiter outage should degrade
     // gracefully, not take the whole app down.
