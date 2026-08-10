@@ -60,6 +60,30 @@ body {
   color: var(--text);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   min-height: 100dvh;
+  /* App-like feel in the Telegram WebView: no text-selection handles or
+     iOS long-press callout on ordinary UI. Scrolling/tapping/clicking are
+     untouched -- these two properties only affect selection/callout UI. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+img {
+  /* Stops the WebKit drag-ghost and the long-press "save/share image" menu
+     on decorative images without touching next/image or any component. */
+  -webkit-user-drag: none;
+  user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  /* Form fields opt back into normal selection, editing, and (on iOS) the
+     native paste/lookup callout -- everything the body rule above turned off. */
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
 }
 
 .font-heading {
