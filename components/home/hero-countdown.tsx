@@ -90,8 +90,10 @@ export function HeroCountdown() {
         </p>
         <div className="grid grid-cols-4 gap-1.5 text-center">
           {items.map((item) => (
-            <div key={item.label} className="rounded-2xl bg-black/25 px-0.5 py-2.5 backdrop-blur-[2px]">
-              <p className="font-heading text-xl font-bold tabular-nums text-white">{item.value}</p>
+            <div key={item.label} className="px-0.5 py-1">
+              <p className="font-heading text-[32px] font-bold tabular-nums text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
+                {item.value}
+              </p>
               <p className="mt-0.5 text-[8.5px] uppercase tracking-wide text-white/70">{item.label}</p>
             </div>
           ))}
