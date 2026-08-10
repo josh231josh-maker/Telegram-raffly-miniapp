@@ -77,7 +77,6 @@ export function OddsRingCard() {
           <div className="flex-1 space-y-2.5">
             <Skeleton className="h-4 w-full rounded-full" />
             <Skeleton className="h-4 w-full rounded-full" />
-            <Skeleton className="h-4 w-full rounded-full" />
           </div>
         </div>
         <div className="my-3 border-t border-border" />
@@ -89,7 +88,6 @@ export function OddsRingCard() {
   const infoLoaded = info !== null;
   const yourTickets = raffleEntry?.ticketsEntered ?? 0;
   const totalTickets = info?.totalTickets ?? 0;
-  const totalParticipants = info?.totalParticipants ?? 0;
   const pct = winProbabilityPct(yourTickets, totalTickets, WEEKLY_WINNER_COUNT);
   const chance = pct.toFixed(2);
   const dashOffset = CIRCUMFERENCE * (1 - pct / 100);
@@ -156,13 +154,9 @@ export function OddsRingCard() {
             <span className="text-text-dim">Your tickets</span>
             <span className="font-semibold text-text">{yourTickets}</span>
           </div>
-          <div className="flex items-center justify-between border-b border-border py-1.5">
+          <div className="flex items-center justify-between py-1.5">
             <span className="text-text-dim">Total pool</span>
             <span className="font-semibold text-text">{totalTickets}</span>
-          </div>
-          <div className="flex items-center justify-between py-1.5">
-            <span className="text-text-dim">Participants</span>
-            <span className="font-semibold text-text">{totalParticipants}</span>
           </div>
         </div>
       </div>
