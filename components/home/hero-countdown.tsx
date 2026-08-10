@@ -84,17 +84,17 @@ export function HeroCountdown() {
         <span aria-hidden className="hero-shine-bar absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/30" />
       </div>
 
-      <div className="relative mt-3 border-t border-white/15 pt-3.5">
-        <p className="mb-2 text-center text-[11px] font-medium uppercase tracking-wide text-white/60">
+      <div className="relative mt-2 border-t border-white/15 pt-2.5">
+        <p className="mb-1.5 text-center text-[11px] font-medium uppercase tracking-wide text-white/60">
           Next draw in
         </p>
-        <div className="grid grid-cols-4 gap-1.5 text-center">
+        <div className="grid grid-cols-4 gap-1 text-center">
           {items.map((item) => (
-            <div key={item.label} className="px-0.5 py-1">
-              <p className="font-heading text-[32px] font-bold tabular-nums text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
+            <div key={item.label} className="px-0">
+              <p className="font-heading text-[46px] font-bold leading-none tabular-nums text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
                 {item.value}
               </p>
-              <p className="mt-0.5 text-[8.5px] uppercase tracking-wide text-white/70">{item.label}</p>
+              <p className="mt-1 text-[8.5px] uppercase tracking-wide text-white/70">{item.label}</p>
             </div>
           ))}
         </div>
