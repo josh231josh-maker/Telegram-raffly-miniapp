@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
+import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { RAFFLY_PASS_STARS, isPassActive } from "@/lib/raffly-pass";
 import { CrownIcon, CheckIcon, CloseIcon, StarIcon } from "@/components/icons";
 
@@ -19,6 +20,7 @@ const BENEFITS = [
 export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
   const { user, loadingUser, getInitData, refreshUser, claimPassTickets } = useTelegram();
   const openInvoice = useTelegramInvoice();
+  useTelegramBackButton(onClose);
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [message, setMessage] = useState<string | null>(null);
 

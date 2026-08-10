@@ -1,6 +1,6 @@
 "use client";
 
-import { init, miniApp, themeParams, retrieveRawInitData } from "@telegram-apps/sdk";
+import { init, miniApp, themeParams, backButton, retrieveRawInitData } from "@telegram-apps/sdk";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { fetchWithRetry } from "@/lib/fetch-retry";
 
@@ -159,6 +159,12 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       }
       if (themeParams.mount.isAvailable()) {
         themeParams.mount();
+      }
+      // Mounted once here so individual screens only ever need to call
+      // show()/hide()/onClick() -- mounting is a one-time prerequisite the
+      // SDK requires before those will work.
+      if (backButton.mount.isAvailable()) {
+        backButton.mount();
       }
 
       setIsTelegram(true);

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { shareURL } from "@telegram-apps/sdk";
+import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { REFERRAL_REWARD_TICKETS, REFERRAL_TICKET_THRESHOLD } from "@/lib/referral";
 import { CloseIcon } from "@/components/icons";
 import { TicketImage } from "@/components/ticket-image";
@@ -19,6 +20,7 @@ export function InviteFriendsDetail({
   referralReachedCount,
   onClose,
 }: InviteFriendsDetailProps) {
+  useTelegramBackButton(onClose);
   const [copied, setCopied] = useState(false);
 
   const totalProfit = referralReachedCount * REFERRAL_REWARD_TICKETS;

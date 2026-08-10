@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { UsdtIcon, CloseIcon } from "@/components/icons";
 import { IconBadge } from "@/components/icon-badge";
 
@@ -12,6 +13,7 @@ type WithdrawModalProps = {
 
 export function WithdrawModal({ onClose }: WithdrawModalProps) {
   const { user, requestWithdrawal, getInitData, refreshUser } = useTelegram();
+  useTelegramBackButton(onClose);
   const address = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
   const [status, setStatus] = useState<"idle" | "loading" | "done">("idle");

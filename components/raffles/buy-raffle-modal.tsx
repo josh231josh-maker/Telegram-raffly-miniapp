@@ -5,6 +5,7 @@ import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
+import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { CloseIcon, StarIcon } from "@/components/icons";
 import { TicketImage } from "@/components/ticket-image";
 
@@ -26,6 +27,7 @@ type BuyRaffleModalProps = {
 export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
   const { user, refreshUser, getInitData } = useTelegram();
   const openInvoice = useTelegramInvoice();
+  useTelegramBackButton(onClose);
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
