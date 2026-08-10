@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { getCurrentWeekEnd, WEEKLY_WINNER_COUNT, PRIZE_POOL_USDT, PRIZE_PER_WINNER_USDT } from "@/lib/raffle-week";
+import { getCurrentWeekEnd, PRIZE_POOL_USDT } from "@/lib/raffle-week";
 import { StarIcon, TrophyIcon } from "@/components/icons";
 
 type Segments = { days: string; hours: string; minutes: string; seconds: string };
@@ -84,11 +84,7 @@ export function HeroCountdown() {
         <span aria-hidden className="hero-shine-bar absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/30" />
       </div>
 
-      <p className="relative mt-1.5 text-center text-sm font-medium text-pretty text-white/85">
-        Split among {WEEKLY_WINNER_COUNT} winners · ${PRIZE_PER_WINNER_USDT} USDT each
-      </p>
-
-      <div className="relative mt-4 border-t border-white/15 pt-3.5">
+      <div className="relative mt-3 border-t border-white/15 pt-3.5">
         <p className="mb-2 text-center text-[11px] font-medium uppercase tracking-wide text-white/60">
           Next draw in
         </p>
