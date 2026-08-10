@@ -37,7 +37,12 @@ export async function POST(req: NextRequest) {
 
   // Balance isn't zeroed until an admin marks the withdrawal paid, so without
   // this check the same balance could be requested repeatedly, stacking up
-  // duplicate outstanding withdrawals for funds that only exist once.
+  // duplicate outstanding withdrawals for funds that only exist once. This
+  // check-then-insert has a race window on its own, so it's backed by a
+  // partial unique index (withdrawals_one_active_per_user) that makes a
+  // second concurrent request fail at the database level no matter how the
+  // timing lines up -- this check just gives the common case a clean error
+  // instead of relying on that path.
   const { data: outstanding } = await supabase
     .from("withdrawals")
     .select("id")
@@ -48,7 +53,7 @@ export async function POST(req: NextRequest) {
   if (outstanding) {
     return NextResponse.json(
       { error: "A withdrawal is already in progress for this account." },
-      { status: 400 }
+      { status: 409 }
     );
   }
 
@@ -62,6 +67,14 @@ export async function POST(req: NextRequest) {
   });
 
   if (createError) {
+    // Unique violation on withdrawals_one_active_per_user means a concurrent
+    // request won the race between the check above and this insert.
+    if (createError.code === "23505") {
+      return NextResponse.json(
+        { error: "A withdrawal is already in progress for this account." },
+        { status: 409 }
+      );
+    }
     return NextResponse.json({ error: "Failed to create withdrawal request" }, { status: 500 });
   }
 

@@ -4,6 +4,7 @@ import { checkAndRewardReferral } from "@/lib/referral";
 import { RAFFLY_PASS_DURATION_DAYS } from "@/lib/raffly-pass";
 import { STARS_TIERS } from "@/lib/stars-tiers";
 import { sendTelegramContent, buildInlineButtons, type ButtonInput } from "@/lib/telegram-bot";
+import { timingSafeEqual } from "@/lib/timing-safe";
 
 // Matches a bare "/start" (optionally "/start@BotName"), never "/start CODE".
 // The referral system's deep-link codes arrive as Mini App `start_param`
@@ -14,7 +15,7 @@ const BARE_START_REGEX = /^\/start(@\w+)?\s*$/;
 
 export async function POST(req: NextRequest) {
   const secretHeader = req.headers.get("x-telegram-bot-api-secret-token");
-  if (secretHeader !== process.env.TELEGRAM_WEBHOOK_SECRET) {
+  if (!timingSafeEqual(secretHeader, process.env.TELEGRAM_WEBHOOK_SECRET)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

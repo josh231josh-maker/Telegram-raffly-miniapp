@@ -2,11 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
+// TON addresses come in two shapes: raw ("0:" + 64 hex chars) or the
+// user-friendly base64url form (48 chars) that TonConnect normally returns.
+const TON_RAW_ADDRESS = /^-?\d+:[0-9a-fA-F]{64}$/;
+const TON_FRIENDLY_ADDRESS = /^[A-Za-z0-9_-]{48}$/;
+
+function isValidTonAddress(value: unknown): value is string {
+  return typeof value === "string" && (TON_RAW_ADDRESS.test(value) || TON_FRIENDLY_ADDRESS.test(value));
+}
+
 export async function POST(req: NextRequest) {
   const { initData, walletAddress } = await req.json();
 
   if (!initData) {
     return NextResponse.json({ error: "Missing initData" }, { status: 400 });
+  }
+
+  // walletAddress is only ever set by our own TonConnect integration or
+  // cleared to null on disconnect -- reject anything else outright rather
+  // than persisting an arbitrary client-supplied string as a payout address.
+  if (walletAddress !== null && walletAddress !== undefined && !isValidTonAddress(walletAddress)) {
+    return NextResponse.json({ error: "Invalid wallet address" }, { status: 400 });
   }
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN!;

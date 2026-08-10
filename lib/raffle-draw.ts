@@ -31,15 +31,23 @@ function pickWinners(entrants: Entrant[], count: number): string[] {
 }
 
 export async function drawRaffleWinners(supabase: SupabaseClient, raffleId: string) {
-  const { data: raffle } = await supabase
+  // Atomic compare-and-swap: only the caller that actually flips open->drawing
+  // proceeds. Two overlapping invocations for the same raffle (a duplicate
+  // cron fire, a retried request) would otherwise both pass a plain SELECT
+  // check, independently roll winners, and insert two conflicting sets of
+  // raffle_winners for the same raffle -- this makes that impossible.
+  const { data: claimed } = await supabase
     .from("raffles")
-    .select("id, status, week_end")
+    .update({ status: "drawing" })
     .eq("id", raffleId)
-    .single();
+    .eq("status", "open")
+    .select("id, week_end")
+    .maybeSingle();
 
-  if (!raffle || raffle.status !== "open") {
+  if (!claimed) {
     return { drawn: false, reason: "Raffle is not open", winnerIds: [] as string[] };
   }
+  const raffle = claimed;
 
   const { data: entries } = await supabase
     .from("raffle_entries")
