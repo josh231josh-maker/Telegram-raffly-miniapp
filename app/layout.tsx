@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import Script from "next/script";
 import { TelegramProvider } from "@/components/providers/telegram-provider";
-import { TonProvider } from "@/components/providers/ton-provider";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -50,9 +49,11 @@ export default function RootLayout({
           data-sdk="show_11527679"
           strategy="afterInteractive"
         />
-        <TonProvider>
-          <TelegramProvider>{children}</TelegramProvider>
-        </TonProvider>
+        {/* TonConnect (@tonconnect/ui-react, ~350KB) is deliberately NOT
+            wrapped around the whole app here -- it's only used inside the
+            Withdraw modal, which loads it on demand. See
+            components/profile/withdraw-modal-with-provider.tsx. */}
+        <TelegramProvider>{children}</TelegramProvider>
       </body>
     </html>
   );

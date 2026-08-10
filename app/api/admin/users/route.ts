@@ -33,7 +33,15 @@ export async function GET(req: NextRequest) {
 
   const supabase = getSupabaseAdmin();
 
-  let query = supabase.from("users").select("*", { count: "exact" });
+  // Only the columns the admin table actually renders -- select("*") was
+  // pulling every column (including long fields like ton_wallet_address)
+  // for up to 200 rows on every dashboard load.
+  let query = supabase
+    .from("users")
+    .select(
+      "id, telegram_id, username, first_name, ticket_balance, usdt_balance, streak_count, raffly_pass_expires_at, created_at",
+      { count: "exact" }
+    );
 
   if (search) {
     const asTelegramId = Number(search);
@@ -64,9 +72,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(safeServerError("admin.users_list_failed", error), { status: 500 });
   }
 
+  // Referral counts only ever need to cover the page of users actually
+  // being displayed -- scoping this to their ids (instead of scanning
+  // every referred_by value in the whole table) gives identical counts for
+  // this page while the query's cost stops growing with total user count.
+  const pageUserIds = (users ?? []).map((u) => u.id);
   const [{ count: totalCount }, { data: referredByRows }] = await Promise.all([
     supabase.from("users").select("id", { count: "exact", head: true }),
-    supabase.from("users").select("referred_by").not("referred_by", "is", null),
+    pageUserIds.length > 0
+      ? supabase.from("users").select("referred_by").in("referred_by", pageUserIds)
+      : Promise.resolve({ data: [] as { referred_by: string | null }[] }),
   ]);
 
   const referralCounts = new Map<string, number>();

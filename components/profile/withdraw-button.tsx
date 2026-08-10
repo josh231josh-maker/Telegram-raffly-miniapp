@@ -1,10 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { ArrowDownCircleIcon } from "@/components/icons";
-import { WithdrawModal } from "@/components/profile/withdraw-modal";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// Code-split: pulls in TonConnect only when actually opened, not as part of
+// every session's initial bundle.
+const WithdrawModalWithProvider = dynamic(
+  () => import("@/components/profile/withdraw-modal-with-provider"),
+  { ssr: false }
+);
 
 export function WithdrawButton() {
   const { user, loadingUser } = useTelegram();
@@ -23,7 +30,7 @@ export function WithdrawButton() {
         <ArrowDownCircleIcon className="h-4 w-4" />
         Withdraw ${balance.toFixed(2)}
       </button>
-      {open && <WithdrawModal onClose={() => setOpen(false)} />}
+      {open && <WithdrawModalWithProvider onClose={() => setOpen(false)} />}
     </>
   );
 }

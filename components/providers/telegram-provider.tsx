@@ -1,7 +1,16 @@
 "use client";
 
 import { init, miniApp, themeParams, backButton, retrieveRawInitData } from "@telegram-apps/sdk";
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { fetchWithRetry } from "@/lib/fetch-retry";
 
 type RafflyUser = {
@@ -100,7 +109,13 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const [loadingRaffleEntry, setLoadingRaffleEntry] = useState(true);
   const initDataRef = useRef("");
 
-  const fetchUser = async (): Promise<RafflyUser | null> => {
+  // Every handler below reads only from initDataRef (a ref) and calls
+  // useState setters -- both stable across renders -- so each is wrapped in
+  // useCallback with an empty dep array: a stable function identity that
+  // never changes. That's what lets the context value below be memoized
+  // meaningfully, instead of recomputing (and re-rendering every consumer)
+  // on every TelegramProvider render regardless of what actually changed.
+  const fetchUser = useCallback(async (): Promise<RafflyUser | null> => {
     if (!initDataRef.current) return null;
     try {
       const res = await fetchWithRetry("/api/auth", {
@@ -118,9 +133,9 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       console.error("Auth fetch error:", err);
       return null;
     }
-  };
+  }, []);
 
-  const fetchRaffleEntry = async () => {
+  const fetchRaffleEntry = useCallback(async () => {
     if (!initDataRef.current) return;
     try {
       const res = await fetchWithRetry(
@@ -140,7 +155,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingRaffleEntry(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     let rawInitData = "";
@@ -206,9 +221,11 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       setLoadingUser(false);
       setLoadingRaffleEntry(false);
     }
-  }, []);
+    // fetchRaffleEntry is a stable (useCallback) reference -- this still
+    // only runs once on mount, same as before.
+  }, [fetchRaffleEntry]);
 
-  const checkIn = async (): Promise<CheckInResult> => {
+  const checkIn = useCallback(async (): Promise<CheckInResult> => {
     if (!initDataRef.current) {
       return { error: "Not ready" };
     }
@@ -225,9 +242,9 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       console.error("Check-in fetch error:", err);
       return { error: "Network error" };
     }
-  };
+  }, []);
 
-  const requestWithdrawal = async (): Promise<WithdrawResult> => {
+  const requestWithdrawal = useCallback(async (): Promise<WithdrawResult> => {
     if (!initDataRef.current) {
       return { error: "Not ready" };
     }
@@ -247,9 +264,9 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       console.error("Withdraw fetch error:", err);
       return { error: "Network error" };
     }
-  };
+  }, []);
 
-  const enterRaffle = async (ticketsToEnter: number): Promise<EnterRaffleResult> => {
+  const enterRaffle = useCallback(async (ticketsToEnter: number): Promise<EnterRaffleResult> => {
     if (!initDataRef.current) {
       return { error: "Not ready" };
     }
@@ -271,9 +288,9 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       console.error("Raffle entry fetch error:", err);
       return { error: "Network error" };
     }
-  };
+  }, []);
 
-  const claimPassTickets = async (): Promise<ClaimPassResult> => {
+  const claimPassTickets = useCallback(async (): Promise<ClaimPassResult> => {
     if (!initDataRef.current) {
       return { error: "Not ready" };
     }
@@ -290,27 +307,47 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       console.error("Claim pass tickets fetch error:", err);
       return { error: "Network error" };
     }
-  };
+  }, []);
 
-  return (
-    <TelegramContext.Provider
-      value={{
-        isReady,
-        isTelegram,
-        user,
-        loadingUser,
-        checkIn,
-        refreshUser: fetchUser,
-        requestWithdrawal,
-        getInitData: () => initDataRef.current,
-        raffleEntry,
-        loadingRaffleEntry,
-        enterRaffle,
-        refreshRaffleEntry: fetchRaffleEntry,
-        claimPassTickets,
-      }}
-    >
-      {children}
-    </TelegramContext.Provider>
+  const getInitData = useCallback(() => initDataRef.current, []);
+
+  // The consumer set is large (nearly every screen reads from this context),
+  // so an unmemoized value object here would re-render the whole app on
+  // every provider render regardless of what actually changed. All the
+  // functions above are themselves stable (useCallback, empty deps), so the
+  // only real dependencies are the pieces of state.
+  const value = useMemo<TelegramContextValue>(
+    () => ({
+      isReady,
+      isTelegram,
+      user,
+      loadingUser,
+      checkIn,
+      refreshUser: fetchUser,
+      requestWithdrawal,
+      getInitData,
+      raffleEntry,
+      loadingRaffleEntry,
+      enterRaffle,
+      refreshRaffleEntry: fetchRaffleEntry,
+      claimPassTickets,
+    }),
+    [
+      isReady,
+      isTelegram,
+      user,
+      loadingUser,
+      checkIn,
+      fetchUser,
+      requestWithdrawal,
+      getInitData,
+      raffleEntry,
+      loadingRaffleEntry,
+      enterRaffle,
+      fetchRaffleEntry,
+      claimPassTickets,
+    ]
   );
+
+  return <TelegramContext.Provider value={value}>{children}</TelegramContext.Provider>;
 }

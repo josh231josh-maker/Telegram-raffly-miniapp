@@ -5,18 +5,25 @@
  * unauthorized), which are returned immediately since retrying won't change
  * the outcome. Exponential backoff over ~15s; a 429's own Retry-After header
  * is honored when present instead of guessing.
+ *
+ * Each attempt is capped by timeoutMs -- on a slow/lossy connection a hung
+ * request would otherwise never fail, so the retry/backoff logic below it
+ * would never get a chance to kick in.
  */
 export async function fetchWithRetry(
   input: RequestInfo | URL,
   init?: RequestInit,
   attempts = 6,
-  baseDelayMs = 500
+  baseDelayMs = 500,
+  timeoutMs = 10000
 ): Promise<Response> {
   let lastError: unknown;
   for (let i = 0; i < attempts; i++) {
     let res: Response | undefined;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      res = await fetch(input, init);
+      res = await fetch(input, { ...init, signal: init?.signal ?? controller.signal });
       const isRetryable = !res.ok && (res.status >= 500 || res.status === 429);
       if (!isRetryable) {
         return res;
@@ -24,6 +31,8 @@ export async function fetchWithRetry(
       lastError = new Error(`Server error: ${res.status}`);
     } catch (err) {
       lastError = err;
+    } finally {
+      clearTimeout(timeoutId);
     }
     if (i < attempts - 1) {
       const retryAfterMs = Number(res?.headers.get("Retry-After")) * 1000;
