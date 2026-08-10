@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { safeServerError } from "@/lib/logger";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await verifyAdminAuth();
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminRead", RATE_LIMITS.adminRead.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const { id } = await params;
   const supabase = getSupabaseAdmin();
@@ -27,11 +32,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ broadcast, failures: failures ?? [] });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await verifyAdminAuth();
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminWrite", RATE_LIMITS.adminWrite.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const { id } = await params;
   const supabase = getSupabaseAdmin();
@@ -47,7 +55,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeServerError("admin.broadcast_cancel_failed", error, { broadcastId: id }), { status: 500 });
   }
   if (!updated) {
     return NextResponse.json({ error: "Broadcast already completed or canceled" }, { status: 409 });

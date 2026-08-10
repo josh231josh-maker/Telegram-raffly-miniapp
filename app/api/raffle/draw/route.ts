@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { drawRaffleWinners } from "@/lib/raffle-draw";
+import { logger } from "@/lib/logger";
+import { timingSafeEqual } from "@/lib/timing-safe";
 
 // Triggered weekly by Vercel Cron (see vercel.json). Vercel automatically
 // sends `Authorization: Bearer $CRON_SECRET` on cron-triggered requests.
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const expected = process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined;
+  if (!timingSafeEqual(authHeader, expected)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -20,7 +23,14 @@ export async function GET(req: NextRequest) {
 
   const results = [];
   for (const raffle of dueRaffles ?? []) {
-    results.push({ raffleId: raffle.id, ...(await drawRaffleWinners(supabase, raffle.id)) });
+    try {
+      const result = await drawRaffleWinners(supabase, raffle.id);
+      logger.info("raffle_draw.completed", { raffleId: raffle.id, ...result });
+      results.push({ raffleId: raffle.id, ...result });
+    } catch (err) {
+      logger.error("raffle_draw.failed", { raffleId: raffle.id, error: err instanceof Error ? err.message : String(err) });
+      results.push({ raffleId: raffle.id, drawn: false, reason: "Draw failed", winnerIds: [] as string[] });
+    }
   }
 
   return NextResponse.json({ results });

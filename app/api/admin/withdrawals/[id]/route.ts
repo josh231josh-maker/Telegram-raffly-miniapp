@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { logger, safeServerError } from "@/lib/logger";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await verifyAdminAuth();
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminWrite", RATE_LIMITS.adminWrite.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const { action, txHash } = await req.json();
 
@@ -39,11 +44,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .maybeSingle();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.withdrawal_approve_failed", error, { withdrawalId }), { status: 500 });
     }
     if (!updated) {
       return NextResponse.json({ error: "Withdrawal is no longer pending" }, { status: 409 });
     }
+
+    logger.warn("admin.withdrawal_approved", { withdrawalId, userId: withdrawal.user_id, amount: withdrawal.amount });
 
     return NextResponse.json({
       success: true,
@@ -61,7 +68,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .maybeSingle();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.withdrawal_reject_failed", error, { withdrawalId }), { status: 500 });
     }
     if (!updated) {
       return NextResponse.json({ error: "Withdrawal can no longer be rejected" }, { status: 409 });
@@ -87,7 +94,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .maybeSingle();
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.withdrawal_mark_paid_failed", updateError, { withdrawalId }), { status: 500 });
     }
     if (!updated) {
       return NextResponse.json(
@@ -106,8 +113,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     });
 
     if (balanceError) {
-      return NextResponse.json({ error: balanceError.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.withdrawal_mark_paid_balance_failed", balanceError, { withdrawalId, userId: withdrawal.user_id }), { status: 500 });
     }
+
+    logger.warn("admin.withdrawal_paid", { withdrawalId, userId: withdrawal.user_id, amount: withdrawal.amount, txHash });
 
     return NextResponse.json({
       success: true,

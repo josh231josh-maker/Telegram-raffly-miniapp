@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { logger, safeServerError } from "@/lib/logger";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdminAuthed())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminWrite", RATE_LIMITS.adminWrite.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const { id } = await params;
   const { ticketDelta, usdtDelta } = await req.json();
@@ -36,7 +41,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       p_delta: ticketAdjust,
     });
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.adjust_ticket_failed", error, { userId: id }), { status: 500 });
     }
   }
 
@@ -46,9 +51,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       p_delta: usdtAdjust,
     });
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.adjust_usdt_failed", error, { userId: id }), { status: 500 });
     }
   }
+
+  logger.warn("admin.balance_adjusted", { userId: id, ticketAdjust, usdtAdjust });
 
   const { data: updated, error: refetchError } = await supabase
     .from("users")

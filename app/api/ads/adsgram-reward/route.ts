@@ -3,10 +3,15 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { checkAndRewardReferral } from "@/lib/referral";
 import { isPassActive } from "@/lib/raffly-pass";
 import { timingSafeEqual } from "@/lib/timing-safe";
+import { RATE_LIMITS, rateLimitByIp, rateLimitByUser, rateLimitResponse } from "@/lib/rate-limit";
+import { safeServerError } from "@/lib/logger";
 
 const ADS_TO_TICKET_RATIO = 2;
 
 export async function GET(req: NextRequest) {
+  const ipCheck = await rateLimitByIp(req, "adReward", RATE_LIMITS.adReward.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
+
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userid");
   const secret = searchParams.get("secret");
@@ -23,6 +28,9 @@ export async function GET(req: NextRequest) {
   if (Number.isNaN(telegramId)) {
     return NextResponse.json({ error: "Invalid userid" }, { status: 400 });
   }
+
+  const userCheck = await rateLimitByUser("adReward", telegramId, RATE_LIMITS.adReward.user);
+  if (!userCheck.allowed) return rateLimitResponse(userCheck);
 
   const supabase = getSupabaseAdmin();
 
@@ -48,7 +56,10 @@ export async function GET(req: NextRequest) {
   });
 
   if (rpcError) {
-    return NextResponse.json({ error: rpcError.message }, { status: 500 });
+    return NextResponse.json(
+      safeServerError("ads.adsgram_rpc_failed", rpcError, { userId: user.id }),
+      { status: 500 }
+    );
   }
 
   if (ticketsAwarded > 0) {

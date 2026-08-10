@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { TEXT_MESSAGE_LIMIT, CAPTION_LIMIT, type ButtonInput } from "@/lib/telegram-bot";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { safeServerError } from "@/lib/logger";
 
 const MAX_BUTTONS = 8;
 
@@ -36,16 +38,22 @@ function validateButtons(buttons: unknown): ButtonInput[] | { error: string } {
   return cleaned;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const adminUser = await verifyAdminAuth();
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const ipCheck = await rateLimitByIp(req, "adminRead", RATE_LIMITS.adminRead.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
+
   const supabase = getSupabaseAdmin();
   const { data: settings, error } = await supabase.from("welcome_message_settings").select("*").eq("id", true).single();
   if (error || !settings) {
-    return NextResponse.json({ error: error?.message ?? "Failed to load settings" }, { status: 500 });
+    return NextResponse.json(
+      safeServerError("admin.welcome_message_load_failed", error ?? new Error("no settings row"), undefined, "Failed to load settings"),
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ settings });
@@ -56,6 +64,9 @@ export async function PUT(req: NextRequest) {
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminWrite", RATE_LIMITS.adminWrite.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const body = await req.json();
   const { messageHtml, imageUrl, buttons, enabled } = body as {
@@ -103,7 +114,10 @@ export async function PUT(req: NextRequest) {
     .single();
 
   if (error || !settings) {
-    return NextResponse.json({ error: error?.message ?? "Failed to save settings" }, { status: 500 });
+    return NextResponse.json(
+      safeServerError("admin.welcome_message_save_failed", error ?? new Error("no settings row"), undefined, "Failed to save settings"),
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ settings });

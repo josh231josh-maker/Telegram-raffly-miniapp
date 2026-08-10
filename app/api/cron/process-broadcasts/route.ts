@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { processBroadcastBatch } from "@/lib/broadcast";
 import type { ButtonInput } from "@/lib/telegram-bot";
+import { timingSafeEqual } from "@/lib/timing-safe";
+import { logger } from "@/lib/logger";
 
 export const maxDuration = 60;
 
@@ -12,7 +14,8 @@ export const maxDuration = 60;
 // explicitly clicking Send first.
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const expected = process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined;
+  if (!timingSafeEqual(authHeader, expected)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -31,11 +34,17 @@ export async function GET(req: NextRequest) {
   for (const broadcast of stuck ?? []) {
     const buttons = (broadcast.buttons ?? []) as ButtonInput[];
     if (buttons.some((b) => b.type === "webapp") && !appUrl) {
-      console.error(`[broadcast:${broadcast.id}] skipped -- webapp button but NEXT_PUBLIC_APP_URL is unset`);
+      logger.error("broadcast.skipped_missing_app_url", { broadcastId: broadcast.id });
       results.push({ broadcastId: broadcast.id, status: broadcast.status, sent: broadcast.sent_count, failed: broadcast.failed_count, skipped: true });
       continue;
     }
-    results.push({ broadcastId: broadcast.id, ...(await processBroadcastBatch(supabase, broadcast, botToken, appUrl)) });
+    try {
+      const result = await processBroadcastBatch(supabase, broadcast, botToken, appUrl);
+      results.push({ broadcastId: broadcast.id, ...result });
+    } catch (err) {
+      logger.error("broadcast.batch_failed", { broadcastId: broadcast.id, error: err instanceof Error ? err.message : String(err) });
+      results.push({ broadcastId: broadcast.id, status: broadcast.status, sent: broadcast.sent_count, failed: broadcast.failed_count, error: true });
+    }
   }
 
   return NextResponse.json({ results });

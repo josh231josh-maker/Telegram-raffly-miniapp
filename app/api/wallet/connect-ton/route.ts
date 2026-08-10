@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { RATE_LIMITS, rateLimitByIp, rateLimitByUser, rateLimitResponse } from "@/lib/rate-limit";
+import { safeServerError } from "@/lib/logger";
 
 // TON addresses come in two shapes: raw ("0:" + 64 hex chars) or the
 // user-friendly base64url form (48 chars) that TonConnect normally returns.
@@ -12,6 +14,9 @@ function isValidTonAddress(value: unknown): value is string {
 }
 
 export async function POST(req: NextRequest) {
+  const ipCheck = await rateLimitByIp(req, "walletConnect", RATE_LIMITS.walletConnect.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
+
   const { initData, walletAddress } = await req.json();
 
   if (!initData) {
@@ -30,6 +35,9 @@ export async function POST(req: NextRequest) {
   if (!tgUser) {
     return NextResponse.json({ error: "Invalid initData" }, { status: 401 });
   }
+
+  const userCheck = await rateLimitByUser("walletConnect", tgUser.id, RATE_LIMITS.walletConnect.user);
+  if (!userCheck.allowed) return rateLimitResponse(userCheck);
 
   const supabase = getSupabaseAdmin();
 
@@ -51,7 +59,10 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+    return NextResponse.json(
+      safeServerError("wallet.connect_ton_failed", updateError, { userId: existing.id }),
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ success: true, user: updated });

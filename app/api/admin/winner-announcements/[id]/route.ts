@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { safeServerError } from "@/lib/logger";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await verifyAdminAuth();
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminWrite", RATE_LIMITS.adminWrite.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const { display_name, prize_amount, week_label, publish_at } = await req.json();
   const supabase = getSupabaseAdmin();
@@ -32,7 +37,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeServerError("admin.winner_announcement_update_failed", error, { id }), { status: 500 });
   }
 
   return NextResponse.json({ success: true, announcement });
@@ -44,13 +49,16 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const ipCheck = await rateLimitByIp(req, "adminWrite", RATE_LIMITS.adminWrite.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
+
   const supabase = getSupabaseAdmin();
   const { id } = await params;
 
   const { error } = await supabase.from("winner_announcements").delete().eq("id", id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeServerError("admin.winner_announcement_delete_failed", error, { id }), { status: 500 });
   }
 
   return NextResponse.json({ success: true, message: "Winner announcement deleted." });

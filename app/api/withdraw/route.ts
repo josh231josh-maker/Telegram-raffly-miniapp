@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { withReferralCount } from "@/lib/referral";
+import { RATE_LIMITS, rateLimitByIp, rateLimitByUser, rateLimitResponse } from "@/lib/rate-limit";
+import { logger, safeServerError } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
+  const ipCheck = await rateLimitByIp(req, "withdraw", RATE_LIMITS.withdraw.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
+
   const { initData } = await req.json();
   if (!initData) {
     return NextResponse.json({ error: "Missing initData" }, { status: 400 });
@@ -14,6 +19,9 @@ export async function POST(req: NextRequest) {
   if (!tgUser) {
     return NextResponse.json({ error: "Invalid initData" }, { status: 401 });
   }
+
+  const userCheck = await rateLimitByUser("withdraw", tgUser.id, RATE_LIMITS.withdraw.user);
+  if (!userCheck.allowed) return rateLimitResponse(userCheck);
 
   const supabase = getSupabaseAdmin();
 
@@ -75,8 +83,13 @@ export async function POST(req: NextRequest) {
         { status: 409 }
       );
     }
-    return NextResponse.json({ error: "Failed to create withdrawal request" }, { status: 500 });
+    return NextResponse.json(
+      safeServerError("withdraw.create_failed", createError, { userId: user.id }, "Failed to create withdrawal request"),
+      { status: 500 }
+    );
   }
+
+  logger.info("withdraw.created", { userId: user.id, amount });
 
   const { data: updatedUser } = await supabase
     .from("users")

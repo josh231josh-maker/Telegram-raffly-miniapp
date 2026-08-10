@@ -3,16 +3,22 @@ import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { processBroadcastBatch } from "@/lib/broadcast";
 import type { ButtonInput } from "@/lib/telegram-bot";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
 
 // Sending a large list can take a while at Telegram's rate limit -- give
 // this route more headroom than the default so a batch isn't cut off mid-send.
 export const maxDuration = 60;
 
-export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await verifyAdminAuth();
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // Fans out one Telegram API call per recipient -- the most expensive
+  // admin action in the app, so it gets the tightest limit.
+  const ipCheck = await rateLimitByIp(req, "adminExpensive", RATE_LIMITS.adminExpensive.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const { id } = await params;
   const supabase = getSupabaseAdmin();

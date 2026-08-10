@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { safeServerError } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
   const adminUser = await verifyAdminAuth();
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminRead", RATE_LIMITS.adminRead.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const supabase = getSupabaseAdmin();
   const statusFilter = req.nextUrl.searchParams.get("status") || "pending";
@@ -28,10 +33,11 @@ export async function GET(req: NextRequest) {
     `
     )
     .eq("status", statusFilter)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(200);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeServerError("admin.raffle_winners_list_failed", error), { status: 500 });
   }
 
   return NextResponse.json({ winners });

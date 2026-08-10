@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { safeServerError } from "@/lib/logger";
 
 const BUCKET = "admin-content-images";
 const MAX_BYTES = 5 * 1024 * 1024; // matches the bucket's own file_size_limit and Telegram's practical
@@ -15,6 +17,9 @@ export async function POST(req: NextRequest) {
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminExpensive", RATE_LIMITS.adminExpensive.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const formData = await req.formData().catch(() => null);
   const file = formData?.get("file");
@@ -42,7 +47,7 @@ export async function POST(req: NextRequest) {
   });
 
   if (uploadError) {
-    return NextResponse.json({ error: uploadError.message }, { status: 500 });
+    return NextResponse.json(safeServerError("admin.image_upload_failed", uploadError), { status: 500 });
   }
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);

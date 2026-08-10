@@ -5,6 +5,8 @@ import { RAFFLY_PASS_DURATION_DAYS } from "@/lib/raffly-pass";
 import { STARS_TIERS } from "@/lib/stars-tiers";
 import { sendTelegramContent, buildInlineButtons, type ButtonInput } from "@/lib/telegram-bot";
 import { timingSafeEqual } from "@/lib/timing-safe";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 // Matches a bare "/start" (optionally "/start@BotName"), never "/start CODE".
 // The referral system's deep-link codes arrive as Mini App `start_param`
@@ -18,6 +20,9 @@ export async function POST(req: NextRequest) {
   if (!timingSafeEqual(secretHeader, process.env.TELEGRAM_WEBHOOK_SECRET)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "telegramWebhook", RATE_LIMITS.telegramWebhook.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const update = await req.json();
   const botToken = process.env.TELEGRAM_BOT_TOKEN!;
@@ -60,49 +65,83 @@ export async function POST(req: NextRequest) {
     const telegramId = Number(telegramIdStr);
     const tickets = Number(ticketsStr);
 
-    if (!Number.isNaN(telegramId) && !Number.isNaN(tickets)) {
-      const supabase = getSupabaseAdmin();
-      const { data: user } = await supabase
-        .from("users")
-        .select("id")
-        .eq("telegram_id", telegramId)
-        .single();
+    // Re-validate against our own tier table at the moment we're about to
+    // credit money's worth of tickets, not just at pre-checkout time. This
+    // is defense in depth: Telegram's payload is opaque to the client and
+    // pre_checkout_query already gates on the same check, but re-checking
+    // here means a config change or an edge case that skips pre-checkout
+    // can never result in crediting an amount that doesn't match what was
+    // actually paid.
+    const selected = STARS_TIERS[tier];
+    const validPayment =
+      !Number.isNaN(telegramId) &&
+      !Number.isNaN(tickets) &&
+      !!selected &&
+      selected.tickets === tickets &&
+      selected.stars === payment.total_amount;
 
-      if (user) {
-        // Telegram retries webhook delivery on timeout/non-2xx, so the same
-        // successful_payment can arrive more than once. This charge ID is
-        // unique per payment, so a duplicate insert fails and we skip
-        // crediting again rather than double-paying out.
-        const { error: dedupeError } = await supabase.from("transactions").insert({
-          user_id: user.id,
-          type: "stars_purchase",
-          currency: "STARS",
-          amount: payment.total_amount,
-          tickets_granted: tickets,
-          status: "completed",
-          external_ref: payment.telegram_payment_charge_id,
-        });
-
-        if (dedupeError) {
-          // Unique violation on external_ref means this charge was already processed.
-          return NextResponse.json({ ok: true });
-        }
-
-        if (tier === "pass") {
-          await supabase.rpc("extend_raffly_pass", {
-            p_user_id: user.id,
-            p_days: RAFFLY_PASS_DURATION_DAYS,
-          });
-        } else {
-          await supabase.rpc("increment_ticket_balance", {
-            p_user_id: user.id,
-            p_delta: tickets,
-          });
-        }
-
-        await checkAndRewardReferral(supabase, user.id);
-      }
+    if (!validPayment) {
+      logger.error("stars.payment_payload_mismatch", {
+        telegramId: Number.isNaN(telegramId) ? undefined : telegramId,
+        tier,
+        chargeId: payment.telegram_payment_charge_id,
+      });
+      return NextResponse.json({ ok: true });
     }
+
+    const supabase = getSupabaseAdmin();
+    const { data: user } = await supabase
+      .from("users")
+      .select("id")
+      .eq("telegram_id", telegramId)
+      .single();
+
+    if (!user) {
+      logger.error("stars.payment_user_not_found", {
+        telegramId,
+        chargeId: payment.telegram_payment_charge_id,
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    // Telegram retries webhook delivery on timeout/non-2xx, so the same
+    // successful_payment can arrive more than once. This charge ID is
+    // unique per payment, so a duplicate insert fails and we skip
+    // crediting again rather than double-paying out.
+    const { error: dedupeError } = await supabase.from("transactions").insert({
+      user_id: user.id,
+      type: "stars_purchase",
+      currency: "STARS",
+      amount: payment.total_amount,
+      tickets_granted: tickets,
+      status: "completed",
+      external_ref: payment.telegram_payment_charge_id,
+    });
+
+    if (dedupeError) {
+      // Unique violation on external_ref means this charge was already processed.
+      logger.warn("stars.payment_duplicate_delivery", {
+        userId: user.id,
+        chargeId: payment.telegram_payment_charge_id,
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (tier === "pass") {
+      await supabase.rpc("extend_raffly_pass", {
+        p_user_id: user.id,
+        p_days: RAFFLY_PASS_DURATION_DAYS,
+      });
+    } else {
+      await supabase.rpc("increment_ticket_balance", {
+        p_user_id: user.id,
+        p_delta: tickets,
+      });
+    }
+
+    logger.info("stars.payment_credited", { userId: user.id, tier, tickets, stars: payment.total_amount });
+
+    await checkAndRewardReferral(supabase, user.id);
     return NextResponse.json({ ok: true });
   }
 

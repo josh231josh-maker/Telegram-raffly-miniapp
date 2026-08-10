@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { safeServerError } from "@/lib/logger";
 
 const SORTABLE_COLUMNS = [
   "created_at",
@@ -16,6 +18,9 @@ export async function GET(req: NextRequest) {
   if (!(await isAdminAuthed())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminRead", RATE_LIMITS.adminRead.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const params = req.nextUrl.searchParams;
   const search = params.get("search")?.trim() ?? "";
@@ -56,7 +61,7 @@ export async function GET(req: NextRequest) {
   const { data: users, error, count } = await query.limit(200);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeServerError("admin.users_list_failed", error), { status: 500 });
   }
 
   const [{ count: totalCount }, { data: referredByRows }] = await Promise.all([

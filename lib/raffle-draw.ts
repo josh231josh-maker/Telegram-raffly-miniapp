@@ -1,24 +1,32 @@
+import crypto from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { WEEKLY_WINNER_COUNT, PRIZE_PER_WINNER_USDT } from "@/lib/raffle-week";
 
-type Entrant = { userId: string; tickets: number };
+export type Entrant = { userId: string; tickets: number };
 
 /**
  * Weighted random pick without replacement — each entrant can win at most
  * once, so more tickets improve your odds without letting you occupy
  * multiple winner slots in the same draw.
+ *
+ * Uses crypto.randomInt (Node's CSPRNG, rejection-sampled to avoid modulo
+ * bias) instead of Math.random() -- this picks real money winners, so the
+ * roll must not be predictable or reproducible the way a PRNG's output can
+ * be. totalWeight is always a whole number of tickets, so an integer roll
+ * uniform on [0, totalWeight) preserves exactly the same per-candidate
+ * probability (tickets_i / totalWeight) that the old float roll gave.
  */
-function pickWinners(entrants: Entrant[], count: number): string[] {
+export function pickWinners(entrants: Entrant[], count: number): string[] {
   const pool = entrants.filter((e) => e.tickets > 0).map((e) => ({ ...e }));
   const winners: string[] = [];
 
   while (pool.length > 0 && winners.length < count) {
     const totalWeight = pool.reduce((sum, e) => sum + e.tickets, 0);
-    let roll = Math.random() * totalWeight;
+    let roll = crypto.randomInt(totalWeight);
     let pickedIndex = pool.length - 1;
     for (let i = 0; i < pool.length; i++) {
       roll -= pool[i].tickets;
-      if (roll <= 0) {
+      if (roll < 0) {
         pickedIndex = i;
         break;
       }

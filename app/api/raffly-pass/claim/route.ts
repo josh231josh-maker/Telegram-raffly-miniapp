@@ -3,8 +3,13 @@ import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { RAFFLY_PASS_DAILY_TICKETS, isPassActive } from "@/lib/raffly-pass";
 import { withReferralCount } from "@/lib/referral";
+import { RATE_LIMITS, rateLimitByIp, rateLimitByUser, rateLimitResponse } from "@/lib/rate-limit";
+import { safeServerError } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
+  const ipCheck = await rateLimitByIp(req, "passClaim", RATE_LIMITS.passClaim.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
+
   const { initData } = await req.json();
   if (!initData) {
     return NextResponse.json({ error: "Missing initData" }, { status: 400 });
@@ -15,6 +20,9 @@ export async function POST(req: NextRequest) {
   if (!tgUser) {
     return NextResponse.json({ error: "Invalid initData" }, { status: 401 });
   }
+
+  const userCheck = await rateLimitByUser("passClaim", tgUser.id, RATE_LIMITS.passClaim.user);
+  if (!userCheck.allowed) return rateLimitResponse(userCheck);
 
   const supabase = getSupabaseAdmin();
 
@@ -47,7 +55,10 @@ export async function POST(req: NextRequest) {
   });
 
   if (rpcError) {
-    return NextResponse.json({ error: rpcError.message }, { status: 500 });
+    return NextResponse.json(
+      safeServerError("raffly_pass.claim_rpc_failed", rpcError, { userId: existing.id }),
+      { status: 500 }
+    );
   }
 
   if (newBalance === null) {

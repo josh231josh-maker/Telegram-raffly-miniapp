@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { TEXT_MESSAGE_LIMIT, CAPTION_LIMIT, type ButtonInput } from "@/lib/telegram-bot";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { safeServerError } from "@/lib/logger";
 
 const SEGMENTS = ["all", "active_pass", "no_pass", "has_tickets", "selected"] as const;
 type Segment = (typeof SEGMENTS)[number];
@@ -39,11 +41,14 @@ function validateButtons(buttons: unknown): ButtonInput[] | { error: string } {
   return cleaned;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const adminUser = await verifyAdminAuth();
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminRead", RATE_LIMITS.adminRead.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const supabase = getSupabaseAdmin();
   const { data: broadcasts, error } = await supabase
@@ -53,7 +58,7 @@ export async function GET() {
     .limit(50);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(safeServerError("admin.broadcasts_list_failed", error), { status: 500 });
   }
 
   return NextResponse.json({ broadcasts: broadcasts ?? [] });
@@ -64,6 +69,9 @@ export async function POST(req: NextRequest) {
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminWrite", RATE_LIMITS.adminWrite.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const body = await req.json();
   const { title, messageHtml, imageUrl, buttons, segment, selectedTelegramIds, idempotencyKey } = body as {
@@ -135,7 +143,7 @@ export async function POST(req: NextRequest) {
 
   const { data: recipients, error: recipientsError } = await query;
   if (recipientsError) {
-    return NextResponse.json({ error: recipientsError.message }, { status: 500 });
+    return NextResponse.json(safeServerError("admin.broadcast_recipients_query_failed", recipientsError), { status: 500 });
   }
 
   const excludedCount = segment === "selected" ? selectedTelegramIds!.length - (recipients?.length ?? 0) : 0;
@@ -160,7 +168,10 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (insertError || !broadcast) {
-    return NextResponse.json({ error: insertError?.message ?? "Failed to create broadcast" }, { status: 500 });
+    return NextResponse.json(
+      safeServerError("admin.broadcast_create_failed", insertError ?? new Error("insert returned no row"), undefined, "Failed to create broadcast"),
+      { status: 500 }
+    );
   }
 
   const recipientRows = recipients.map((u) => ({
@@ -173,7 +184,10 @@ export async function POST(req: NextRequest) {
   if (recipientInsertError) {
     // Roll back the orphaned draft rather than leaving a broadcast with no recipients.
     await supabase.from("broadcasts").delete().eq("id", broadcast.id);
-    return NextResponse.json({ error: recipientInsertError.message }, { status: 500 });
+    return NextResponse.json(
+      safeServerError("admin.broadcast_recipients_insert_failed", recipientInsertError, { broadcastId: broadcast.id }, "Failed to create broadcast"),
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ broadcast, recipientCount: recipients.length, excludedCount });

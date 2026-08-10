@@ -9,15 +9,17 @@ import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { CloseIcon, StarIcon } from "@/components/icons";
 import { TicketImage } from "@/components/ticket-image";
 
-// pay `stars`, receive `tickets` — must match app/api/stars/create-invoice/route.ts
-// TODO: raise back to real prices (10/50/100/250/500/1000) before launch — set to 1 for testing
+// Display copy only -- the trusted price is set server-side in
+// lib/stars-tiers.ts and enforced by the webhook regardless of what's shown
+// here. Must stay in sync with that file so the price the user sees before
+// paying matches what they're actually charged.
 const TIERS = [
-  { id: "raffle10", stars: 1, tickets: 12, icon: "/images/tier-1.png" },
-  { id: "raffle50", stars: 1, tickets: 70, icon: "/images/tier-2.png" },
-  { id: "raffle100", stars: 1, tickets: 150, icon: "/images/tier-3.png" },
-  { id: "raffle250", stars: 1, tickets: 400, icon: "/images/tier-4.png" },
-  { id: "raffle500", stars: 1, tickets: 850, icon: "/images/tier-5.png" },
-  { id: "raffle1000", stars: 1, tickets: 1800, icon: "/images/tier-6.png" },
+  { id: "raffle10", stars: 10, tickets: 12, icon: "/images/tier-1.png" },
+  { id: "raffle50", stars: 50, tickets: 70, icon: "/images/tier-2.png" },
+  { id: "raffle100", stars: 100, tickets: 150, icon: "/images/tier-3.png" },
+  { id: "raffle250", stars: 250, tickets: 400, icon: "/images/tier-4.png" },
+  { id: "raffle500", stars: 500, tickets: 850, icon: "/images/tier-5.png" },
+  { id: "raffle1000", stars: 1000, tickets: 1800, icon: "/images/tier-6.png" },
 ];
 
 type BuyRaffleModalProps = {

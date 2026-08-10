@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
+import { logger, safeServerError } from "@/lib/logger";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await verifyAdminAuth();
   if (!adminUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminWrite", RATE_LIMITS.adminWrite.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const { action } = await req.json();
 
@@ -45,7 +50,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .maybeSingle();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.winner_approve_failed", error, { winnerId }), { status: 500 });
     }
     if (!updated) {
       return NextResponse.json({ error: "Winner is no longer pending" }, { status: 409 });
@@ -57,8 +62,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     });
 
     if (balanceError) {
-      return NextResponse.json({ error: balanceError.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.winner_approve_credit_failed", balanceError, { winnerId, userId: winner.user_id }), { status: 500 });
     }
+
+    logger.warn("admin.winner_approved", { winnerId, userId: winner.user_id, prizeAmount: winner.prize_amount });
 
     return NextResponse.json({
       success: true,
@@ -76,7 +83,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .maybeSingle();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.winner_reject_failed", error, { winnerId }), { status: 500 });
     }
     if (!updated) {
       return NextResponse.json({ error: "Winner is no longer pending" }, { status: 409 });
@@ -98,7 +105,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .maybeSingle();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.winner_revoke_failed", error, { winnerId }), { status: 500 });
     }
     if (!updated) {
       return NextResponse.json({ error: "Only an approved winner can be revoked" }, { status: 409 });
@@ -112,8 +119,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     });
 
     if (balanceError) {
-      return NextResponse.json({ error: balanceError.message }, { status: 500 });
+      return NextResponse.json(safeServerError("admin.winner_revoke_credit_failed", balanceError, { winnerId, userId: winner.user_id }), { status: 500 });
     }
+
+    logger.warn("admin.winner_revoked", { winnerId, userId: winner.user_id, prizeAmount: winner.prize_amount });
 
     return NextResponse.json({
       success: true,
