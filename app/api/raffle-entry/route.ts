@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid initData" }, { status: 401 });
   }
 
-  const userCheck = await rateLimitByUser("raffleEntryRead", tgUser.id, RATE_LIMITS.raffleEntryRead.user);
+  const userCheck = await rateLimitByUser(req, "raffleEntryRead", tgUser.id, RATE_LIMITS.raffleEntryRead.user);
   if (!userCheck.allowed) return rateLimitResponse(userCheck);
 
   const supabase = getSupabaseAdmin();
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid initData" }, { status: 401 });
   }
 
-  const userCheck = await rateLimitByUser("raffleEntryWrite", tgUser.id, RATE_LIMITS.raffleEntryWrite.user);
+  const userCheck = await rateLimitByUser(req, "raffleEntryWrite", tgUser.id, RATE_LIMITS.raffleEntryWrite.user);
   if (!userCheck.allowed) return rateLimitResponse(userCheck);
 
   const supabase = getSupabaseAdmin();

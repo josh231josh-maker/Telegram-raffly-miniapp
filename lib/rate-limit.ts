@@ -82,8 +82,12 @@ export const RATE_LIMITS = {
   telegramWebhook: {
     ip: { requests: 120, window: "60 s" },
   },
-  // Ad-network postback endpoints: shared secret gates authenticity, then
-  // both the caller's IP and the target Telegram id are capped.
+  // Ad-network postback endpoints: shared secret proves the call really
+  // came from the ad network, then both the caller's IP and the target
+  // Telegram id are capped. Note: unlike every other `user` limit below,
+  // this id is NOT HMAC-verified by us -- it's whatever the ad SDK relayed
+  // back, which traces to a value our own client asserted when the ad
+  // started. See the ad-reward trust-boundary note on rateLimitByUser.
   adReward: {
     ip: { requests: 60, window: "60 s" },
     user: { requests: 20, window: "60 s" },
@@ -154,8 +158,69 @@ export function rateLimitByIp(req: NextRequest, name: string, rule: RateLimitRul
   return check(`${name}:ip`, getClientIp(req), rule);
 }
 
-/** Identity-scoped check — call only with a server-verified id (HMAC-checked Telegram id, admin session, etc.), never a raw client-supplied field. */
-export function rateLimitByUser(name: string, verifiedId: string | number, rule: RateLimitRule): Promise<RateLimitOutcome> {
+// A single legitimate user switching wifi/mobile data might show 2 distinct
+// IPs in a short window -- 3+ is past normal roaming and worth a look. This
+// is monitoring only, not enforcement: a verified id is never blocked or
+// throttled just for spanning IPs, since that alone isn't proof of abuse
+// (shared connection, VPN, carrier IP rotation are all legitimate).
+const IDENTITY_IP_ANOMALY_THRESHOLD = 3;
+const IDENTITY_IP_ANOMALY_WINDOW_SECONDS = 10 * 60;
+
+/**
+ * Records that this verified identity was just seen from this IP, and warns
+ * if the same identity has now shown up from an unusually high number of
+ * distinct IPs within the window -- e.g. a leaked/replayed initData being
+ * driven from several machines at once. A single IP itself can be spoofed
+ * or shared, which is exactly why this looks at the *pattern* tied to an
+ * unspoofable identity (the HMAC-verified Telegram id) rather than trying
+ * to treat any one IP or client-reported "device id" as trustworthy on its
+ * own -- see the rate-limit design notes for why device fingerprints aren't
+ * used as a security signal here.
+ */
+async function trackIdentityIp(scopeName: string, verifiedId: string | number, ip: string): Promise<void> {
+  if (!redis || ip === "unknown") return;
+  try {
+    const key = `raffly:iptrack:${scopeName}:${verifiedId}`;
+    const pipeline = redis.pipeline();
+    pipeline.sadd(key, ip);
+    pipeline.expire(key, IDENTITY_IP_ANOMALY_WINDOW_SECONDS);
+    pipeline.scard(key);
+    const results = await pipeline.exec<[number, number, number]>();
+    const distinctIpCount = results[2];
+    if (distinctIpCount >= IDENTITY_IP_ANOMALY_THRESHOLD) {
+      logger.warn("identity.multi_ip_anomaly", {
+        scope: scopeName,
+        identifier: String(verifiedId),
+        distinctIpCount,
+        windowSeconds: IDENTITY_IP_ANOMALY_WINDOW_SECONDS,
+      });
+    }
+  } catch (err) {
+    console.error(`[rate-limit] identity IP-anomaly tracking failed for ${scopeName}`, err);
+  }
+}
+
+/**
+ * Identity-scoped check — call with a server-verified id (HMAC-checked
+ * Telegram id, admin session, etc.), never a raw client-supplied field.
+ *
+ * Exception: the `adReward` callers pass a Telegram id that is *not*
+ * HMAC-verified by us -- third-party ad SDKs have no way to carry Telegram's
+ * signed initData through their own completion webhook, so the id they
+ * relay back traces only to whatever our own client-side code asserted when
+ * the ad started, which a sufficiently hostile client could swap for a
+ * different id. That's an accepted, bounded trust gap for that one
+ * integration point (see the production-hardening report), not something
+ * this function itself can close -- everywhere else, "verifiedId" here
+ * really is cryptographically verified.
+ */
+export async function rateLimitByUser(
+  req: NextRequest,
+  name: string,
+  verifiedId: string | number,
+  rule: RateLimitRule
+): Promise<RateLimitOutcome> {
+  await trackIdentityIp(name, verifiedId, getClientIp(req));
   return check(`${name}:user`, String(verifiedId), rule);
 }
 

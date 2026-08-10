@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid initData" }, { status: 401 });
   }
 
-  const userCheck = await rateLimitByUser("createInvoice", tgUser.id, RATE_LIMITS.createInvoice.user);
+  const userCheck = await rateLimitByUser(req, "createInvoice", tgUser.id, RATE_LIMITS.createInvoice.user);
   if (!userCheck.allowed) return rateLimitResponse(userCheck);
 
   const selected = STARS_TIERS[tier];

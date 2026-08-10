@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid ymid" }, { status: 400 });
   }
 
-  const userCheck = await rateLimitByUser("adReward", telegramId, RATE_LIMITS.adReward.user);
+  const userCheck = await rateLimitByUser(req, "adReward", telegramId, RATE_LIMITS.adReward.user);
   if (!userCheck.allowed) return rateLimitResponse(userCheck);
 
   const supabase = getSupabaseAdmin();

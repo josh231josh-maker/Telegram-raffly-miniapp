@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid initData" }, { status: 401 });
   }
 
-  const userCheck = await rateLimitByUser("checkin", tgUser.id, RATE_LIMITS.checkin.user);
+  const userCheck = await rateLimitByUser(req, "checkin", tgUser.id, RATE_LIMITS.checkin.user);
   if (!userCheck.allowed) return rateLimitResponse(userCheck);
 
   const supabase = getSupabaseAdmin();

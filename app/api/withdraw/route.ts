@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid initData" }, { status: 401 });
   }
 
-  const userCheck = await rateLimitByUser("withdraw", tgUser.id, RATE_LIMITS.withdraw.user);
+  const userCheck = await rateLimitByUser(req, "withdraw", tgUser.id, RATE_LIMITS.withdraw.user);
   if (!userCheck.allowed) return rateLimitResponse(userCheck);
 
   const supabase = getSupabaseAdmin();
