@@ -57,26 +57,34 @@ export function WatchAdCard() {
     return false;
   };
 
-  const handleWatch = async () => {
-    if (!user) return;
-    const generation = (generationRef.current += 1);
-    const startingBalance = user.ticket_balance;
-
-    // A signed, short-lived token standing in for the raw Telegram id --
-    // Monetag relays whatever we hand it straight back in its postback with
-    // no verification of its own, so the postback route checks this token's
-    // signature instead of trusting a client-supplied id outright.
+  // A signed, short-lived token standing in for the raw Telegram id --
+  // Monetag relays whatever we hand it straight back in its postback with
+  // no verification of its own, so the postback route checks this token's
+  // signature instead of trusting a client-supplied id outright. Minted
+  // fresh per ad (not reused across both) -- ymid is Monetag's own
+  // per-impression tracking parameter, and handing it an identical value
+  // for two separate ad requests in the same session is what was making
+  // the second ad request silently fail instead of serving a real ad.
+  const mintAdToken = async (): Promise<string | null> => {
     const tokenRes = await fetch("/api/ads/mint-reward-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ initData: getInitData() }),
     }).catch(() => null);
     const tokenData = await tokenRes?.json().catch(() => null);
-    const ymid = tokenData?.token;
-    if (!ymid || generationRef.current !== generation) return;
+    return tokenData?.token ?? null;
+  };
+
+  const handleWatch = async () => {
+    if (!user) return;
+    const generation = (generationRef.current += 1);
+    const startingBalance = user.ticket_balance;
+
+    const ymid1 = await mintAdToken();
+    if (!ymid1 || generationRef.current !== generation) return;
 
     setStatus("ad1");
-    if (!(await showAd(ymid))) {
+    if (!(await showAd(ymid1))) {
       if (generationRef.current === generation) setStatus("idle");
       return;
     }
@@ -89,8 +97,11 @@ export function WatchAdCard() {
     }
     if (generationRef.current !== generation) return;
 
+    const ymid2 = await mintAdToken();
+    if (!ymid2 || generationRef.current !== generation) return;
+
     setStatus("ad2");
-    if (!(await showAd(ymid))) {
+    if (!(await showAd(ymid2))) {
       if (generationRef.current === generation) setStatus("idle");
       return;
     }
