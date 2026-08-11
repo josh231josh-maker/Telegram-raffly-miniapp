@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMonetagAd } from "@/hooks/useMonetagAd";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { isPassActive } from "@/lib/raffly-pass";
+import { fetchWithRetry } from "@/lib/fetch-retry";
 import { PlayCircleIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
@@ -65,8 +66,12 @@ export function WatchAdCard() {
   // per-impression tracking parameter, and handing it an identical value
   // for two separate ad requests in the same session is what was making
   // the second ad request silently fail instead of serving a real ad.
+  // Plain fetch() has no timeout of its own -- on a slow connection it can
+  // hang indefinitely with no error, which looked identical to "the second
+  // ad just never happens". fetchWithRetry caps each attempt and retries
+  // instead of hanging forever.
   const mintAdToken = async (): Promise<string | null> => {
-    const tokenRes = await fetch("/api/ads/mint-reward-token", {
+    const tokenRes = await fetchWithRetry("/api/ads/mint-reward-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ initData: getInitData() }),
