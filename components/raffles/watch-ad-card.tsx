@@ -28,7 +28,7 @@ export function WatchAdCard() {
   const { user, refreshUser, loadingUser, getInitData } = useTelegram();
   const [status, setStatus] = useState<Status>("idle");
   const [gapSecondsLeft, setGapSecondsLeft] = useState(0);
-  const showAd = useMonetagAd();
+  const { preloadAd, showAd } = useMonetagAd();
 
   // Bumped whenever a new watch starts, and once on unmount. A poll loop
   // checks this before every step and against the generation it was started
@@ -89,6 +89,20 @@ export function WatchAdCard() {
     if (!ymid1 || generationRef.current !== generation) return;
 
     setStatus("ad1");
+
+    // Mint the second ad's token and start preloading its creative
+    // alongside the first ad's playback (Monetag's own recommended pattern
+    // for Rewarded Interstitials), so it has ad1's full duration plus the
+    // gap below to finish loading. Calling show() cold right after ad1 --
+    // the previous behavior -- gave the second ad's creative far less time
+    // to load, which is exactly what made it fail more often on a slow
+    // connection: showAd() below still works if this hasn't finished, it's
+    // just less likely to need to load cold at that point.
+    const ymid2Promise = mintAdToken().then((ymid2) => {
+      if (ymid2) preloadAd(ymid2);
+      return ymid2;
+    });
+
     if (!(await showAd(ymid1))) {
       if (generationRef.current === generation) setStatus("idle");
       return;
@@ -102,7 +116,7 @@ export function WatchAdCard() {
     }
     if (generationRef.current !== generation) return;
 
-    const ymid2 = await mintAdToken();
+    const ymid2 = await ymid2Promise;
     if (!ymid2 || generationRef.current !== generation) return;
 
     setStatus("ad2");
