@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { withReferralCount } from "@/lib/referral";
 import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
 
 type ActivityEvent = {
@@ -26,19 +27,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const [
-    { count: referralCount },
-    { count: referralReachedCount },
+    userWithReferralCount,
     { data: raffleEntries },
     { data: adViews },
     { data: transactions },
     { data: withdrawals },
   ] = await Promise.all([
-    supabase.from("users").select("id", { count: "exact", head: true }).eq("referred_by", id),
-    supabase
-      .from("users")
-      .select("id", { count: "exact", head: true })
-      .eq("referred_by", id)
-      .eq("referral_reward_given", true),
+    withReferralCount(supabase, user),
     supabase
       .from("raffle_entries")
       .select("id, tickets_used, created_at, raffle_id")
@@ -100,11 +95,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return NextResponse.json({
-    user: {
-      ...user,
-      referral_count: referralCount ?? 0,
-      referral_reached_count: referralReachedCount ?? 0,
-    },
+    user: userWithReferralCount,
     activity,
   });
 }

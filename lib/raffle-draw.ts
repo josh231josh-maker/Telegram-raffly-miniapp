@@ -80,15 +80,15 @@ export async function drawRaffleWinners(supabase: SupabaseClient, raffleId: stri
       day: "numeric",
     })}`;
 
-    for (const winnerId of winnerIds) {
-      await supabase.from("raffle_winners").insert({
+    await supabase.from("raffle_winners").insert(
+      winnerIds.map((winnerId) => ({
         raffle_id: raffleId,
         user_id: winnerId,
         prize_amount: PRIZE_PER_WINNER_USDT,
         status: "pending",
         week_label: weekLabel,
-      });
-    }
+      }))
+    );
   }
 
   await supabase

@@ -194,8 +194,12 @@ describe("drawRaffleWinners", () => {
     // Only 2 eligible entrants (user-a aggregated to 13 tickets, user-b to 5) exist.
     expect(result.winnerIds.sort()).toEqual(["user-a", "user-b"]);
     expect(new Set(result.winnerIds).size).toBe(result.winnerIds.length);
-    expect(winnerInserts).toHaveLength(2);
-    for (const insert of winnerInserts) {
+    // Winners are inserted in a single batched call rather than one round
+    // trip per winner, so there's exactly one insert call carrying both rows.
+    expect(winnerInserts).toHaveLength(1);
+    const insertedRows = winnerInserts[0] as unknown as Record<string, unknown>[];
+    expect(insertedRows).toHaveLength(2);
+    for (const insert of insertedRows) {
       expect(["user-a", "user-b"]).toContain(insert.user_id);
       expect(insert.status).toBe("pending");
     }
