@@ -74,9 +74,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Withdrawal can no longer be rejected" }, { status: 409 });
     }
 
+    // The requested amount was reserved (zeroed out of the user's balance)
+    // when this withdrawal was created -- since it isn't being paid, credit
+    // it back rather than letting it disappear.
+    const { error: balanceError } = await supabase.rpc("increment_usdt_balance", {
+      p_user_id: withdrawal.user_id,
+      p_delta: withdrawal.amount,
+    });
+
+    if (balanceError) {
+      return NextResponse.json(safeServerError("admin.withdrawal_reject_credit_failed", balanceError, { withdrawalId, userId: withdrawal.user_id }), { status: 500 });
+    }
+
+    logger.warn("admin.withdrawal_rejected", { withdrawalId, userId: withdrawal.user_id, amount: withdrawal.amount });
+
     return NextResponse.json({
       success: true,
-      message: "Withdrawal rejected. User balance remains unchanged.",
+      message: "Withdrawal rejected. Balance credited back to the user.",
     });
   }
 
@@ -103,19 +117,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       );
     }
 
-    // Subtract only the withdrawn amount (atomically, floored at 0 inside
-    // the RPC) rather than zeroing outright — the user's balance may have
-    // grown from unrelated sources (e.g. a raffle win credited) while this
-    // withdrawal sat pending/approved.
-    const { error: balanceError } = await supabase.rpc("increment_usdt_balance", {
-      p_user_id: withdrawal.user_id,
-      p_delta: -withdrawal.amount,
-    });
-
-    if (balanceError) {
-      return NextResponse.json(safeServerError("admin.withdrawal_mark_paid_balance_failed", balanceError, { withdrawalId, userId: withdrawal.user_id }), { status: 500 });
-    }
-
+    // usdt_balance was already reserved (zeroed) when this withdrawal was
+    // requested (see /api/withdraw), so paying it out doesn't touch the
+    // balance again -- doing so would also wrongly claw back any unrelated
+    // balance the user earned while this withdrawal sat pending/approved.
     logger.warn("admin.withdrawal_paid", { withdrawalId, userId: withdrawal.user_id, amount: withdrawal.amount, txHash });
 
     return NextResponse.json({

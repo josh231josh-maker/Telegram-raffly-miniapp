@@ -43,53 +43,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No wallet connected" }, { status: 400 });
   }
 
-  // Balance isn't zeroed until an admin marks the withdrawal paid, so without
-  // this check the same balance could be requested repeatedly, stacking up
-  // duplicate outstanding withdrawals for funds that only exist once. This
-  // check-then-insert has a race window on its own, so it's backed by a
-  // partial unique index (withdrawals_one_active_per_user) that makes a
-  // second concurrent request fail at the database level no matter how the
-  // timing lines up -- this check just gives the common case a clean error
-  // instead of relying on that path.
-  const { data: outstanding } = await supabase
-    .from("withdrawals")
-    .select("id")
-    .eq("user_id", user.id)
-    .in("status", ["pending", "approved"])
-    .maybeSingle();
+  // Atomically locks the user row, re-validates balance/wallet, zeroes
+  // usdt_balance, and records the pending withdrawal in one transaction --
+  // so the requested amount is reserved immediately (the balance can't be
+  // spent twice or requested again) instead of staying visible/withdrawable
+  // until an admin eventually marks it paid. withdrawals_one_active_per_user
+  // still backs this at the database level: if a concurrent request already
+  // reserved a withdrawal for this user, this insert fails with 23505 no
+  // matter how the timing lines up.
+  const { data: result, error: rpcError } = (await supabase
+    .rpc("process_withdrawal", { p_user_id: user.id })
+    .maybeSingle()) as {
+    data: { out_amount: number; out_wallet_address: string } | null;
+    error: { code?: string; message?: string } | null;
+  };
 
-  if (outstanding) {
-    return NextResponse.json(
-      { error: "A withdrawal is already in progress for this account." },
-      { status: 409 }
-    );
-  }
-
-  const amount = user.usdt_balance;
-
-  const { error: createError } = await supabase.from("withdrawals").insert({
-    user_id: user.id,
-    amount: amount,
-    wallet_address: user.ton_wallet_address,
-    status: "pending",
-  });
-
-  if (createError) {
-    // Unique violation on withdrawals_one_active_per_user means a concurrent
-    // request won the race between the check above and this insert.
-    if (createError.code === "23505") {
+  if (rpcError) {
+    if (rpcError.code === "23505") {
       return NextResponse.json(
         { error: "A withdrawal is already in progress for this account." },
         { status: 409 }
       );
     }
+    if (rpcError.message?.includes("No balance to withdraw")) {
+      return NextResponse.json({ error: "No balance available for withdrawal" }, { status: 400 });
+    }
+    if (rpcError.message?.includes("No wallet connected")) {
+      return NextResponse.json({ error: "No wallet connected" }, { status: 400 });
+    }
     return NextResponse.json(
-      safeServerError("withdraw.create_failed", createError, { userId: user.id }, "Failed to create withdrawal request"),
+      safeServerError("withdraw.create_failed", rpcError, { userId: user.id }, "Failed to create withdrawal request"),
       { status: 500 }
     );
   }
 
-  logger.info("withdraw.created", { userId: user.id, amount });
+  logger.info("withdraw.created", { userId: user.id, amount: result?.out_amount });
 
   const { data: updatedUser } = await supabase
     .from("users")
@@ -99,7 +87,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    amount: amount,
+    amount: result?.out_amount,
     user: updatedUser ? await withReferralCount(supabase, updatedUser) : updatedUser,
   });
 }
