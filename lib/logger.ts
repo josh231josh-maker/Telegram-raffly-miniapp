@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import * as Sentry from "@sentry/nextjs";
 
 /**
  * Lightweight structured logging for Vercel's serverless environment.
@@ -43,6 +44,16 @@ function errorMessage(err: unknown): string {
  * Includes a fresh correlation id in both the log line and the response so
  * a user reporting "something went wrong" can hand back an id that's
  * greppable in Vercel's logs, without exposing any actual error detail.
+ *
+ * This is the one place nearly every unexpected server-side failure across
+ * the app already flows through (every call site here returns a 500),
+ * unlike routine 400/401/404/409 business errors which are returned
+ * directly by each route without going through here — so it's also the
+ * single funnel for reporting to Sentry, tagged with the same event name
+ * and requestId as the log line for correlation. err isn't always a real
+ * Error (Supabase/Postgrest errors are plain objects), so it's normalized
+ * into one first; Sentry can still capture a non-Error value directly, but
+ * loses the ability to group/search on a stable message.
  */
 export function safeServerError(
   event: string,
@@ -52,5 +63,9 @@ export function safeServerError(
 ): { error: string; requestId: string } {
   const requestId = newRequestId();
   logger.error(event, { ...fields, requestId, error: errorMessage(err) });
+  Sentry.captureException(err instanceof Error ? err : new Error(`${event}: ${errorMessage(err)}`), {
+    tags: { event },
+    extra: { ...fields, requestId },
+  });
   return { error: clientMessage, requestId };
 }

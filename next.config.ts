@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -33,4 +34,34 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Wraps the config to upload source maps at build time (so Sentry shows
+// original source instead of minified/bundled code) and auto-instruments
+// API route handlers, Vercel Cron jobs, and server actions for error
+// capture. The upload step needs SENTRY_ORG/SENTRY_PROJECT/SENTRY_AUTH_TOKEN;
+// without them it just skips uploading and logs a notice at build time --
+// it never fails the build.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Only print upload output when explicitly debugging -- keeps normal
+  // build logs clean.
+  silent: !process.env.SENTRY_DEBUG,
+
+  // Widens the set of client files scanned for source maps -- needed for
+  // Next.js's route-grouped output to map correctly back to source.
+  widenClientFileUpload: true,
+
+  webpack: {
+    // Strips Sentry's own debug logging statements, and all tracing/
+    // performance-monitoring code (unused since tracesSampleRate is 0 in
+    // every config file), out of the client bundle.
+    treeshake: { removeDebugLogging: true, removeTracing: true },
+
+    // Both cron jobs in vercel.json (raffle draw, broadcast processing) get
+    // auto-registered as Sentry Cron Monitors -- alerts if a run is late,
+    // fails, or never fires, on top of catching thrown errors.
+    automaticVercelMonitors: true,
+  },
+});
