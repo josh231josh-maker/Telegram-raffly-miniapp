@@ -90,18 +90,13 @@ export function WatchAdCard() {
 
     setStatus("ad1");
 
-    // Mint the second ad's token and start preloading its creative
-    // alongside the first ad's playback (Monetag's own recommended pattern
-    // for Rewarded Interstitials), so it has ad1's full duration plus the
-    // gap below to finish loading. Calling show() cold right after ad1 --
-    // the previous behavior -- gave the second ad's creative far less time
-    // to load, which is exactly what made it fail more often on a slow
-    // connection: showAd() below still works if this hasn't finished, it's
-    // just less likely to need to load cold at that point.
-    const ymid2Promise = mintAdToken().then((ymid2) => {
-      if (ymid2) preloadAd(ymid2);
-      return ymid2;
-    });
+    // Only mint the second ad's token here (a plain API call, safe to run
+    // alongside anything) -- do NOT call preloadAd yet. Monetag's SDK is a
+    // single global function; calling it again for preload while it's
+    // still in flight for ad1's showAd() below broke both ads outright,
+    // not just the second one, since there's no indication the SDK
+    // supports two concurrent calls to itself.
+    const ymid2Promise = mintAdToken();
 
     if (!(await showAd(ymid1))) {
       if (generationRef.current === generation) setStatus("idle");
@@ -110,13 +105,21 @@ export function WatchAdCard() {
     if (generationRef.current !== generation) return;
 
     setStatus("gap");
+    // Now that ad1's own show() call has fully resolved, it's safe to
+    // start preloading ad2's creative (Monetag's recommended pattern for
+    // Rewarded Interstitials) -- this runs alongside the gap countdown
+    // below, which is just a local timer, not another SDK call.
+    const ymid2AndPreload = ymid2Promise.then((ymid2) => {
+      if (ymid2) preloadAd(ymid2);
+      return ymid2;
+    });
     for (let secondsLeft = AD_GAP_MS / 1000; secondsLeft > 0; secondsLeft--) {
       setGapSecondsLeft(secondsLeft);
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     if (generationRef.current !== generation) return;
 
-    const ymid2 = await ymid2Promise;
+    const ymid2 = await ymid2AndPreload;
     if (!ymid2 || generationRef.current !== generation) return;
 
     setStatus("ad2");
