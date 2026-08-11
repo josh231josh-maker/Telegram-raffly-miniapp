@@ -6,6 +6,11 @@ import { sanitizeProfileText } from "@/lib/sanitize";
 import { RATE_LIMITS, rateLimitByIp, rateLimitByUser, rateLimitResponse } from "@/lib/rate-limit";
 import { safeServerError } from "@/lib/logger";
 
+// Granted once, on first sign-in, to every new user regardless of how they
+// arrived (referred or not) -- distinct from REFERRAL_REWARD_TICKETS, which
+// only pays the referrer once their invitee crosses the ticket threshold.
+const NEW_USER_REWARD_TICKETS = 50;
+
 export async function POST(req: NextRequest) {
   const ipCheck = await rateLimitByIp(req, "auth", RATE_LIMITS.auth.ip);
   if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
@@ -58,6 +63,7 @@ export async function POST(req: NextRequest) {
       username: sanitizeProfileText(tgUser.username),
       first_name: sanitizeProfileText(tgUser.first_name),
       referred_by: referredBy,
+      ticket_balance: NEW_USER_REWARD_TICKETS,
     })
     .select()
     .single();

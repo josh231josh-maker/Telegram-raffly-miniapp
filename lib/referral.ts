@@ -1,7 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
 export const REFERRAL_TICKET_THRESHOLD = 500;
-export const REFERRAL_REWARD_TICKETS = 50;
+export const REFERRAL_REWARD_TICKETS = 100;
 
 /**
  * Computed live from `referred_by` rather than a stored counter, so it can
