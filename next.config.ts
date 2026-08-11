@@ -45,12 +45,11 @@ export default withSentryConfig(nextConfig, {
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
 
-  // TEMPORARY: forced visible (not gated on SENTRY_DEBUG) for one deploy to
-  // confirm the newly-added SENTRY_ORG/SENTRY_PROJECT/SENTRY_AUTH_TOKEN
-  // actually upload source maps, since silent mode suppresses the warning
-  // for a missing token too -- silence alone can't distinguish success from
-  // failure. Revert to `!process.env.SENTRY_DEBUG` right after confirming.
-  silent: false,
+  // Only print upload output when explicitly debugging -- keeps normal
+  // build logs clean. (Confirmed with SENTRY_DEBUG forced on for one deploy
+  // that source maps upload successfully to org josh-fk / project
+  // javascript-nextjs across the Node.js, Edge, and Client bundles.)
+  silent: !process.env.SENTRY_DEBUG,
 
   // Widens the set of client files scanned for source maps -- needed for
   // Next.js's route-grouped output to map correctly back to source.
