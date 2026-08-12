@@ -39,11 +39,18 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
       >
-        {/* Ambient confetti behind all screens -- fixed so it doesn't scroll
-            with content, and a plain <img> (not next/image) so its
-            animation is preserved rather than being flattened to a still
-            frame by image optimization. */}
-        <div className="pointer-events-none fixed inset-0 -z-10 opacity-30">
+        {/* Ambient confetti, overlaid on top of the page's dark blue
+            background -- fixed so it doesn't scroll with content, and a
+            plain <img> (not next/image) so its animation is preserved
+            rather than being flattened to a still frame by image
+            optimization. Deliberately no negative z-index: body's own
+            background-color propagates to become the page canvas
+            background, which paints beneath everything regardless of
+            z-index, so a negative z-index here was rendering this behind
+            that canvas instead of on top of it. Being the first element in
+            the DOM already places it below all the real UI that follows
+            without needing z-index at all. */}
+        <div className="pointer-events-none fixed inset-0 opacity-40">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/confetti-bg.gif" alt="" className="h-full w-full object-cover" />
         </div>
