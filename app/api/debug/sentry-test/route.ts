@@ -1,21 +1,28 @@
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 
-// Temporary: proves the Sentry pipeline captures a real, uncaught server
-// error end-to-end (not just a manual captureException call), with a stack
-// trace that source-maps back to this exact file/line. Removed once
-// confirmed in the Sentry dashboard -- not meant to stay in the app.
-//
-// Explicitly captures + flushes here (rather than just throwing) because
-// Vercel's serverless runtime can freeze/terminate the function as soon as
-// the response is sent -- any fire-and-forget async work still in flight,
-// like the HTTP POST Sentry's transport makes to deliver the event, can get
-// cut off before it completes. Sentry.flush() blocks the response until
-// that POST is confirmed sent.
+// Temporary diagnostic: reports what the server-side Sentry client actually
+// sees at runtime (DSN presence, whether a client initialized at all) plus
+// attempts a real captureException + flush, so we can tell apart "DSN
+// missing/misconfigured" from "event sent but not yet indexed" from "sent
+// but Sentry silently rejected it". Removed once the pipeline is confirmed
+// working end-to-end -- not meant to stay in the app.
 export async function GET() {
+  const client = Sentry.getClient();
+  const dsn = client?.getOptions().dsn;
+
   const eventId = Sentry.captureException(
-    new Error("Raffly Sentry pipeline test (explicit flush) — safe to ignore, this route is removed after verification")
+    new Error("Raffly Sentry pipeline test (diagnostic) — safe to ignore, this route is removed after verification")
   );
   const flushed = await Sentry.flush(5000);
-  return NextResponse.json({ eventId, flushed });
+
+  return NextResponse.json({
+    hasClient: !!client,
+    dsnConfigured: !!dsn,
+    dsnHost: dsn ? new URL(dsn).host : null,
+    dsnProjectId: dsn ? new URL(dsn).pathname.replace("/", "") : null,
+    environment: client?.getOptions().environment,
+    eventId,
+    flushed,
+  });
 }
