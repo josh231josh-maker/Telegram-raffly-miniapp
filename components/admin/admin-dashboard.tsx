@@ -101,7 +101,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-6xl overflow-x-hidden px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Raffly Admin</h1>
@@ -117,7 +117,7 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      <div className="mb-4 flex gap-1 border-b border-white/10">
+      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-white/10">
         {[
           "users",
           "withdrawals",
@@ -130,7 +130,7 @@ export default function AdminDashboard() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab as TabType)}
-            className={`px-4 py-3 text-sm font-medium transition-colors ${
+            className={`shrink-0 whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === tab
                 ? "border-b-2 border-blue-400 text-blue-400"
                 : "text-white/50 hover:text-white/70"
