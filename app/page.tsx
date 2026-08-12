@@ -31,7 +31,7 @@ export default function HomePage() {
   const raffleInfo = useRaffleInfo(raffleEntry?.ticketsEntered);
 
   return (
-    <main className="app-bg-gradient min-h-dvh pb-28">
+    <main className="min-h-dvh pb-28">
       <div className="mx-auto flex max-w-md flex-col gap-4 px-4 pt-6">
         {tab === "home" && (
           <>

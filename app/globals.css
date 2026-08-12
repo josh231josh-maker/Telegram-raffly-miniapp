@@ -90,10 +90,6 @@ textarea,
   font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
 }
 
-.app-bg-gradient {
-  background: var(--background);
-}
-
 .hero-gradient {
   background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%);
 }
