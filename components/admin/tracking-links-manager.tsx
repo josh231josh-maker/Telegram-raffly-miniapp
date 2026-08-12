@@ -24,6 +24,7 @@ export function TrackingLinksManager() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function loadLinks() {
     setLoading(true);
@@ -61,6 +62,28 @@ export function TrackingLinksManager() {
       setLinks((prev) => [data.link, ...prev]);
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function handleDelete(link: TrackingLink) {
+    const warning =
+      link.userCount > 0
+        ? `Delete "${link.label}"? ${link.userCount} user${link.userCount === 1 ? "" : "s"} attributed to it will no longer show which link brought them in. This cannot be undone.`
+        : `Delete "${link.label}"? This cannot be undone.`;
+    if (!confirm(warning)) return;
+
+    setError(null);
+    setDeletingId(link.id);
+    try {
+      const res = await fetch(`/api/admin/tracking-links/${link.id}/delete`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Failed to delete link");
+        return;
+      }
+      setLinks((prev) => prev.filter((l) => l.id !== link.id));
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -115,6 +138,7 @@ export function TrackingLinksManager() {
                 <th className="px-4 py-3 font-medium">Link</th>
                 <th className="px-4 py-3 font-medium">Users started</th>
                 <th className="px-4 py-3 font-medium">Created</th>
+                <th className="px-4 py-3 font-medium"></th>
               </tr>
             </thead>
             <tbody>
@@ -134,6 +158,15 @@ export function TrackingLinksManager() {
                   </td>
                   <td className="px-4 py-3 text-white/70 tabular-nums">{link.userCount}</td>
                   <td className="px-4 py-3 text-white/50">{new Date(link.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => handleDelete(link)}
+                      disabled={deletingId === link.id}
+                      className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50"
+                    >
+                      {deletingId === link.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
