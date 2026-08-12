@@ -62,7 +62,7 @@ export function HeroCountdown() {
 
   return (
     <section
-      className="hero-rise hero-gradient relative isolate overflow-hidden rounded-[28px] p-5 text-white shadow-lg"
+      className="hero-rise relative isolate p-5 text-white"
       aria-label="Next weekly draw"
     >
       <Image
@@ -71,7 +71,7 @@ export function HeroCountdown() {
         fill
         priority
         sizes="(max-width: 480px) 100vw, 420px"
-        className="pointer-events-none object-fill opacity-50"
+        className="pointer-events-none -z-10 object-contain"
       />
 
       {SPARKLES.map((className, i) => (
