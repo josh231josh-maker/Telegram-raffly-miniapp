@@ -8,14 +8,17 @@ declare global {
   }
 }
 
-// Monetag's SDK does its own network fetching internally (loading the ad
-// creative) with no timeout of its own -- on a slow connection its promise
-// can simply never resolve or reject, which looks identical to "the ad
-// won't play" from here. Generous enough to cover a slow load plus a full
-// rewarded interstitial's playback, but still guarantees this eventually
-// gives up and lets the caller treat it as a failed watch instead of
-// leaving the button stuck forever.
-const SHOW_AD_TIMEOUT_MS = 40_000;
+// Monetag's show_11527679({ ymid }) promise doesn't resolve on its own once
+// the ad creative starts playing -- it resolves when the user closes/claims
+// the completion screen. That means this wait is dominated by user
+// behavior (how long someone takes to tap through), not network speed, and
+// is effectively unbounded from here. A short timeout tuned for "slow ad
+// load" was cutting off real in-progress watches: anyone who left the ad
+// open past it got treated as a failed watch and reset to idle mid-watch,
+// even though they were still actively on the ad. Generous enough that it
+// only ever fires as a genuine last-resort safety net (e.g. the SDK truly
+// hung), not as a response to normal human pacing.
+const SHOW_AD_TIMEOUT_MS = 5 * 60_000;
 // Preloading is an optimization (see preloadAd below) -- if it hasn't
 // finished by this point, showAd() still attempts its own load, so this
 // can time out well before SHOW_AD_TIMEOUT_MS without losing anything.
