@@ -7,24 +7,22 @@ import { TicketImage } from "@/components/ticket-image";
 type BalanceCardProps = {
   label: string;
   value: string;
-  sublabel?: string;
   icon: React.ReactNode;
   variant: "purple" | "green";
 };
 
-function BalanceCard({ label, value, sublabel, icon, variant }: BalanceCardProps) {
+function BalanceCard({ label, value, icon, variant }: BalanceCardProps) {
   const cardClass = variant === "purple" ? "card-purple" : "card-green";
 
   return (
-    <article className={`${cardClass} rounded-[24px] p-5 text-white`}>
-      <div className="mb-3 flex items-center justify-between">
+    <article className={`${cardClass} rounded-[24px] p-4 text-white`}>
+      <div className="mb-2 flex items-center justify-between">
         <span className="text-sm font-medium text-white/80">{label}</span>
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20">
           {icon}
         </span>
       </div>
-      <p className="font-heading text-3xl font-bold tracking-tight">{value}</p>
-      {sublabel && <p className="mt-1 text-xs text-white/70">{sublabel}</p>}
+      <p className="font-heading text-2xl font-bold tracking-tight">{value}</p>
     </article>
   );
 }
@@ -40,7 +38,6 @@ export function BalanceCards() {
       <BalanceCard
         label="Tickets"
         value={loadingUser ? "…" : String(ticketBalance)}
-        sublabel="Never expire"
         icon={<TicketImage size={22} />}
         variant="purple"
       />
