@@ -9,11 +9,7 @@ import { PlayCircleIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 
-type Status = "idle" | "ad1" | "gap" | "ad2" | "checking" | "done" | "ad2-incomplete";
-
-// How long the "First ad counted" message stays up before the button reverts
-// to its normal idle label.
-const PARTIAL_MESSAGE_MS = 3000;
+type Status = "idle" | "ad1" | "gap" | "ad2" | "checking" | "done" | "failed";
 
 // Pause between the two ads so the second doesn't feel like it's firing on
 // top of the first.
@@ -103,7 +99,7 @@ export function WatchAdCard() {
     const ymid2Promise = mintAdToken();
 
     if (!(await showAd(ymid1))) {
-      if (generationRef.current === generation) setStatus("idle");
+      if (generationRef.current === generation) setStatus("failed");
       return;
     }
     if (generationRef.current !== generation) return;
@@ -128,19 +124,7 @@ export function WatchAdCard() {
 
     setStatus("ad2");
     if (!(await showAd(ymid2))) {
-      // Ad 1 already resolved successfully above -- that's what Monetag's
-      // own postback treats as "valued" and reports server-side, and
-      // record_ad_view is a rolling pair counter that isn't tied to this
-      // on-screen session, so that view is still banked toward the next
-      // reward even though ad 2 didn't complete. Silently snapping back to
-      // "Watch 2 Ads" with zero acknowledgment reads as if the whole
-      // attempt was thrown away, so show a brief honest message instead.
-      if (generationRef.current === generation) {
-        setStatus("ad2-incomplete");
-        setTimeout(() => {
-          if (generationRef.current === generation) setStatus("idle");
-        }, PARTIAL_MESSAGE_MS);
-      }
+      if (generationRef.current === generation) setStatus("failed");
       return;
     }
     if (generationRef.current !== generation) return;
@@ -181,9 +165,14 @@ export function WatchAdCard() {
       ? "Checking..."
       : status === "done"
       ? rewardLabel
-      : status === "ad2-incomplete"
-      ? "First ad counted, try again!"
+      : status === "failed"
+      ? "Failed, try again"
       : "Watch 2 Ads";
+
+  // "failed" is a resting state like "idle", not an in-progress one -- the
+  // button stays tappable so the retry the label asks for actually works
+  // (tapping it re-runs handleWatch from the top, straight to "ad 1 of 2").
+  const disabled = status !== "idle" && status !== "failed";
 
   return (
     <TaskRow
@@ -192,7 +181,7 @@ export function WatchAdCard() {
       label={label}
       rewardLabel={rewardLabel}
       onClick={handleWatch}
-      disabled={status !== "idle"}
+      disabled={disabled}
     />
   );
 }
