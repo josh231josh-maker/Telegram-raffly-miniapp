@@ -39,6 +39,15 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
       >
+        {/* Ambient confetti behind all screens -- fixed so it doesn't scroll
+            with content, and a plain <img> (not next/image) so its
+            animation is preserved rather than being flattened to a still
+            frame by image optimization. */}
+        <div className="pointer-events-none fixed inset-0 -z-10 opacity-30">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/confetti-bg.gif" alt="" className="h-full w-full object-cover" />
+        </div>
+
         {/* Ad SDKs are only needed once a user taps "Watch Ads" -- loading them
             beforeInteractive would block the whole app's startup on two
             third-party ad CDNs that most sessions never even use. */}
