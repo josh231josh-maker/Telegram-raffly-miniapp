@@ -91,5 +91,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  return NextResponse.json({ user: await withReferralCount(supabase, created) });
+  return NextResponse.json({
+    user: await withReferralCount(supabase, created),
+    isNewUser: true,
+  });
 }

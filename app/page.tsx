@@ -19,6 +19,7 @@ import { ProfileCard } from "@/components/profile/profile-card";
 import { RecentActivity } from "@/components/profile/recent-activity";
 import { RafflyPassDetail } from "@/components/raffly-pass/raffly-pass-detail";
 import { TicketImage } from "@/components/ticket-image";
+import { WelcomeBonusToast } from "@/components/welcome-bonus-toast";
 
 export default function HomePage() {
   const [tab, setTab] = useState<TabId>("home");
@@ -32,6 +33,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-dvh pb-28">
+      <WelcomeBonusToast />
       <div className="mx-auto flex max-w-md flex-col gap-4 px-4 pt-6">
         {tab === "home" && (
           <>

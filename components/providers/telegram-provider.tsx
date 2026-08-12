@@ -69,6 +69,10 @@ type TelegramContextValue = {
   isTelegram: boolean;
   user: RafflyUser | null;
   loadingUser: boolean;
+  // True for exactly one auth response: the one that just created this
+  // account. Never flips back once set -- it's a one-time "you just signed
+  // up" signal, not a persistent user attribute.
+  isNewUser: boolean;
   checkIn: () => Promise<CheckInResult>;
   refreshUser: () => Promise<RafflyUser | null>;
   requestWithdrawal: () => Promise<WithdrawResult>;
@@ -85,6 +89,7 @@ const TelegramContext = createContext<TelegramContextValue>({
   isTelegram: false,
   user: null,
   loadingUser: true,
+  isNewUser: false,
   checkIn: async () => ({ error: "Not ready" }),
   refreshUser: async () => null,
   requestWithdrawal: async () => ({ error: "Not ready" }),
@@ -105,6 +110,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const [isTelegram, setIsTelegram] = useState(false);
   const [user, setUser] = useState<RafflyUser | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false);
   const [raffleEntry, setRaffleEntry] = useState<RaffleEntry | null>(null);
   const [loadingRaffleEntry, setLoadingRaffleEntry] = useState(true);
   const initDataRef = useRef("");
@@ -126,6 +132,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (data.user) {
         setUser(data.user);
+        if (data.isNewUser) setIsNewUser(true);
         return data.user;
       }
       return null;
@@ -210,6 +217,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         .then((res) => res.json())
         .then((data) => {
           if (data.user) setUser(data.user);
+          if (data.isNewUser) setIsNewUser(true);
         })
         .catch((err) => {
           console.error("Auth fetch error:", err);
@@ -340,6 +348,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       isTelegram,
       user,
       loadingUser,
+      isNewUser,
       checkIn,
       refreshUser: fetchUser,
       requestWithdrawal,
@@ -355,6 +364,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       isTelegram,
       user,
       loadingUser,
+      isNewUser,
       checkIn,
       fetchUser,
       requestWithdrawal,
