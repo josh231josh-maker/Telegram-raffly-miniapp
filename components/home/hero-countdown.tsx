@@ -78,32 +78,32 @@ export function HeroCountdown() {
         <StarIcon key={i} className={`hero-twinkle pointer-events-none absolute ${className}`} />
       ))}
 
-      <div className="relative flex items-center justify-center gap-1.5">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20">
-          <TrophyIcon className="h-3.5 w-3.5 text-white" />
+      <div className="relative flex items-center justify-center gap-1">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
+          <TrophyIcon className="h-3 w-3 text-white" />
         </span>
-        <span className="text-xs font-semibold uppercase tracking-widest text-white/90">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-white/90">
           This Week&apos;s Prize Pool
         </span>
       </div>
 
-      <div className="relative mx-auto mt-1.5 w-fit">
-        <p className="hero-prize-glow font-heading text-[54px] font-extrabold leading-none tracking-tight text-balance text-white">
+      <div className="relative mx-auto mt-1 w-fit">
+        <p className="hero-prize-glow font-heading text-[34px] font-extrabold leading-none tracking-tight text-balance text-white">
           ${PRIZE_POOL_USDT.toLocaleString()}
         </p>
       </div>
 
-      <div className="relative mt-2 border-t border-white/15 pt-2.5">
-        <p className="mb-1.5 text-center text-[11px] font-medium uppercase tracking-wide text-white/60">
+      <div className="relative mt-1.5 border-t border-white/15 px-5 pt-1.5">
+        <p className="mb-1 text-center text-[9px] font-medium uppercase tracking-wide text-white/60">
           Next draw in
         </p>
-        <div className="grid grid-cols-4 gap-1 text-center">
+        <div className="grid grid-cols-4 gap-0.5 text-center">
           {items.map((item) => (
             <div key={item.label} className="px-0">
-              <p className="font-heading text-[46px] font-bold leading-none tabular-nums text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
+              <p className="font-heading text-[24px] font-bold leading-none tabular-nums text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
                 {item.value}
               </p>
-              <p className="mt-1 text-[8.5px] uppercase tracking-wide text-white/70">{item.label}</p>
+              <p className="mt-0.5 text-[7px] uppercase tracking-wide text-white/70">{item.label}</p>
             </div>
           ))}
         </div>
