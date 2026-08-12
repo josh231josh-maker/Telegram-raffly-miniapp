@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
-import Script from "next/script";
-import { TelegramProvider } from "@/components/providers/telegram-provider";
 import { ConfettiBackground } from "@/components/confetti-background";
+import { MiniAppShell } from "@/components/mini-app-shell";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -46,21 +45,11 @@ export default function RootLayout({
         <ConfettiBackground />
 
         <div className="relative">
-          {/* Ad SDKs are only needed once a user taps "Watch Ads" -- loading them
-              beforeInteractive would block the whole app's startup on two
-              third-party ad CDNs that most sessions never even use. */}
-          <Script src="https://sad.adsgram.ai/js/sad.min.js" strategy="afterInteractive" />
-          <Script
-            src="//libtl.com/sdk.js"
-            data-zone="11527679"
-            data-sdk="show_11527679"
-            strategy="afterInteractive"
-          />
           {/* TonConnect (@tonconnect/ui-react, ~350KB) is deliberately NOT
               wrapped around the whole app here -- it's only used inside the
               Withdraw modal, which loads it on demand. See
               components/profile/withdraw-modal-with-provider.tsx. */}
-          <TelegramProvider>{children}</TelegramProvider>
+          <MiniAppShell>{children}</MiniAppShell>
         </div>
       </body>
     </html>

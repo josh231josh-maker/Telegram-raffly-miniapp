@@ -11,7 +11,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { usePathname } from "next/navigation";
 import { fetchWithRetry } from "@/lib/fetch-retry";
 
 type RafflyUser = {
@@ -109,7 +108,6 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   const [raffleEntry, setRaffleEntry] = useState<RaffleEntry | null>(null);
   const [loadingRaffleEntry, setLoadingRaffleEntry] = useState(true);
   const initDataRef = useRef("");
-  const pathname = usePathname();
 
   // Every handler below reads only from initDataRef (a ref) and calls
   // useState setters -- both stable across renders -- so each is wrapped in
@@ -228,14 +226,10 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   }, [fetchRaffleEntry]);
 
   useEffect(() => {
-    // Only for the player-facing mini app -- the admin dashboard (run by
-    // and for the admin, not a Telegram WebView) should keep normal
-    // browser image behavior (e.g. saving a screenshot/proof image).
-    // usePathname (not a one-time window.location read) so this stays
-    // correct even if admin and app are ever reached via client-side
-    // navigation instead of a full page load.
-    if (pathname?.startsWith("/admin")) return;
-
+    // No /admin check needed here anymore -- this whole provider is only
+    // ever mounted for the mini app now (see components/mini-app-shell.tsx),
+    // so there's no route this could fire on except the ones it's meant for.
+    //
     // The `img { -webkit-touch-callout: none }` rule in globals.css only
     // suppresses the long-press "save/share image" menu on iOS Safari --
     // that property is WebKit-specific and does nothing on Android Chrome
@@ -247,7 +241,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     };
     document.addEventListener("contextmenu", blockImageContextMenu);
     return () => document.removeEventListener("contextmenu", blockImageContextMenu);
-  }, [pathname]);
+  }, []);
 
   const checkIn = useCallback(async (): Promise<CheckInResult> => {
     if (!initDataRef.current) {
