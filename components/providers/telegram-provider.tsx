@@ -225,6 +225,20 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     // only runs once on mount, same as before.
   }, [fetchRaffleEntry]);
 
+  useEffect(() => {
+    // The `img { -webkit-touch-callout: none }` rule in globals.css only
+    // suppresses the long-press "save/share image" menu on iOS Safari --
+    // that property is WebKit-specific and does nothing on Android Chrome
+    // (which is what Telegram's Android app uses for mini apps). Android
+    // fires a real `contextmenu` event on long-press, so blocking it here
+    // is the only thing that also works there.
+    const blockImageContextMenu = (e: MouseEvent) => {
+      if (e.target instanceof HTMLImageElement) e.preventDefault();
+    };
+    document.addEventListener("contextmenu", blockImageContextMenu);
+    return () => document.removeEventListener("contextmenu", blockImageContextMenu);
+  }, []);
+
   const checkIn = useCallback(async (): Promise<CheckInResult> => {
     if (!initDataRef.current) {
       return { error: "Not ready" };
