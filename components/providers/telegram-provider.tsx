@@ -305,16 +305,27 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       const data: EnterRaffleResult = await res.json();
       if (data.user) setUser(data.user);
       if (data.success) {
-        setRaffleEntry((prev) =>
-          prev ? { ...prev, ticketsEntered: data.ticketsEntered ?? prev.ticketsEntered } : prev
-        );
+        let hadPriorEntry = true;
+        setRaffleEntry((prev) => {
+          if (prev) return { ...prev, ticketsEntered: data.ticketsEntered ?? prev.ticketsEntered };
+          // The initial GET fetch (fetchRaffleEntry) hadn't resolved yet when
+          // this entry landed, so there's no raffleId/weekEnd/status here to
+          // patch ticketsEntered onto -- the POST response only carries the
+          // ticket count. Silently dropping the update here (as this used to)
+          // left raffleEntry stuck at null for the rest of the session: no
+          // "your tickets", and nothing to change to re-trigger the total
+          // pool's refetch either. Fetch the real thing instead of guessing.
+          hadPriorEntry = false;
+          return prev;
+        });
+        if (!hadPriorEntry) fetchRaffleEntry();
       }
       return data;
     } catch (err) {
       console.error("Raffle entry fetch error:", err);
       return { error: "Network error" };
     }
-  }, []);
+  }, [fetchRaffleEntry]);
 
   const claimPassTickets = useCallback(async (): Promise<ClaimPassResult> => {
     if (!initDataRef.current) {

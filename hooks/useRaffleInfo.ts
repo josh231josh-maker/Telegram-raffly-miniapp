@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchWithRetry } from "@/lib/fetch-retry";
 
 export type RaffleWinner = {
@@ -25,10 +25,24 @@ export type RaffleInfo = {
  */
 export function useRaffleInfo(refetchKey?: unknown): RaffleInfo | null {
   const [info, setInfo] = useState<RaffleInfo | null>(null);
+  const isFirstFetchRef = useRef(true);
 
   useEffect(() => {
     let cancelled = false;
-    fetchWithRetry("/api/raffle-info")
+
+    // The route's Cache-Control (public, s-maxage=10) is there so many
+    // different users opening the Home tab in the same few seconds share one
+    // cached response instead of each hitting the DB -- worth keeping for
+    // the common case. But every refetch *after* the first one here only
+    // ever happens because refetchKey (ticketsEntered) just changed, which
+    // only happens right after this same user's own raffle entry -- exactly
+    // the moment a stale cached total pool reads as "didn't update". Only
+    // those refetches bypass the cache; the shared cache still helps
+    // everyone else's initial loads.
+    const isRefetch = !isFirstFetchRef.current;
+    isFirstFetchRef.current = false;
+
+    fetchWithRetry("/api/raffle-info", isRefetch ? { cache: "no-store" } : undefined)
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled) setInfo(data);
