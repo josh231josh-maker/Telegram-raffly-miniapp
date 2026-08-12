@@ -41,7 +41,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ user: await withReferralCount(supabase, existing) });
   }
 
+  // A startParam is either a referral (the referrer's raw telegram_id, always
+  // numeric) or an admin-generated tracking-link code (always starts with a
+  // letter -- see generateCode() in the tracking-links admin route). Numeric
+  // wins the branch below; anything else is looked up as a tracking link.
+  // Both are first-touch, set once at signup, same as each other.
   let referredBy: string | null = null;
+  let acquisitionLinkCode: string | null = null;
   if (tgUser.startParam) {
     const referrerTelegramId = Number(tgUser.startParam);
     if (!Number.isNaN(referrerTelegramId) && referrerTelegramId !== tgUser.id) {
@@ -53,6 +59,15 @@ export async function POST(req: NextRequest) {
       if (referrer) {
         referredBy = referrer.id;
       }
+    } else if (Number.isNaN(referrerTelegramId)) {
+      const { data: link } = await supabase
+        .from("tracking_links")
+        .select("code")
+        .eq("code", tgUser.startParam)
+        .single();
+      if (link) {
+        acquisitionLinkCode = link.code;
+      }
     }
   }
 
@@ -63,6 +78,7 @@ export async function POST(req: NextRequest) {
       username: sanitizeProfileText(tgUser.username),
       first_name: sanitizeProfileText(tgUser.first_name),
       referred_by: referredBy,
+      acquisition_link_code: acquisitionLinkCode,
       ticket_balance: NEW_USER_REWARD_TICKETS,
     })
     .select()
