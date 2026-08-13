@@ -1,6 +1,5 @@
 "use client";
 
-import { IconBadge } from "@/components/icon-badge";
 import { ChevronRightIcon } from "@/components/icons";
 import { TicketImage } from "@/components/ticket-image";
 
@@ -13,17 +12,19 @@ type TaskRowProps = {
   onClick?: () => void;
   disabled?: boolean;
   chevron?: boolean;
-  // Skips IconBadge's circular colored backdrop -- for icons (like a
-  // pre-styled 3D image) that already look complete on their own and
-  // shouldn't be cropped into a circle or given a second background.
-  plainIcon?: boolean;
 };
 
-const REWARD_CLASSES: Record<NonNullable<TaskRowProps["tone"]>, string> = {
-  purple: "bg-purple-soft text-purple",
-  orange: "bg-accent-soft text-accent",
-  pink: "bg-pink-soft text-pink",
-  green: "bg-green-soft text-green",
+// No badge/circle behind the icon or pill behind the reward anymore -- both
+// used to sit in a colored, cropped container, which fights any icon (SVG or
+// a real image like the Watch Ads one) that's already a complete, colorful
+// piece of art on its own. Tone now only tints plain-stroke SVG icons
+// (via currentColor) and the reward text -- it's a no-op className on
+// something like a full-color raster icon, which is exactly the point.
+const TONE_TEXT: Record<NonNullable<TaskRowProps["tone"]>, string> = {
+  purple: "text-purple",
+  orange: "text-accent",
+  pink: "text-pink",
+  green: "text-green",
 };
 
 export function TaskRow({
@@ -35,30 +36,29 @@ export function TaskRow({
   onClick,
   disabled,
   chevron,
-  plainIcon,
 }: TaskRowProps) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className="card-soft flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+      className="card-soft flex w-full items-center gap-3 rounded-[28px] border border-border bg-card px-4 py-3 text-left transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {plainIcon ? (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center">{icon}</span>
-      ) : (
-        <IconBadge icon={icon} tone={tone} size="sm" />
-      )}
+      <span
+        className={`flex h-11 w-11 shrink-0 items-center justify-center [&>svg]:h-7 [&>svg]:w-7 ${TONE_TEXT[tone]}`}
+      >
+        {icon}
+      </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium text-text">{label}</span>
+        <span className="block text-base font-bold text-text">{label}</span>
         {sublabel && <span className="block text-xs text-text-faint">{sublabel}</span>}
       </span>
       <span
-        className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
-          disabled ? "bg-border text-text-faint" : REWARD_CLASSES[tone]
+        className={`flex shrink-0 items-center gap-1.5 text-base font-bold ${
+          disabled ? "text-text-faint" : TONE_TEXT[tone]
         }`}
       >
         {rewardLabel}
-        <TicketImage size={14} />
+        <TicketImage size={22} />
       </span>
       {chevron && <ChevronRightIcon className="h-4 w-4 shrink-0 text-text-faint" />}
     </button>

@@ -176,8 +176,7 @@ export function WatchAdCard() {
 
   return (
     <TaskRow
-      icon={<Image src="/images/watch-ads-icon.png" alt="" width={36} height={37} />}
-      plainIcon
+      icon={<Image src="/images/watch-ads-icon.png" alt="" width={44} height={45} />}
       tone="orange"
       label={label}
       rewardLabel={rewardLabel}
