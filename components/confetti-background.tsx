@@ -12,7 +12,7 @@ export function ConfettiBackground() {
   if (pathname?.startsWith("/admin")) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 opacity-100">
+    <div className="pointer-events-none fixed inset-0 opacity-40">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/images/confetti-bg.gif" alt="" className="h-full w-full object-cover" />
     </div>

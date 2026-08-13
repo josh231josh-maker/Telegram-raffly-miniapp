@@ -25,7 +25,6 @@ export function ReferralCard() {
         sublabel="Earn tickets per referral"
         rewardLabel={`+${REFERRAL_REWARD_TICKETS}`}
         onClick={() => setOpen(true)}
-        chevron
       />
       {open && (
         <InviteFriendsDetail
