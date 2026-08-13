@@ -1,6 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
-export const REFERRAL_TICKET_THRESHOLD = 500;
+export const REFERRAL_TICKET_THRESHOLD = 200;
 export const REFERRAL_REWARD_TICKETS = 100;
 
 /**
