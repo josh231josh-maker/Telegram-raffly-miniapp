@@ -44,7 +44,7 @@ export function TaskRow({
       className="card-soft flex w-full items-center gap-3 rounded-[28px] border border-border bg-card px-4 py-3 text-left transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
     >
       <span
-        className={`flex h-11 w-11 shrink-0 items-center justify-center [&>svg]:h-7 [&>svg]:w-7 ${TONE_TEXT[tone]}`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center [&>svg]:h-[18px] [&>svg]:w-[18px] ${TONE_TEXT[tone]}`}
       >
         {icon}
       </span>

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { isPassActive } from "@/lib/raffly-pass";
-import { CalendarCheckIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 
@@ -46,7 +46,7 @@ export function DailyCheckIn() {
 
   return (
     <TaskRow
-      icon={<CalendarCheckIcon />}
+      icon={<Image src="/images/daily-checkin-icon.png" alt="" width={36} height={37} />}
       tone="purple"
       label={label}
       sublabel={
