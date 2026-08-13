@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { RAFFLY_PASS_STARS, isPassActive } from "@/lib/raffly-pass";
-import { CrownIcon, CheckIcon, CloseIcon, StarIcon } from "@/components/icons";
+import { CrownIcon, CheckIcon, CloseIcon } from "@/components/icons";
 
 type RafflyPassDetailProps = {
   onClose: () => void;
@@ -104,7 +105,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
           <>
             <p className="font-heading mt-1 flex items-center justify-center gap-1.5 text-3xl font-bold text-white">
               {RAFFLY_PASS_STARS}
-              <StarIcon className="h-6 w-6" />
+              <Image src="/images/star-icon.png" alt="" width={28} height={27} />
             </p>
             <p className="text-xs text-white/50">one-time purchase</p>
           </>

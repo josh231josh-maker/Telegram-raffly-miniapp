@@ -7,7 +7,7 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { fetchWithRetry } from "@/lib/fetch-retry";
-import { CloseIcon, StarIcon } from "@/components/icons";
+import { CloseIcon } from "@/components/icons";
 import { TicketImage } from "@/components/ticket-image";
 
 // Display copy only -- the trusted price is set server-side in
@@ -110,7 +110,7 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
                 <span className="text-[10px] text-white/45">tickets</span>
                 <span className="mt-1 flex items-center gap-1 rounded-full bg-accent/20 px-2 py-1 text-[11px] font-semibold text-accent-2 tabular-nums">
                   {loadingTier === t.id ? "..." : t.stars}
-                  <StarIcon className="h-2.5 w-2.5" />
+                  <Image src="/images/star-icon.png" alt="" width={12} height={12} />
                 </span>
               </button>
             ))}
