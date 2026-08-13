@@ -13,6 +13,10 @@ type TaskRowProps = {
   onClick?: () => void;
   disabled?: boolean;
   chevron?: boolean;
+  // Skips IconBadge's circular colored backdrop -- for icons (like a
+  // pre-styled 3D image) that already look complete on their own and
+  // shouldn't be cropped into a circle or given a second background.
+  plainIcon?: boolean;
 };
 
 const REWARD_CLASSES: Record<NonNullable<TaskRowProps["tone"]>, string> = {
@@ -31,6 +35,7 @@ export function TaskRow({
   onClick,
   disabled,
   chevron,
+  plainIcon,
 }: TaskRowProps) {
   return (
     <button
@@ -38,7 +43,11 @@ export function TaskRow({
       disabled={disabled}
       className="card-soft flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
     >
-      <IconBadge icon={icon} tone={tone} size="sm" />
+      {plainIcon ? (
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center">{icon}</span>
+      ) : (
+        <IconBadge icon={icon} tone={tone} size="sm" />
+      )}
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium text-text">{label}</span>
         {sublabel && <span className="block text-xs text-text-faint">{sublabel}</span>}

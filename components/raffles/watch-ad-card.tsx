@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useMonetagAd } from "@/hooks/useMonetagAd";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { fetchWithRetry } from "@/lib/fetch-retry";
-import { PlayCircleIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 
@@ -176,7 +176,8 @@ export function WatchAdCard() {
 
   return (
     <TaskRow
-      icon={<PlayCircleIcon />}
+      icon={<Image src="/images/watch-ads-icon.png" alt="" width={36} height={37} />}
+      plainIcon
       tone="orange"
       label={label}
       rewardLabel={rewardLabel}
