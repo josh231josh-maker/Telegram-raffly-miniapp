@@ -6,6 +6,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
+import { fetchWithRetry } from "@/lib/fetch-retry";
 import { CloseIcon, StarIcon } from "@/components/icons";
 import { TicketImage } from "@/components/ticket-image";
 
@@ -39,7 +40,10 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
     setSuccessMessage(null);
     setLoadingTier(tierId);
     try {
-      const res = await fetch("/api/stars/create-invoice", {
+      // Safe to retry: this only mints a Stars invoice link, no DB write --
+      // actual ticket crediting happens later, only once, via the webhook's
+      // own dedup on the payment charge id.
+      const res = await fetchWithRetry("/api/stars/create-invoice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ initData: getInitData(), tier: tierId }),

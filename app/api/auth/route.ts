@@ -85,6 +85,22 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) {
+    // A flaky connection can make the client retry this same first-signup
+    // call while the earlier attempt actually landed -- telegram_id is
+    // unique, so the loser of that race hits a 23505 here rather than
+    // creating a duplicate account. Treat it the same as the "already
+    // exists" branch above instead of surfacing a raw 500 for what's really
+    // just a sign-in.
+    if (error.code === "23505") {
+      const { data: winner } = await supabase
+        .from("users")
+        .select("*")
+        .eq("telegram_id", tgUser.id)
+        .single();
+      if (winner) {
+        return NextResponse.json({ user: await withReferralCount(supabase, winner) });
+      }
+    }
     return NextResponse.json(
       safeServerError("auth.create_user_failed", error, { telegramId: tgUser.id }),
       { status: 500 }

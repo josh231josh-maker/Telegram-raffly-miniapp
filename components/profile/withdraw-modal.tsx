@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
+import { fetchWithRetry } from "@/lib/fetch-retry";
 import { UsdtIcon, CloseIcon } from "@/components/icons";
 import { IconBadge } from "@/components/icon-badge";
 
@@ -51,7 +52,10 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
     const initData = getInitData();
     if (!initData) return;
 
-    fetch("/api/wallet/connect-ton", {
+    // Safe to retry: setting the saved wallet address is a plain overwrite,
+    // not a delta -- a retried call after a dropped response ends in the
+    // same state either way.
+    fetchWithRetry("/api/wallet/connect-ton", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ initData, walletAddress: address }),
@@ -80,7 +84,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
         throw new Error("Not ready — reopen the app and try again.");
       }
 
-      const res = await fetch("/api/wallet/connect-ton", {
+      const res = await fetchWithRetry("/api/wallet/connect-ton", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ initData, walletAddress: null }),

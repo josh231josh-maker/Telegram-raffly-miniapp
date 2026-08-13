@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { checkAndRewardReferral } from "@/lib/referral";
@@ -58,13 +59,23 @@ export async function GET(req: NextRequest) {
 
   const baseReward = isPassActive(user.raffly_pass_expires_at) ? 2 : 1;
 
+  // ymid stays valid (and re-verifiable) for its full TTL, so Monetag
+  // redelivering the same postback -- or the URL simply being replayed --
+  // must not be able to record a second view for one watch. Hashing the
+  // token and handing it to record_ad_view lets the DB enforce "this token
+  // has been used" via a unique constraint, the same dedup shape already
+  // used for Stars payments (transactions.external_ref).
+  const tokenHash = crypto.createHash("sha256").update(ymid).digest("hex");
+
   // Atomic: records the view and, once enough have piled up, converts and
-  // credits in one row-locked transaction -- a retried postback for the
-  // same user can't double-convert or double-credit.
+  // credits in one row-locked transaction. Returns -1 if tokenHash was
+  // already recorded (a replay, not a new watch) -- treated as a no-op
+  // success below, not an error, since a duplicate postback isn't a failure.
   const { data: ticketsAwarded, error: rpcError } = await supabase.rpc("record_ad_view", {
     p_user_id: user.id,
     p_ratio: ADS_TO_TICKET_RATIO,
     p_reward: baseReward,
+    p_token_hash: tokenHash,
   });
 
   if (rpcError) {
@@ -72,6 +83,10 @@ export async function GET(req: NextRequest) {
       safeServerError("ads.monetag_rpc_failed", rpcError, { userId: user.id }),
       { status: 500 }
     );
+  }
+
+  if (ticketsAwarded === -1) {
+    return NextResponse.json({ success: true, duplicate: true });
   }
 
   if (ticketsAwarded > 0) {

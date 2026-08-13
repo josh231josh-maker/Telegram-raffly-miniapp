@@ -15,10 +15,13 @@ function generateCode(): string {
   return "c" + crypto.randomBytes(5).toString("hex");
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   if (!(await isAdminAuthed())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const ipCheck = await rateLimitByIp(req, "adminRead", RATE_LIMITS.adminRead.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const supabase = getSupabaseAdmin();
 

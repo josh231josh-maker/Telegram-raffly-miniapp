@@ -53,6 +53,13 @@ export const RATE_LIMITS = {
     ip: { requests: 60, window: "60 s" },
     user: { requests: 30, window: "60 s" },
   },
+  // Public, unauthenticated (no verified identity to key a per-user limit
+  // on) -- the 10s shared CDN cache absorbs the common case, but a flood
+  // across many edge PoPs or with cache-busting still reaches this function
+  // and its 4 DB round-trips uncapped without an IP-scoped floor.
+  raffleInfo: {
+    ip: { requests: 60, window: "60 s" },
+  },
   raffleEntryWrite: {
     ip: { requests: 20, window: "60 s" },
     user: { requests: 10, window: "60 s" },

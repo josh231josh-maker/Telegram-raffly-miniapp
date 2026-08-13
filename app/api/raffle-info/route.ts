@@ -1,8 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getCurrentWeekEnd } from "@/lib/raffle-week";
+import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const ipCheck = await rateLimitByIp(req, "raffleInfo", RATE_LIMITS.raffleInfo.ip);
+  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
+
   const supabase = getSupabaseAdmin();
 
   const weekEndIso = getCurrentWeekEnd().toISOString();

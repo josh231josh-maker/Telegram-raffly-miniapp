@@ -105,38 +105,39 @@ export async function POST(req: NextRequest) {
     }
 
     // Telegram retries webhook delivery on timeout/non-2xx, so the same
-    // successful_payment can arrive more than once. This charge ID is
-    // unique per payment, so a duplicate insert fails and we skip
-    // crediting again rather than double-paying out.
-    const { error: dedupeError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      type: "stars_purchase",
-      currency: "STARS",
-      amount: payment.total_amount,
-      tickets_granted: tickets,
-      status: "completed",
-      external_ref: payment.telegram_payment_charge_id,
+    // successful_payment can arrive more than once. Recording the dedupe row
+    // and crediting the ticket/pass balance happen atomically inside one DB
+    // function -- if either half fails, both roll back together, so a
+    // genuine retry can still succeed instead of the dedupe row silently
+    // blocking crediting forever.
+    const { data: credited, error: creditError } = await supabase.rpc("credit_stars_payment", {
+      p_user_id: user.id,
+      p_external_ref: payment.telegram_payment_charge_id,
+      p_amount: payment.total_amount,
+      p_tickets: tickets,
+      p_is_pass: tier === "pass",
+      p_pass_days: RAFFLY_PASS_DURATION_DAYS,
     });
 
-    if (dedupeError) {
-      // Unique violation on external_ref means this charge was already processed.
+    if (creditError) {
+      logger.error("stars.payment_credit_failed", {
+        userId: user.id,
+        chargeId: payment.telegram_payment_charge_id,
+        error: creditError.message,
+      });
+      // Non-2xx so Telegram redelivers this update -- nothing was persisted
+      // (the dedupe insert rolled back with the failed credit), so a retry
+      // can genuinely complete it rather than being blocked as a duplicate.
+      return NextResponse.json({ error: "Failed to credit payment" }, { status: 500 });
+    }
+
+    if (!credited) {
+      // external_ref already recorded -- this charge was already processed.
       logger.warn("stars.payment_duplicate_delivery", {
         userId: user.id,
         chargeId: payment.telegram_payment_charge_id,
       });
       return NextResponse.json({ ok: true });
-    }
-
-    if (tier === "pass") {
-      await supabase.rpc("extend_raffly_pass", {
-        p_user_id: user.id,
-        p_days: RAFFLY_PASS_DURATION_DAYS,
-      });
-    } else {
-      await supabase.rpc("increment_ticket_balance", {
-        p_user_id: user.id,
-        p_delta: tickets,
-      });
     }
 
     logger.info("stars.payment_credited", { userId: user.id, tier, tickets, stars: payment.total_amount });

@@ -3,6 +3,7 @@ import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
 import { safeServerError } from "@/lib/logger";
+import { validateWinnerAnnouncementFields } from "@/lib/validation/winner-announcement";
 
 export async function GET(req: NextRequest) {
   const adminUser = await verifyAdminAuth();
@@ -28,6 +29,10 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ announcements });
 }
 
+// Announcements are display-only (the real, credit-bearing prize_amount lives
+// on raffle_winners and isn't editable via this route), but a bad value here
+// is still shown to every player via /api/raffle-info, so it's worth
+// rejecting obvious typos/garbage rather than trusting the admin form blindly.
 export async function POST(req: NextRequest) {
   const adminUser = await verifyAdminAuth();
   if (!adminUser) {
@@ -39,11 +44,16 @@ export async function POST(req: NextRequest) {
 
   const { display_name, prize_amount, week_label, publish_at } = await req.json();
 
-  if (!display_name || !prize_amount) {
+  if (!display_name || prize_amount === undefined || prize_amount === null) {
     return NextResponse.json(
       { error: "Missing required fields: display_name, prize_amount" },
       { status: 400 }
     );
+  }
+
+  const validationError = validateWinnerAnnouncementFields({ display_name, prize_amount, week_label });
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
   const supabase = getSupabaseAdmin();

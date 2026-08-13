@@ -1,70 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { checkAndRewardReferral } from "@/lib/referral";
-import { isPassActive } from "@/lib/raffly-pass";
-import { timingSafeEqual } from "@/lib/timing-safe";
-import { RATE_LIMITS, rateLimitByIp, rateLimitByUser, rateLimitResponse } from "@/lib/rate-limit";
-import { safeServerError } from "@/lib/logger";
+import { NextResponse } from "next/server";
 
-const ADS_TO_TICKET_RATIO = 2;
-
-export async function GET(req: NextRequest) {
-  const ipCheck = await rateLimitByIp(req, "adReward", RATE_LIMITS.adReward.ip);
-  if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
-
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get("userid");
-  const secret = searchParams.get("secret");
-
-  if (!timingSafeEqual(secret, process.env.ADSGRAM_SECRET)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!userId) {
-    return NextResponse.json({ error: "Missing userid" }, { status: 400 });
-  }
-
-  const telegramId = Number(userId);
-  if (Number.isNaN(telegramId)) {
-    return NextResponse.json({ error: "Invalid userid" }, { status: 400 });
-  }
-
-  const userCheck = await rateLimitByUser(req, "adReward", telegramId, RATE_LIMITS.adReward.user);
-  if (!userCheck.allowed) return rateLimitResponse(userCheck);
-
-  const supabase = getSupabaseAdmin();
-
-  const { data: user, error: userError } = await supabase
-    .from("users")
-    .select("id, raffly_pass_expires_at")
-    .eq("telegram_id", telegramId)
-    .single();
-
-  if (userError || !user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
-
-  const baseReward = isPassActive(user.raffly_pass_expires_at) ? 2 : 1;
-
-  // Atomic: records the view and, once enough have piled up, converts and
-  // credits in one row-locked transaction -- a retried postback for the
-  // same user can't double-convert or double-credit.
-  const { data: ticketsAwarded, error: rpcError } = await supabase.rpc("record_ad_view", {
-    p_user_id: user.id,
-    p_ratio: ADS_TO_TICKET_RATIO,
-    p_reward: baseReward,
-  });
-
-  if (rpcError) {
-    return NextResponse.json(
-      safeServerError("ads.adsgram_rpc_failed", rpcError, { userId: user.id }),
-      { status: 500 }
-    );
-  }
-
-  if (ticketsAwarded > 0) {
-    await checkAndRewardReferral(supabase, user.id);
-  }
-
-  return NextResponse.json({ success: true });
+// Retired: the Adsgram SDK script is still loaded (components/mini-app-shell.tsx)
+// but nothing in the client has ever invoked it since the Adsgram hook was
+// removed -- Monetag is the only ad network actually wired into the watch-ad
+// flow. This endpoint had no real caller, yet accepted a raw client-supplied
+// userid gated only by a static shared secret (no per-session binding like
+// Monetag's signed ad-reward token), making it a live ticket-farming hole for
+// anyone who ever learned that secret. Since nothing depends on it, retiring
+// it outright is safer than retrofitting the same token-binding scheme
+// Monetag uses for an integration that isn't in use. If Adsgram is wired up
+// again in the future, rebuild this the way monetag-postback/route.ts does:
+// mint a signed token from verified initData before showing the ad, and
+// verify it back here instead of trusting a raw id.
+export async function GET() {
+  return NextResponse.json({ error: "Gone" }, { status: 410 });
 }

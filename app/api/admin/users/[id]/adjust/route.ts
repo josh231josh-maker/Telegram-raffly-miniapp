@@ -15,8 +15,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params;
   const { ticketDelta, usdtDelta } = await req.json();
 
-  const ticketAdjust = Number(ticketDelta) || 0;
-  const usdtAdjust = Number(usdtDelta) || 0;
+  // `Number("Infinity") || 0` doesn't catch Infinity (it's truthy), and the
+  // Supabase client JSON-serializes it as `null` on the way to the RPC --
+  // Postgres's `greatest(0, balance + NULL)` then silently resets the
+  // balance to 0 instead of erroring. Reject any non-finite delta outright
+  // rather than let it reach the RPC. Omitted/blank fields still mean "no
+  // change to this balance", same as before.
+  const parseDelta = (raw: unknown): number | null => {
+    if (raw === undefined || raw === null || raw === "") return 0;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const ticketAdjust = parseDelta(ticketDelta);
+  const usdtAdjust = parseDelta(usdtDelta);
+
+  if (ticketAdjust === null || usdtAdjust === null) {
+    return NextResponse.json({ error: "Adjustment must be a finite number" }, { status: 400 });
+  }
+  if (!Number.isInteger(ticketAdjust)) {
+    return NextResponse.json({ error: "ticketDelta must be a whole number" }, { status: 400 });
+  }
 
   if (ticketAdjust === 0 && usdtAdjust === 0) {
     return NextResponse.json({ error: "No adjustment provided" }, { status: 400 });

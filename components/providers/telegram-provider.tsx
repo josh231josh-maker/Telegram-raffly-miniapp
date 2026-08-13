@@ -256,7 +256,10 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       return { error: "Not ready" };
     }
     try {
-      const res = await fetch("/api/checkin", {
+      // Safe to retry: try_daily_checkin is gated on last_checkin_date, so a
+      // retried call after a dropped response just no-ops instead of double-
+      // crediting the streak bonus.
+      const res = await fetchWithRetry("/api/checkin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ initData: initDataRef.current }),
@@ -278,7 +281,11 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       // amount and the destination wallet are both derived server-side
       // (from the caller's own balance and saved ton_wallet_address) --
       // the client was never able to specify either, so it doesn't send them.
-      const res = await fetch("/api/withdraw", {
+      // Safe to retry: process_withdrawal is a single-shot "withdraw my
+      // whole balance" call backed by withdrawals_one_active_per_user, so a
+      // retry after a dropped response either succeeds once or gets a clean
+      // 409 for "already requested" -- never a second real withdrawal.
+      const res = await fetchWithRetry("/api/withdraw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ initData: initDataRef.current }),
@@ -297,11 +304,21 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       return { error: "Not ready" };
     }
     try {
-      const res = await fetch("/api/raffle-entry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData: initDataRef.current, ticketsToEnter }),
-      });
+      // Unlike checkin/withdraw/pass-claim, ticketsToEnter is a delta ("add
+      // N more"), not a fixed one-shot action -- if the write actually
+      // succeeded server-side but the response was lost, blindly retrying
+      // the same body would spend N tickets a second time. Still worth the
+      // timeout fetchWithRetry provides (a hung connection shouldn't spin
+      // forever), just without its automatic retries.
+      const res = await fetchWithRetry(
+        "/api/raffle-entry",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ initData: initDataRef.current, ticketsToEnter }),
+        },
+        1
+      );
       const data: EnterRaffleResult = await res.json();
       if (data.user) setUser(data.user);
       if (data.success) {
@@ -332,7 +349,8 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       return { error: "Not ready" };
     }
     try {
-      const res = await fetch("/api/raffly-pass/claim", {
+      // Safe to retry: date-gated the same way checkin is (see above).
+      const res = await fetchWithRetry("/api/raffly-pass/claim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ initData: initDataRef.current }),

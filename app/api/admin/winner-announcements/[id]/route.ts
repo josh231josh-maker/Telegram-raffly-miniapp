@@ -3,6 +3,7 @@ import { verifyAdminAuth } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
 import { safeServerError } from "@/lib/logger";
+import { validateWinnerAnnouncementFields } from "@/lib/validation/winner-announcement";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminUser = await verifyAdminAuth();
@@ -14,6 +15,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
 
   const { display_name, prize_amount, week_label, publish_at } = await req.json();
+
+  const validationError = validateWinnerAnnouncementFields({ display_name, prize_amount, week_label });
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
+  }
+
   const supabase = getSupabaseAdmin();
   const { id } = await params;
 
