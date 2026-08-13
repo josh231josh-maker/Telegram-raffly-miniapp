@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
-import { GiftIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
 import { InviteFriendsDetail } from "@/components/raffles/invite-friends-detail";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
@@ -19,7 +19,7 @@ export function ReferralCard() {
   return (
     <>
       <TaskRow
-        icon={<GiftIcon />}
+        icon={<Image src="/images/referral-icon.png" alt="" width={36} height={35} />}
         tone="pink"
         label="Invite Friends"
         sublabel="Earn tickets per referral"
