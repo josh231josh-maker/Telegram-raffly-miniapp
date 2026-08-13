@@ -36,13 +36,22 @@ export function useRaffleInfo(refetchKey?: unknown): RaffleInfo | null {
     // the common case. But every refetch *after* the first one here only
     // ever happens because refetchKey (ticketsEntered) just changed, which
     // only happens right after this same user's own raffle entry -- exactly
-    // the moment a stale cached total pool reads as "didn't update". Only
-    // those refetches bypass the cache; the shared cache still helps
-    // everyone else's initial loads.
+    // the moment a stale cached total pool reads as "didn't update".
+    //
+    // `cache: "no-store"` alone doesn't fix that: it only tells the browser
+    // not to serve this request from its own local disk cache. The actual
+    // staleness comes from Vercel's shared edge/CDN cache, which caches by
+    // URL per the response's own Cache-Control header regardless of what
+    // cache mode the request was made with. A same-URL refetch can still hit
+    // that shared cache and get back the pre-entry total. Appending a
+    // cache-busting query param gives the refetch a distinct URL, so it's a
+    // guaranteed miss there too -- while everyone else's plain, unbusted
+    // requests still share the 10s cache as intended.
     const isRefetch = !isFirstFetchRef.current;
     isFirstFetchRef.current = false;
 
-    fetchWithRetry("/api/raffle-info", isRefetch ? { cache: "no-store" } : undefined)
+    const url = isRefetch ? `/api/raffle-info?t=${Date.now()}` : "/api/raffle-info";
+    fetchWithRetry(url, isRefetch ? { cache: "no-store" } : undefined)
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled) setInfo(data);
