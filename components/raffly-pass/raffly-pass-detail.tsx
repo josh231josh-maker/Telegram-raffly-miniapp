@@ -24,7 +24,7 @@ const BENEFITS = [
 ];
 
 export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
-  const { user, loadingUser, getInitData, refreshUser, claimPassTickets } = useTelegram();
+  const { user, loadingUser, getInitData, refreshUser } = useTelegram();
   const openInvoice = useTelegramInvoice();
   useTelegramBackButton(onClose);
   const [status, setStatus] = useState<"idle" | "loading">("idle");
@@ -69,20 +69,6 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
       setMessage("Something went wrong");
     } finally {
       setStatus("idle");
-    }
-  };
-
-  const handleClaim = async () => {
-    setMessage(null);
-    setStatus("loading");
-    const result = await claimPassTickets();
-    setStatus("idle");
-    if (result.alreadyClaimed) {
-      setMessage("Already claimed today's tickets");
-    } else if (result.error) {
-      setMessage(result.error);
-    } else if (result.ticketsEarned) {
-      setMessage(`+${result.ticketsEarned} tickets claimed!`);
     }
   };
 
@@ -137,17 +123,11 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
         </div>
 
         {hasPass ? (
-          <button
-            onClick={handleClaim}
-            disabled={status === "loading" || alreadyClaimedToday}
-            className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-semibold text-accent shadow-lg transition active:scale-[0.98] disabled:opacity-60"
-          >
-            {status === "loading"
-              ? "Claiming..."
-              : alreadyClaimedToday
-              ? "Already claimed today"
-              : `Claim today's ${RAFFLY_PASS_DAILY_TICKETS} tickets`}
-          </button>
+          <p className="mt-6 text-xs text-white/50">
+            {alreadyClaimedToday
+              ? `Today's ${RAFFLY_PASS_DAILY_TICKETS} tickets have been credited.`
+              : `Today's ${RAFFLY_PASS_DAILY_TICKETS} tickets are credited automatically.`}
+          </p>
         ) : (
           <>
             <button

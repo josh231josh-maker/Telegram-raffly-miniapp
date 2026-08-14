@@ -57,13 +57,6 @@ type EnterRaffleResult = {
   error?: string;
 };
 
-type ClaimPassResult = {
-  alreadyClaimed?: boolean;
-  ticketsEarned?: number;
-  user?: RafflyUser;
-  error?: string;
-};
-
 type TelegramContextValue = {
   isReady: boolean;
   isTelegram: boolean;
@@ -81,7 +74,6 @@ type TelegramContextValue = {
   loadingRaffleEntry: boolean;
   enterRaffle: (ticketsToEnter: number) => Promise<EnterRaffleResult>;
   refreshRaffleEntry: () => Promise<void>;
-  claimPassTickets: () => Promise<ClaimPassResult>;
 };
 
 const TelegramContext = createContext<TelegramContextValue>({
@@ -98,7 +90,6 @@ const TelegramContext = createContext<TelegramContextValue>({
   loadingRaffleEntry: true,
   enterRaffle: async () => ({ error: "Not ready" }),
   refreshRaffleEntry: async () => {},
-  claimPassTickets: async () => ({ error: "Not ready" }),
 });
 
 export function useTelegram() {
@@ -361,26 +352,6 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     }
   }, [fetchRaffleEntry]);
 
-  const claimPassTickets = useCallback(async (): Promise<ClaimPassResult> => {
-    if (!initDataRef.current) {
-      return { error: "Not ready" };
-    }
-    try {
-      // Safe to retry: date-gated the same way checkin is (see above).
-      const res = await fetchWithRetry("/api/raffly-pass/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData: initDataRef.current }),
-      });
-      const data: ClaimPassResult = await res.json();
-      if (data.user) setUser(data.user);
-      return data;
-    } catch (err) {
-      console.error("Claim pass tickets fetch error:", err);
-      return { error: "Network error" };
-    }
-  }, []);
-
   const getInitData = useCallback(() => initDataRef.current, []);
 
   // The consumer set is large (nearly every screen reads from this context),
@@ -403,7 +374,6 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       loadingRaffleEntry,
       enterRaffle,
       refreshRaffleEntry: fetchRaffleEntry,
-      claimPassTickets,
     }),
     [
       isReady,
@@ -419,7 +389,6 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       loadingRaffleEntry,
       enterRaffle,
       fetchRaffleEntry,
-      claimPassTickets,
     ]
   );
 
