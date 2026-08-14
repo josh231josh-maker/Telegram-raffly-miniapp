@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const SETTINGS_ROWS: { label: string; href?: string }[] = [
   { label: "Support", href: "https://t.me/RafflySupportBot" },
-  { label: "Terms & Privacy" },
 ];
 
 function initials(firstName: string | null, username: string | null): string {
