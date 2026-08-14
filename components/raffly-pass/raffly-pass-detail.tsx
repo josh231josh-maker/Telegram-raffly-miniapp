@@ -131,10 +131,6 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
           ))}
         </div>
 
-        <div className="mt-4 w-full rounded-2xl border border-white/30 bg-white/15 px-4 py-3">
-          <p className="text-sm font-semibold text-white">You&apos;ll receive 600+ tickets this month</p>
-        </div>
-
         {hasPass ? (
           <button
             onClick={handleClaim}
