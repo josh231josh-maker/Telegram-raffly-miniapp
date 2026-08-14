@@ -21,13 +21,21 @@ const REFRESH_DELAY_MS = 2000;
 export function WatchTadsAdCard() {
   const { user, refreshUser, loadingUser } = useTelegram();
   const [status, setStatus] = useState<Status>("idle");
+  // Temporary, while this integration is still being verified against
+  // TADS' real runtime behavior -- surfaces the actual failure reason
+  // in the UI itself, since there's no browser devtools access inside
+  // Telegram to check the console directly. Remove once this is confirmed
+  // working end to end.
+  const [debugError, setDebugError] = useState<string | null>(null);
   const { showAd } = useTadsAd();
 
   const handleWatch = async () => {
     setStatus("watching");
-    const shown = await showAd();
-    if (!shown) {
+    setDebugError(null);
+    const result = await showAd();
+    if (!result.shown) {
       setStatus("failed");
+      setDebugError(result.error ?? "Unknown failure");
       return;
     }
     setStatus("checking");
@@ -56,13 +64,18 @@ export function WatchTadsAdCard() {
   const disabled = status !== "idle" && status !== "failed";
 
   return (
-    <TaskRow
-      icon={<Image src="/images/watch-ads-icon.png" alt="" width={36} height={37} />}
-      tone="orange"
-      label={label}
-      rewardLabel={rewardLabel}
-      onClick={handleWatch}
-      disabled={disabled}
-    />
+    <div>
+      <TaskRow
+        icon={<Image src="/images/watch-ads-icon.png" alt="" width={36} height={37} />}
+        tone="orange"
+        label={label}
+        rewardLabel={rewardLabel}
+        onClick={handleWatch}
+        disabled={disabled}
+      />
+      {debugError && (
+        <p className="mt-1 px-2 text-[11px] text-text-faint">TADS debug: {debugError}</p>
+      )}
+    </div>
   );
 }
