@@ -152,7 +152,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
         </div>
 
         <p className="mb-4 text-center text-xs text-text-dim">
-          No minimum — withdraw any amount, any time, sent to the TON wallet below.
+          Sent to the TON wallet below.
         </p>
 
         {walletConnected ? (
