@@ -27,7 +27,9 @@ declare global {
   }
 }
 
-const TADS_WIDGET_ID = "11523";
+// Exported so the container div TADS' docs require (id="tads-container-{widgetId}",
+// see watch-tads-ad-card.tsx) always matches the id actually passed to init().
+export const TADS_WIDGET_ID = "11523";
 
 // Shortened well below Monetag's 5-minute timeout while this integration is
 // still being verified -- Monetag's is long because its promise only

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useTadsAd } from "@/hooks/useTadsAd";
+import { useTadsAd, TADS_WIDGET_ID } from "@/hooks/useTadsAd";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { TaskRow } from "@/components/raffles/task-row";
@@ -64,6 +64,13 @@ export function WatchTadsAdCard() {
 
   return (
     <div>
+      {/* Required by TADS' own setup docs -- the widget looks for this
+          specific element (id="tads-container-{widgetId}") when init() runs,
+          so it has to already be in the DOM before that call, not created on
+          demand. Unstyled/empty: for a fullscreen ad this is documented as
+          an initialization anchor, not a literal render target -- the ad
+          itself is expected to overlay the whole screen, not this box. */}
+      <div id={`tads-container-${TADS_WIDGET_ID}`} />
       <TaskRow
         icon={<Image src="/images/watch-ads-icon.png" alt="" width={36} height={37} />}
         tone="orange"
