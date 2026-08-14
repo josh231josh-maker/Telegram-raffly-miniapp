@@ -244,8 +244,25 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     // (which is what Telegram's Android app uses for mini apps). Android
     // fires a real `contextmenu` event on long-press, so blocking it here
     // is the only thing that also works there.
+    //
+    // e.target is only the actual <img> when the touch's hit-test resolves
+    // exactly onto its rendered box. A small icon inside a padded button
+    // (like TaskRow's leading icons) can have its box not quite fill the
+    // button/span around it -- a long-press landing in that sliver of
+    // padding resolves e.target to the wrapper, not the <img>, so the
+    // direct instanceof check misses it and the native menu still shows,
+    // even though an image is clearly what got long-pressed. Falling back
+    // to "does the nearest button/link contain an <img>" catches that case
+    // too, bounded to the closest interactive ancestor rather than
+    // searching the whole document (which would also swallow long-presses
+    // on unrelated text elsewhere on the page, since some image or other
+    // exists on nearly every screen).
     const blockImageContextMenu = (e: MouseEvent) => {
-      if (e.target instanceof HTMLImageElement) e.preventDefault();
+      const target = e.target;
+      if (!(target instanceof Element)) return;
+      if (target instanceof HTMLImageElement || target.closest("button, a")?.querySelector("img")) {
+        e.preventDefault();
+      }
     };
     document.addEventListener("contextmenu", blockImageContextMenu);
     return () => document.removeEventListener("contextmenu", blockImageContextMenu);
