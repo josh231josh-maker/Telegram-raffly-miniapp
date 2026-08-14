@@ -19,7 +19,7 @@ export function MiniAppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       {/* Ad SDKs are only needed once a user taps "Watch Ads" -- loading them
-          beforeInteractive would block the whole app's startup on two
+          beforeInteractive would block the whole app's startup on three
           third-party ad CDNs that most sessions never even use. */}
       <Script src="https://sad.adsgram.ai/js/sad.min.js" strategy="afterInteractive" />
       <Script
@@ -28,6 +28,7 @@ export function MiniAppShell({ children }: { children: React.ReactNode }) {
         data-sdk="show_11527679"
         strategy="afterInteractive"
       />
+      <Script src="https://w.tads.me/widget.js" strategy="afterInteractive" />
       <TelegramProvider>{children}</TelegramProvider>
     </>
   );
