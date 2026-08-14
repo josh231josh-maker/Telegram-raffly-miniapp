@@ -2,12 +2,16 @@
 
 import { useCallback, useRef } from "react";
 
-// window.tads.init() returns a thenable that resolves once setup completes
-// AND carries its own showAd() method directly on that same object -- per
-// TADS' docs, init() alone never displays anything; showAd() is what
-// actually triggers an ad request, and must be called after the init
-// promise resolves (typically from a click handler).
-type TadsController = Promise<void> & { showAd: () => void };
+// TADS' docs show init() returning a thenable that also carries its own
+// showAd() method (resolve the promise, then call showAd() to actually
+// request an ad) -- but a real production error (Sentry: "r.then is not a
+// function", thrown from exactly this call site) proved the object init()
+// actually returns at runtime has no .then at all, even though it does
+// still have a working .showAd(). Rather than trust either shape blindly,
+// this duck-types the return value at runtime and handles both: await it
+// if it's genuinely thenable, otherwise treat it as already ready and call
+// showAd() immediately.
+type TadsController = { showAd?: unknown; then?: unknown };
 
 declare global {
   interface Window {
@@ -18,7 +22,7 @@ declare global {
         debug?: boolean;
         onShowReward?: (result: unknown) => void;
         onAdsNotFound?: () => void;
-      }) => TadsController;
+      }) => unknown;
     };
   }
 }
@@ -70,7 +74,9 @@ export function useTadsAd() {
         pendingRef.current?.({ shown: false, error: "onAdsNotFound" });
         pendingRef.current = null;
       },
-    });
+    }) as TadsController | null | undefined;
+
+    if (!controller || typeof controller !== "object") return null;
     controllerRef.current = controller;
     return controller;
   }, []);
@@ -82,7 +88,7 @@ export function useTadsAd() {
       return new Promise((resolve) => {
         const controller = getController(onDebug);
         if (!controller) {
-          report("window.tads is undefined -- widget.js hasn't loaded (yet, or at all)");
+          report("window.tads is undefined, or init() returned nothing usable");
           resolve({ shown: false, error: "widget script not loaded" });
           return;
         }
@@ -101,19 +107,41 @@ export function useTadsAd() {
         }, SHOW_AD_TIMEOUT_MS);
 
         pendingRef.current = settle;
-        report("waiting for init() to resolve...");
 
-        controller
-          .then(() => {
-            report("init() resolved, calling showAd()...");
-            controller.showAd();
+        const triggerShowAd = () => {
+          if (typeof controller.showAd !== "function") {
+            report("controller has no showAd() method");
+            settle({ shown: false, error: "controller.showAd is not a function" });
+            return;
+          }
+          try {
+            report("calling showAd()...");
+            (controller.showAd as () => void)();
             report("showAd() called, waiting for a callback...");
-          })
-          .catch((err) => {
+          } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
-            report(`init() promise rejected: ${message}`);
+            report(`showAd() threw: ${message}`);
             settle({ shown: false, error: message });
-          });
+          }
+        };
+
+        if (typeof controller.then === "function") {
+          report("init() returned a thenable, waiting for it to resolve...");
+          (controller.then as (onFulfilled: () => void, onRejected: (err: unknown) => void) => void)(
+            () => {
+              report("init() resolved");
+              triggerShowAd();
+            },
+            (err: unknown) => {
+              const message = err instanceof Error ? err.message : String(err);
+              report(`init() rejected: ${message}`);
+              settle({ shown: false, error: message });
+            }
+          );
+        } else {
+          report("init() did not return a thenable, calling showAd() directly...");
+          triggerShowAd();
+        }
       });
     },
     [getController]
