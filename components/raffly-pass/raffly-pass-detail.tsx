@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
-import { RAFFLY_PASS_STARS, isPassActive } from "@/lib/raffly-pass";
+import { RAFFLY_PASS_STARS, RAFFLY_PASS_DAILY_TICKETS, isPassActive } from "@/lib/raffly-pass";
 import { CrownIcon, CheckIcon, CloseIcon } from "@/components/icons";
 
 type RafflyPassDetailProps = {
@@ -28,6 +28,12 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
   const hasPass = !loadingUser && isPassActive(user?.raffly_pass_expires_at ?? null);
   const today = new Date().toISOString().slice(0, 10);
   const alreadyClaimedToday = user?.raffly_pass_last_claim_date === today;
+  const daysLeft = hasPass
+    ? Math.max(
+        0,
+        Math.ceil((new Date(user!.raffly_pass_expires_at!).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      )
+    : 0;
 
   const handleBuy = async () => {
     setMessage(null);
@@ -87,20 +93,23 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col items-center overflow-y-auto px-6 pb-10 pt-4 text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/25 text-white">
-          <CrownIcon className="h-8 w-8" />
+      <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8 text-center">
+        <span className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/25 text-white">
+          <CrownIcon className="h-9 w-9" />
         </span>
-        <h1 className="font-heading mt-4 text-2xl font-bold">Raffly Pass</h1>
+        <h1 className="font-heading mt-4 text-2xl font-bold text-balance">Raffly Pass</h1>
 
         {hasPass ? (
-          <p className="mt-1 text-xs text-white/50">
-            Active until{" "}
-            {new Date(user!.raffly_pass_expires_at!).toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-            })}
-          </p>
+          <div className="mt-4 flex w-full items-center divide-x divide-white/20 rounded-2xl border border-white/20 bg-white/10 py-3">
+            <div className="flex-1">
+              <p className="font-heading text-2xl font-bold tabular-nums">{daysLeft}</p>
+              <p className="text-[11px] text-white/60">Days left</p>
+            </div>
+            <div className="flex-1">
+              <p className="font-heading text-2xl font-bold tabular-nums">{RAFFLY_PASS_DAILY_TICKETS}</p>
+              <p className="text-[11px] text-white/60">Tickets/day</p>
+            </div>
+          </div>
         ) : (
           <>
             <p className="font-heading mt-1 flex items-center justify-center gap-1.5 text-3xl font-bold text-white">
