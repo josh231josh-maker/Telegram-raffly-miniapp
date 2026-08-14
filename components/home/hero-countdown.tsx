@@ -89,7 +89,7 @@ export function HeroCountdown() {
 
       <div className="relative mx-auto mt-1 w-fit">
         <p className="hero-prize-glow font-heading text-[34px] font-extrabold leading-none tracking-tight text-balance text-white">
-          ${PRIZE_POOL_USDT.toLocaleString()}
+          {PRIZE_POOL_USDT.toLocaleString()} USDT
         </p>
       </div>
 
