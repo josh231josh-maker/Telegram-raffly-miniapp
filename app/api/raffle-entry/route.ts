@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
 
   if (raffle.status !== "open") {
     return NextResponse.json(
-      { error: "This week's raffle is no longer open for entries" },
+      { error: "This raffle is no longer open for entries" },
       { status: 400 }
     );
   }
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
     // instead of the generic 500 fallback.
     if (rpcError.message?.includes("RAFFLE_NOT_OPEN")) {
       return NextResponse.json(
-        { error: "This week's raffle is no longer open for entries" },
+        { error: "This raffle is no longer open for entries" },
         { status: 400 }
       );
     }

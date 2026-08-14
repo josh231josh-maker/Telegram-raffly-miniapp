@@ -305,7 +305,7 @@ export function BroadcastManager() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Weekly draw reminder"
+            placeholder="e.g. Draw reminder"
             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-white/30"
           />
         </div>
@@ -364,7 +364,7 @@ export function BroadcastManager() {
             value={messageHtml}
             onChange={(e) => setMessageHtml(e.target.value)}
             rows={5}
-            placeholder={"🎉 <b>Weekly Draw Reminder</b>\n\nThe next draw is coming soon. Make sure you have your tickets before the draw closes."}
+            placeholder={"🎉 <b>Draw Reminder</b>\n\nThe next draw is coming soon. Make sure you have your tickets before the draw closes."}
             className={`w-full rounded-lg border bg-white/5 px-3 py-2 text-sm outline-none focus:border-white/30 ${
               overLimit ? "border-red-500/50" : "border-white/10"
             }`}

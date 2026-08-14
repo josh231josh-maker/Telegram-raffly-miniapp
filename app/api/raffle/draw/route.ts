@@ -4,8 +4,11 @@ import { drawRaffleWinners } from "@/lib/raffle-draw";
 import { logger } from "@/lib/logger";
 import { timingSafeEqual } from "@/lib/timing-safe";
 
-// Triggered weekly by Vercel Cron (see vercel.json). Vercel automatically
-// sends `Authorization: Bearer $CRON_SECRET` on cron-triggered requests.
+// Triggered weekly by Vercel Cron (see vercel.json), but only raffles whose
+// week_end has actually arrived get drawn -- since raffle-week.ts now spaces
+// week_end two weeks apart, this fires every Monday but only draws every
+// other one. Vercel automatically sends `Authorization: Bearer $CRON_SECRET`
+// on cron-triggered requests.
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const expected = process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined;

@@ -37,9 +37,9 @@ export function HeroCountdown() {
   });
 
   useEffect(() => {
-    // If the app is left open across the weekly rollover, the old target
+    // If the app is left open across a draw rollover, the old target
     // reaches zero and would otherwise stay frozen there forever -- roll it
-    // forward to the new week's end instead of just clamping at 00:00:00:00.
+    // forward to the new draw's end instead of just clamping at 00:00:00:00.
     const tick = () => {
       const remaining = target.getTime() - Date.now();
       if (remaining <= 0) {
@@ -63,7 +63,7 @@ export function HeroCountdown() {
   return (
     <section
       className="hero-rise relative isolate p-5 text-white"
-      aria-label="Next weekly draw"
+      aria-label="Next draw"
     >
       <Image
         src="/images/hero-ticket-full.png"
@@ -83,7 +83,7 @@ export function HeroCountdown() {
           <TrophyIcon className="h-3 w-3 text-white" />
         </span>
         <span className="text-[10px] font-semibold uppercase tracking-widest text-white/90">
-          This Week&apos;s Prize Pool
+          This Draw&apos;s Prize Pool
         </span>
       </div>
 

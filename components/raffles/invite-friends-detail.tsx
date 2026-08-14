@@ -38,7 +38,7 @@ export function InviteFriendsDetail({
   const handleShare = () => {
     try {
       if (shareURL.isAvailable()) {
-        shareURL(referralLink, "Join me on Raffly and win weekly USDT raffles!");
+        shareURL(referralLink, "Join me on Raffly and win USDT raffles!");
       }
     } catch {
       // sharing unavailable outside Telegram, ignore silently

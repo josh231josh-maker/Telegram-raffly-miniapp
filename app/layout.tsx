@@ -16,9 +16,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Raffly — Weekly USDT Raffles",
+  title: "Raffly — Bi-Weekly USDT Raffles",
   description:
-    "Earn raffle tickets, win a share of $1,000 USDT every week. Watch ads, check in, refer friends, or buy with Stars.",
+    "Earn raffle tickets, win a share of 2,500 USDT every two weeks. Watch ads, check in, refer friends, or buy with Stars.",
 };
 
 export const viewport: Viewport = {

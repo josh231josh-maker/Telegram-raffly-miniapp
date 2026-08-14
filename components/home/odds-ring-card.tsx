@@ -88,7 +88,7 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
     const result = await enterRaffle(clampedAmount);
     setStatus("idle");
     if (result.success) {
-      setMessage(`Entered ${clampedAmount} ticket${clampedAmount === 1 ? "" : "s"} into this week's draw!`);
+      setMessage(`Entered ${clampedAmount} ticket${clampedAmount === 1 ? "" : "s"} into this draw!`);
       setAmount(0);
     } else {
       setMessage(result.error ?? "Something went wrong");
@@ -100,7 +100,7 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-text-dim">Your Odds</p>
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-text-dim">This Week&apos;s Draw</span>
+          <span className="text-sm font-medium text-text-dim">This Draw</span>
           <TicketImage size={20} />
         </div>
       </div>
@@ -146,7 +146,7 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
 
       {raffleClosed ? (
         <p className="text-center text-xs text-text-faint">
-          Entries are closed while this week&apos;s draw is in progress.
+          Entries are closed while this draw is in progress.
         </p>
       ) : available <= 0 ? (
         <div className="flex flex-col items-center gap-3 py-1">
