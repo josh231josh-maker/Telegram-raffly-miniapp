@@ -1,7 +1,7 @@
 "use client";
 
 import { useTelegram } from "@/components/providers/telegram-provider";
-import { isPassActive } from "@/lib/raffly-pass";
+import { RAFFLY_PASS_DAILY_TICKETS, isPassActive } from "@/lib/raffly-pass";
 import { CrownIcon, ChevronRightIcon } from "@/components/icons";
 
 type PassBannerProps = {
@@ -29,7 +29,7 @@ export function PassBanner({ onOpen }: PassBannerProps) {
             </span>
           )}
         </span>
-        <span className="block text-xs text-white/70">20 tickets/day · 2x rewards</span>
+        <span className="block text-xs text-white/70">{RAFFLY_PASS_DAILY_TICKETS} tickets/day · 2x rewards</span>
       </span>
       <ChevronRightIcon className="h-4 w-4 text-white/60" />
     </button>

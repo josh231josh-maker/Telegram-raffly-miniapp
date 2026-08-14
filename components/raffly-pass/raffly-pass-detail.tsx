@@ -5,7 +5,12 @@ import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
-import { RAFFLY_PASS_STARS, RAFFLY_PASS_DAILY_TICKETS, isPassActive } from "@/lib/raffly-pass";
+import {
+  RAFFLY_PASS_STARS,
+  RAFFLY_PASS_DAILY_TICKETS,
+  RAFFLY_PASS_DURATION_DAYS,
+  isPassActive,
+} from "@/lib/raffly-pass";
 import { CrownIcon, CheckIcon, CloseIcon } from "@/components/icons";
 
 type RafflyPassDetailProps = {
@@ -13,7 +18,7 @@ type RafflyPassDetailProps = {
 };
 
 const BENEFITS = [
-  "20 tickets every day for 30 days",
+  `${RAFFLY_PASS_DAILY_TICKETS} tickets every day for ${RAFFLY_PASS_DURATION_DAYS} days`,
   "2x tickets from watching ads",
   "Double daily check-in rewards",
 ];
@@ -141,7 +146,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
               ? "Claiming..."
               : alreadyClaimedToday
               ? "Already claimed today"
-              : "Claim today's 20 tickets"}
+              : `Claim today's ${RAFFLY_PASS_DAILY_TICKETS} tickets`}
           </button>
         ) : (
           <>

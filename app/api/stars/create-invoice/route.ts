@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyTelegramInitData } from "@/lib/telegram-auth";
 import { STARS_TIERS } from "@/lib/stars-tiers";
+import { RAFFLY_PASS_DAILY_TICKETS, RAFFLY_PASS_DURATION_DAYS } from "@/lib/raffly-pass";
 import { RATE_LIMITS, rateLimitByIp, rateLimitByUser, rateLimitResponse } from "@/lib/rate-limit";
 import { safeServerError } from "@/lib/logger";
 
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
   const payload = `${tgUser.id}:${selected.tickets}:${tier}`;
   const description =
     tier === "pass"
-      ? "Unlock Raffly Pass: 20 tickets/day, 2x rewards, for 30 days"
+      ? `Unlock Raffly Pass: ${RAFFLY_PASS_DAILY_TICKETS} tickets/day, 2x rewards, for ${RAFFLY_PASS_DURATION_DAYS} days`
       : `Get ${selected.tickets} raffle tickets for Raffly`;
 
   const res = await fetch(`https://api.telegram.org/bot${botToken}/createInvoiceLink`, {
