@@ -22,20 +22,19 @@ export function WatchTadsAdCard() {
   const { user, refreshUser, loadingUser } = useTelegram();
   const [status, setStatus] = useState<Status>("idle");
   // Temporary, while this integration is still being verified against
-  // TADS' real runtime behavior -- surfaces the actual failure reason
-  // in the UI itself, since there's no browser devtools access inside
+  // TADS' real runtime behavior -- surfaces exactly what's happening in the
+  // UI itself, live, since there's no browser devtools access inside
   // Telegram to check the console directly. Remove once this is confirmed
   // working end to end.
-  const [debugError, setDebugError] = useState<string | null>(null);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
   const { showAd } = useTadsAd();
 
   const handleWatch = async () => {
     setStatus("watching");
-    setDebugError(null);
-    const result = await showAd();
+    setDebugLog([]);
+    const result = await showAd((msg) => setDebugLog((log) => [...log, msg]));
     if (!result.shown) {
       setStatus("failed");
-      setDebugError(result.error ?? "Unknown failure");
       return;
     }
     setStatus("checking");
@@ -73,8 +72,14 @@ export function WatchTadsAdCard() {
         onClick={handleWatch}
         disabled={disabled}
       />
-      {debugError && (
-        <p className="mt-1 px-2 text-[11px] text-text-faint">TADS debug: {debugError}</p>
+      {debugLog.length > 0 && (
+        <div className="mt-1 space-y-0.5 px-2">
+          {debugLog.map((line, i) => (
+            <p key={i} className="text-[11px] text-text-faint">
+              TADS debug: {line}
+            </p>
+          ))}
+        </div>
       )}
     </div>
   );
