@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
+
+// window.tads.init() returns a thenable that resolves once setup completes
+// AND carries its own showAd() method directly on that same object -- per
+// TADS' docs, init() alone never displays anything; showAd() is what
+// actually triggers an ad request, and must be called after the init
+// promise resolves (typically from a click handler).
+type TadsController = Promise<void> & { showAd: () => void };
 
 declare global {
   interface Window {
@@ -11,7 +18,7 @@ declare global {
         debug?: boolean;
         onShowReward?: (result: unknown) => void;
         onAdsNotFound?: () => void;
-      }) => void;
+      }) => TadsController;
     };
   }
 }
@@ -29,64 +36,88 @@ const SHOW_AD_TIMEOUT_MS = 20_000;
 
 export type TadsShowResult = { shown: boolean; error?: string };
 
-// Unlike Monetag's show_X({ymid}), which returns a promise, TADS' init()
-// is callback-based (onShowReward / onAdsNotFound) with nothing to await --
-// this wraps it in a promise so callers can use the same `await showAd()`
-// shape as useMonetagAd. Also returns the raw error message on failure
-// (not just a boolean), and reports live progress via onDebug -- while this
-// integration is still being verified against TADS' real runtime behavior,
-// that's the only way to see what actually happened without browser
-// devtools access inside Telegram.
+// init() is only ever called once -- onShowReward/onAdsNotFound are bound
+// at that point, not per-watch, and the same controller's showAd() is what
+// actually triggers each individual ad request. Lazy (first call to
+// showAd(), not on mount) so a session that never taps "Watch Ad" never
+// initializes a widget it doesn't use, matching how the ad SDK scripts
+// themselves are only loaded afterInteractive rather than upfront.
 export function useTadsAd() {
-  const showAd = useCallback((onDebug?: (msg: string) => void): Promise<TadsShowResult> => {
-    const report = (msg: string) => onDebug?.(msg);
+  const controllerRef = useRef<TadsController | null>(null);
+  // The resolver for whichever showAd() call is currently in flight --
+  // onShowReward/onAdsNotFound are shared across every watch (bound once at
+  // init time), so this is what routes the next callback to fire back to
+  // the caller actually waiting on it right now. The UI only ever has one
+  // watch in flight at a time (the button disables itself while watching),
+  // so there's never more than one pending resolver to route to.
+  const pendingRef = useRef<((result: TadsShowResult) => void) | null>(null);
 
-    return new Promise((resolve) => {
-      if (!window.tads) {
-        report("window.tads is undefined -- widget.js hasn't loaded (yet, or at all)");
-        resolve({ shown: false, error: "widget script not loaded" });
-        return;
-      }
-      report("window.tads found, calling init()...");
+  const getController = useCallback((onDebug?: (msg: string) => void): TadsController | null => {
+    if (controllerRef.current) return controllerRef.current;
+    if (!window.tads) return null;
 
-      let settled = false;
-      const settle = (result: TadsShowResult) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timeoutId);
-        resolve(result);
-      };
-      const timeoutId = setTimeout(() => {
-        report(`No callback fired within ${SHOW_AD_TIMEOUT_MS / 1000}s`);
-        settle({ shown: false, error: "timed out waiting for a callback" });
-      }, SHOW_AD_TIMEOUT_MS);
-
-      // init() throwing synchronously (bad/missing param, an internal SDK
-      // bug, whatever) must still settle this promise -- otherwise the
-      // caller's await never returns and the UI is stuck on its "watching"
-      // state forever, with no path back to idle or a visible failure.
-      try {
-        window.tads.init({
-          widgetId: TADS_WIDGET_ID,
-          type: "fullscreen",
-          debug: false,
-          onShowReward: () => {
-            report("onShowReward fired");
-            settle({ shown: true });
-          },
-          onAdsNotFound: () => {
-            report("onAdsNotFound fired");
-            settle({ shown: false, error: "onAdsNotFound" });
-          },
-        });
-        report("init() returned without throwing, waiting for a callback...");
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        report(`init() threw: ${message}`);
-        settle({ shown: false, error: message });
-      }
+    const controller = window.tads.init({
+      widgetId: TADS_WIDGET_ID,
+      type: "fullscreen",
+      debug: false,
+      onShowReward: () => {
+        onDebug?.("onShowReward fired");
+        pendingRef.current?.({ shown: true });
+        pendingRef.current = null;
+      },
+      onAdsNotFound: () => {
+        onDebug?.("onAdsNotFound fired");
+        pendingRef.current?.({ shown: false, error: "onAdsNotFound" });
+        pendingRef.current = null;
+      },
     });
+    controllerRef.current = controller;
+    return controller;
   }, []);
+
+  const showAd = useCallback(
+    (onDebug?: (msg: string) => void): Promise<TadsShowResult> => {
+      const report = (msg: string) => onDebug?.(msg);
+
+      return new Promise((resolve) => {
+        const controller = getController(onDebug);
+        if (!controller) {
+          report("window.tads is undefined -- widget.js hasn't loaded (yet, or at all)");
+          resolve({ shown: false, error: "widget script not loaded" });
+          return;
+        }
+
+        let settled = false;
+        const settle = (result: TadsShowResult) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeoutId);
+          pendingRef.current = null;
+          resolve(result);
+        };
+        const timeoutId = setTimeout(() => {
+          report(`No callback fired within ${SHOW_AD_TIMEOUT_MS / 1000}s`);
+          settle({ shown: false, error: "timed out waiting for a callback" });
+        }, SHOW_AD_TIMEOUT_MS);
+
+        pendingRef.current = settle;
+        report("waiting for init() to resolve...");
+
+        controller
+          .then(() => {
+            report("init() resolved, calling showAd()...");
+            controller.showAd();
+            report("showAd() called, waiting for a callback...");
+          })
+          .catch((err) => {
+            const message = err instanceof Error ? err.message : String(err);
+            report(`init() promise rejected: ${message}`);
+            settle({ shown: false, error: message });
+          });
+      });
+    },
+    [getController]
+  );
 
   return { showAd };
 }
