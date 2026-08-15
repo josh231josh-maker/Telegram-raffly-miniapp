@@ -41,7 +41,7 @@ export function ClaimPassButton() {
     // same element would collide -- position is a single property, and the
     // plain CSS class's `relative` beats the `absolute` utility class in
     // the cascade regardless of which is listed first in `className`.
-    <div className="absolute -top-2.5 right-3 z-[1]">
+    <div className="absolute right-3 top-1/2 z-[1] -translate-y-1/2">
       <div className="pass-banner-glow pass-banner-glow-pill">
         <button
           onClick={handleClaim}
