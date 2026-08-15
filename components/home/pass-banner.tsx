@@ -18,9 +18,7 @@ export function PassBanner({ onOpen }: PassBannerProps) {
       onClick={onOpen}
       className="pass-banner-gradient relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-white transition active:scale-[0.99]"
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/25 text-white">
-        <Image src="/images/crown-icon.png" alt="" width={24} height={17} />
-      </span>
+      <Image src="/images/crown-icon.png" alt="" width={30} height={22} className="shrink-0" />
       <span className="flex-1">
         <span className="flex items-center gap-2 font-heading text-sm font-semibold">
           Raffly Pass
