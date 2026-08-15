@@ -10,6 +10,7 @@ import {
   RAFFLY_PASS_DAILY_TICKETS,
   RAFFLY_PASS_DURATION_DAYS,
   isPassActive,
+  hasClaimedPassToday,
 } from "@/lib/raffly-pass";
 import { CheckIcon, CloseIcon } from "@/components/icons";
 
@@ -31,8 +32,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
   const [message, setMessage] = useState<string | null>(null);
 
   const hasPass = !loadingUser && isPassActive(user?.raffly_pass_expires_at ?? null);
-  const today = new Date().toISOString().slice(0, 10);
-  const alreadyClaimedToday = user?.raffly_pass_last_claim_date === today;
+  const alreadyClaimedToday = hasClaimedPassToday(user?.raffly_pass_last_claim_date ?? null);
   const daysLeft = hasPass
     ? Math.max(
         0,

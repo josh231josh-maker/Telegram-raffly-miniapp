@@ -7,6 +7,7 @@ import { BottomNav, type TabId } from "@/components/layout/bottom-nav";
 import { HomeHeader } from "@/components/home/home-header";
 import { HeroCountdown } from "@/components/home/hero-countdown";
 import { PassBanner } from "@/components/home/pass-banner";
+import { ClaimPassButton } from "@/components/home/claim-pass-button";
 import { OddsRingCard } from "@/components/home/odds-ring-card";
 import { PreviousWinners } from "@/components/home/previous-winners";
 import { DailyCheckIn } from "@/components/raffles/daily-checkin";
@@ -39,7 +40,12 @@ export default function HomePage() {
           <>
             <HomeHeader />
             <HeroCountdown />
-            <PassBanner onOpen={() => setPassOpen(true)} />
+            <div className="flex items-stretch gap-3">
+              <div className="min-w-0 flex-1">
+                <PassBanner onOpen={() => setPassOpen(true)} />
+              </div>
+              <ClaimPassButton />
+            </div>
             <OddsRingCard onGetMore={() => setTab("raffles")} info={raffleInfo} />
             <PreviousWinners winners={raffleInfo?.winners ?? null} />
           </>
