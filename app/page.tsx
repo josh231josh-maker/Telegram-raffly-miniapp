@@ -40,12 +40,8 @@ export default function HomePage() {
           <>
             <HomeHeader />
             <HeroCountdown />
-            <div className="flex items-stretch gap-3">
-              <div className="min-w-0 flex-1">
-                <PassBanner onOpen={() => setPassOpen(true)} />
-              </div>
-              <ClaimPassButton />
-            </div>
+            <ClaimPassButton />
+            <PassBanner onOpen={() => setPassOpen(true)} />
             <OddsRingCard onGetMore={() => setTab("raffles")} info={raffleInfo} />
             <PreviousWinners winners={raffleInfo?.winners ?? null} />
           </>

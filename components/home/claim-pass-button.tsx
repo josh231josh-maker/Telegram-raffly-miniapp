@@ -31,18 +31,23 @@ export function ClaimPassButton() {
     }
   };
 
-  const label = status === "loading" ? "..." : status === "failed" ? "Retry" : "Claim";
+  const sublabel =
+    status === "loading" ? "Claiming..." : status === "failed" ? "Failed, tap to retry" : "Tap to claim";
 
   return (
-    <div className="pass-banner-glow shrink-0 self-stretch">
+    <div className="pass-banner-glow">
       <button
         onClick={handleClaim}
         disabled={status === "loading"}
         aria-label={`Claim today's ${RAFFLY_PASS_DAILY_TICKETS} Raffly Pass tickets`}
-        className="pass-banner-gradient relative flex h-full w-[72px] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-white transition active:scale-[0.98] disabled:opacity-70"
+        className="pass-banner-gradient relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-white transition active:scale-[0.99] disabled:opacity-70"
       >
-        <TicketImage size={22} />
-        <span className="text-[11px] font-bold leading-none">{label}</span>
+        <TicketImage size={30} />
+        <span className="flex-1">
+          <span className="block font-heading text-sm font-semibold">Daily Pass Tickets Ready</span>
+          <span className="block text-xs text-white/70">{sublabel}</span>
+        </span>
+        <span className="font-heading text-base font-bold">+{RAFFLY_PASS_DAILY_TICKETS}</span>
       </button>
     </div>
   );
