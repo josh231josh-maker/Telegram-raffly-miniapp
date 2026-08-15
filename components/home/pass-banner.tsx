@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { RAFFLY_PASS_DAILY_TICKETS, isPassActive } from "@/lib/raffly-pass";
-import { CrownIcon, ChevronRightIcon } from "@/components/icons";
+import { ChevronRightIcon } from "@/components/icons";
 
 type PassBannerProps = {
   onOpen: () => void;
@@ -18,7 +19,7 @@ export function PassBanner({ onOpen }: PassBannerProps) {
       className="pass-banner-gradient relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-white transition active:scale-[0.99]"
     >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/25 text-white">
-        <CrownIcon className="h-5 w-5" />
+        <Image src="/images/crown-icon.png" alt="" width={24} height={17} />
       </span>
       <span className="flex-1">
         <span className="flex items-center gap-2 font-heading text-sm font-semibold">

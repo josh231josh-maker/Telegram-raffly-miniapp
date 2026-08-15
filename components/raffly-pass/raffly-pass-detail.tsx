@@ -11,7 +11,7 @@ import {
   RAFFLY_PASS_DURATION_DAYS,
   isPassActive,
 } from "@/lib/raffly-pass";
-import { CrownIcon, CheckIcon, CloseIcon } from "@/components/icons";
+import { CheckIcon, CloseIcon } from "@/components/icons";
 
 type RafflyPassDetailProps = {
   onClose: () => void;
@@ -100,7 +100,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
 
       <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8 text-center">
         <span className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/25 text-white">
-          <CrownIcon className="h-9 w-9" />
+          <Image src="/images/crown-icon.png" alt="" width={48} height={35} />
         </span>
         <h1 className="font-heading mt-4 text-2xl font-bold text-balance">Raffly Pass</h1>
 
