@@ -5,26 +5,13 @@
  * so it stays numerically stable for large ticket pools:
  *   C(T-M, W) / C(T, W) = product[i=0..W-1] of (T-M-i) / (T-i)
  *
- * The ticket pool alone isn't the whole story, though: pickWinners (see
- * lib/raffle-draw.ts) draws winners one *entrant* at a time without
- * replacement, so it can never draw more winners than there are distinct
- * participants -- with fewer entrants than winner slots, the draw empties
- * the whole pool and every entrant wins, regardless of ticket weighting.
- * participants caps how many draws will actually happen; the ticket pool
- * still decides who wins among those draws once there are more entrants
- * than slots.
+ * Deliberately a function of the ticket pool alone -- how many distinct
+ * people have entered doesn't factor in, by design, even though the real
+ * draw (pickWinners in lib/raffle-draw.ts) can only ever draw as many
+ * winners as there are entrants.
  */
-export function winProbabilityPct(
-  yourTickets: number,
-  totalTickets: number,
-  participants: number,
-  winnerSlots: number
-): number {
+export function winProbabilityPct(yourTickets: number, totalTickets: number, winnerSlots: number): number {
   if (totalTickets <= 0 || yourTickets <= 0) return 0;
-
-  // At most `participants` winners will ever be drawn -- once entrants no
-  // longer outnumber the slots, everyone who entered is guaranteed a win.
-  if (participants <= winnerSlots) return 100;
 
   const M = Math.min(yourTickets, totalTickets);
   const T = totalTickets;

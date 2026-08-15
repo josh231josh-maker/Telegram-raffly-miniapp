@@ -45,8 +45,7 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
   const infoLoaded = info !== null;
   const yourTickets = raffleEntry?.ticketsEntered ?? 0;
   const totalTickets = info?.totalTickets ?? 0;
-  const totalParticipants = info?.totalParticipants ?? 0;
-  const pct = winProbabilityPct(yourTickets, totalTickets, totalParticipants, WEEKLY_WINNER_COUNT);
+  const pct = winProbabilityPct(yourTickets, totalTickets, WEEKLY_WINNER_COUNT);
   const chance = pct.toFixed(2);
   const dashOffset = CIRCUMFERENCE * (1 - pct / 100);
 
