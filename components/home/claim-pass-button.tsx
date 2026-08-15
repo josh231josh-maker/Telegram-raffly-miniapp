@@ -31,7 +31,7 @@ export function ClaimPassButton() {
     }
   };
 
-  const label = status === "loading" ? "..." : status === "failed" ? "Retry" : "Get";
+  const label = status === "loading" ? "..." : status === "failed" ? "Retry" : "Claim";
 
   return (
     // The outer div owns the absolute positioning (overlapping PassBanner --
@@ -47,10 +47,10 @@ export function ClaimPassButton() {
           onClick={handleClaim}
           disabled={status === "loading"}
           aria-label={`Claim today's ${RAFFLY_PASS_DAILY_TICKETS} Raffly Pass tickets`}
-          className="pass-banner-gradient relative flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-white transition active:scale-95 disabled:opacity-70"
+          className="pass-banner-gradient relative flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-70"
         >
           {label}
-          <TicketImage size={14} />
+          <TicketImage size={18} />
         </button>
       </div>
     </div>
