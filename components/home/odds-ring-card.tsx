@@ -3,37 +3,13 @@
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { WEEKLY_WINNER_COUNT } from "@/lib/raffle-week";
+import { winProbabilityPct } from "@/lib/raffle-odds";
 import { TicketImage } from "@/components/ticket-image";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { RaffleInfo } from "@/hooks/useRaffleInfo";
 
 const RADIUS = 42;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-
-/**
- * P(win) = 1 - C(T-M, W) / C(T, W) -- the exact probability that at least
- * one of your M tickets is among the W winning draws out of T total
- * tickets. Computed as a running product rather than raw factorials/C(n,k)
- * so it stays numerically stable for large ticket pools:
- *   C(T-M, W) / C(T, W) = product[i=0..W-1] of (T-M-i) / (T-i)
- */
-function winProbabilityPct(yourTickets: number, totalTickets: number, winners: number): number {
-  if (totalTickets <= 0 || yourTickets <= 0) return 0;
-
-  const M = Math.min(yourTickets, totalTickets);
-  const T = totalTickets;
-  const W = Math.min(winners, T);
-
-  // Fewer than W tickets remain outside your own -- you're guaranteed a win.
-  if (T - M < W) return 100;
-
-  let missRatio = 1;
-  for (let i = 0; i < W; i++) {
-    missRatio *= (T - M - i) / (T - i);
-  }
-
-  return Math.min(100, Math.max(0, (1 - missRatio) * 100));
-}
 
 type OddsRingCardProps = {
   onGetMore?: () => void;
@@ -69,7 +45,8 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
   const infoLoaded = info !== null;
   const yourTickets = raffleEntry?.ticketsEntered ?? 0;
   const totalTickets = info?.totalTickets ?? 0;
-  const pct = winProbabilityPct(yourTickets, totalTickets, WEEKLY_WINNER_COUNT);
+  const totalParticipants = info?.totalParticipants ?? 0;
+  const pct = winProbabilityPct(yourTickets, totalTickets, totalParticipants, WEEKLY_WINNER_COUNT);
   const chance = pct.toFixed(2);
   const dashOffset = CIRCUMFERENCE * (1 - pct / 100);
 
