@@ -12,10 +12,10 @@ export function PassBanner({ onOpen }: PassBannerProps) {
   const { user } = useTelegram();
   const hasPass = isPassActive(user?.raffly_pass_expires_at ?? null);
 
-  return (
+  const banner = (
     <button
       onClick={onOpen}
-      className="pass-banner-gradient flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-white transition active:scale-[0.99]"
+      className="pass-banner-gradient relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-white transition active:scale-[0.99]"
     >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/25 text-white">
         <CrownIcon className="h-5 w-5" />
@@ -34,4 +34,10 @@ export function PassBanner({ onOpen }: PassBannerProps) {
       <ChevronRightIcon className="h-4 w-4 text-white/60" />
     </button>
   );
+
+  // The rotating glow ring is an upsell cue -- once someone already has the
+  // pass, it's just noise, so only non-subscribers see it.
+  if (hasPass) return banner;
+
+  return <div className="pass-banner-glow">{banner}</div>;
 }

@@ -292,3 +292,58 @@ textarea,
     animation: none;
   }
 }
+
+/* Rotating conic-gradient ring around the Raffly Pass banner -- shown only
+   to non-subscribers (see pass-banner.tsx) as an upsell cue. Registering
+   the angle as an animatable custom property (@property) is what lets the
+   conic-gradient's `from` angle itself be smoothly animated by the browser
+   -- animating a plain custom property or rotating the element itself
+   would either not interpolate at all or require an oversized, clipped
+   layer. Browsers without @property support just render the gradient
+   static (no crash, no animation) -- an acceptable, graceful fallback.
+   The wrapper's 2px padding is what reveals the ring: the banner button
+   sits opaque on top (needs `position: relative` itself -- see
+   pass-banner.tsx -- since an absolutely positioned ::before otherwise
+   paints above a plain static sibling regardless of DOM order). */
+@property --pass-glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes pass-banner-glow-spin {
+  to {
+    --pass-glow-angle: 360deg;
+  }
+}
+
+.pass-banner-glow {
+  position: relative;
+  isolation: isolate;
+  border-radius: 18px;
+  padding: 2px;
+  box-shadow: 0 8px 20px -10px rgba(255, 199, 106, 0.5);
+}
+
+.pass-banner-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--pass-glow-angle),
+    var(--pass-from),
+    #ffd76a,
+    #fff3c4,
+    #ffd76a,
+    var(--pass-to),
+    var(--pass-from)
+  );
+  animation: pass-banner-glow-spin 3s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pass-banner-glow::before {
+    animation: none;
+  }
+}
