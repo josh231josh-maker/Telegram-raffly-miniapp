@@ -325,6 +325,14 @@ textarea,
   box-shadow: 0 8px 20px -10px rgba(255, 199, 106, 0.5);
 }
 
+/* Same glow ring, but for a small pill CTA (e.g. the Claim button
+   overlapping the pass banner) rather than a full rounded-2xl card --
+   ::before's border-radius: inherit means this alone is enough to make
+   the ring itself a capsule too. */
+.pass-banner-glow-pill {
+  border-radius: 9999px;
+}
+
 .pass-banner-glow::before {
   content: "";
   position: absolute;

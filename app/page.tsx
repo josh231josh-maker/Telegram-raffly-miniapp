@@ -40,8 +40,10 @@ export default function HomePage() {
           <>
             <HomeHeader />
             <HeroCountdown />
-            <ClaimPassButton />
-            <PassBanner onOpen={() => setPassOpen(true)} />
+            <div className="relative">
+              <PassBanner onOpen={() => setPassOpen(true)} />
+              <ClaimPassButton />
+            </div>
             <OddsRingCard onGetMore={() => setTab("raffles")} info={raffleInfo} />
             <PreviousWinners winners={raffleInfo?.winners ?? null} />
           </>
