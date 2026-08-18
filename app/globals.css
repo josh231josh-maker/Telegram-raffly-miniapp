@@ -74,6 +74,21 @@ img {
   -webkit-user-drag: none;
   user-drag: none;
   -webkit-touch-callout: none;
+  /* The real fix for Android's native long-press "save/share image" menu
+     (the -webkit-touch-callout property above only affects iOS Safari).
+     Every attempt at detecting "is there an image near this touch point"
+     in JS (see the contextmenu handler in telegram-provider.tsx) has to
+     guess after the fact whether a touch landed on or near an <img> --
+     and each guess has missed some case or misfired on another. This
+     removes the guessing: Android's native menu only ever appears when a
+     touch's hit-test resolves onto a real <img> element, so excluding
+     every <img> from hit-testing means there's never one for it to find,
+     regardless of how deeply nested or how it's wrapped. Safe everywhere
+     in this app -- confirmed via a full repo grep that no <img>/<Image>
+     anywhere has its own click/pointer/drag handler, so a touch simply
+     passes through to whatever's behind or around it (typically the
+     wrapping button that already owns the click), same as it does today. */
+  pointer-events: none;
 }
 
 input,
