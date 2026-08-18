@@ -246,37 +246,23 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     // is the only thing that also works there.
     //
     // e.target is only the actual <img> when the touch's hit-test resolves
-    // exactly onto its rendered box. A small icon inside a padded wrapper
-    // (a TaskRow button, a centered header icon, a badge) can have its box
-    // not quite fill the element around it -- a long-press landing in that
-    // sliver of padding resolves e.target to the wrapper, not the <img>, so
-    // a plain `instanceof HTMLImageElement` check misses it and the native
-    // menu still shows, even though an image is clearly what got
-    // long-pressed.
-    //
-    // This used to try to detect "is there an image near this touch point"
-    // by checking the closest button/link, then by walking a few ancestor
-    // levels -- both approaches chase the same problem: any bound tight
-    // enough to avoid reaching a large, unrelated container a few levels up
-    // (which happens fast in this component tree -- see the git history on
-    // this block) is also tight enough to miss some real wrapper shape, and
-    // every miss is exactly the recurring "some images/icons still open on
-    // long-press" report. There's a simpler fix: this app has no <a href>
-    // links anywhere (confirmed -- nothing here ever needs the native
-    // "copy link"/"open in new tab" menu), and body-level CSS already
-    // disables text selection everywhere, so a native long-press menu on
-    // ordinary text or layout elements never has anything useful to offer
-    // in the first place. That means there's no real content to protect by
-    // being selective -- so don't try to detect images at all, just block
-    // contextmenu unconditionally. The only real exception is text inputs,
-    // which need their own native long-press menu (paste, select-all) to
-    // keep working.
+    // exactly onto its rendered box. A small icon inside a padded button
+    // (like TaskRow's leading icons) can have its box not quite fill the
+    // button/span around it -- a long-press landing in that sliver of
+    // padding resolves e.target to the wrapper, not the <img>, so the
+    // direct instanceof check misses it and the native menu still shows,
+    // even though an image is clearly what got long-pressed. Falling back
+    // to "does the nearest button/link contain an <img>" catches that case
+    // too, bounded to the closest interactive ancestor rather than
+    // searching the whole document (which would also swallow long-presses
+    // on unrelated text elsewhere on the page, since some image or other
+    // exists on nearly every screen).
     const blockImageContextMenu = (e: MouseEvent) => {
       const target = e.target;
-      if (target instanceof Element && target.closest('input, textarea, [contenteditable="true"]')) {
-        return;
+      if (!(target instanceof Element)) return;
+      if (target instanceof HTMLImageElement || target.closest("button, a")?.querySelector("img")) {
+        e.preventDefault();
       }
-      e.preventDefault();
     };
     document.addEventListener("contextmenu", blockImageContextMenu);
     return () => document.removeEventListener("contextmenu", blockImageContextMenu);
