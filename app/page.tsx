@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useRaffleInfo } from "@/hooks/useRaffleInfo";
 import { BottomNav, type TabId } from "@/components/layout/bottom-nav";
@@ -11,6 +11,7 @@ import { ClaimPassButton } from "@/components/home/claim-pass-button";
 import { OddsRingCard } from "@/components/home/odds-ring-card";
 import { PreviousWinners } from "@/components/home/previous-winners";
 import { DailyCheckIn } from "@/components/raffles/daily-checkin";
+import { DailyCheckInPopup } from "@/components/raffles/daily-checkin-popup";
 import { WatchAdCard } from "@/components/raffles/watch-ad-card";
 import { ReferralCard } from "@/components/raffles/referral-card";
 import { BuyRaffleBar } from "@/components/raffles/buy-raffle-bar";
@@ -25,12 +26,28 @@ import { WelcomeBonusToast } from "@/components/welcome-bonus-toast";
 export default function HomePage() {
   const [tab, setTab] = useState<TabId>("home");
   const [passOpen, setPassOpen] = useState(false);
-  const { raffleEntry } = useTelegram();
+  const [checkInPopupOpen, setCheckInPopupOpen] = useState(false);
+  const { user, loadingUser, raffleEntry } = useTelegram();
   // Fetched once here rather than separately inside OddsRingCard and
   // PreviousWinners, which both need data from this same endpoint. Still
   // refetches when ticketsEntered changes, same trigger OddsRingCard used on
   // its own before.
   const raffleInfo = useRaffleInfo(raffleEntry?.ticketsEntered);
+
+  // Auto-opens once per app session if today's check-in hasn't happened yet
+  // -- gated by a ref (not just loadingUser/user in the dep array) so a
+  // later user-object update elsewhere in the app (any balance change
+  // re-fetches the full user row) can't re-trigger this and pop the modal
+  // back open right after someone closes it.
+  const hasCheckedCheckInPopupRef = useRef(false);
+  useEffect(() => {
+    if (loadingUser || !user || hasCheckedCheckInPopupRef.current) return;
+    hasCheckedCheckInPopupRef.current = true;
+    const today = new Date().toISOString().slice(0, 10);
+    if (user.last_checkin_date !== today) {
+      setCheckInPopupOpen(true);
+    }
+  }, [loadingUser, user]);
 
   return (
     <main className="min-h-dvh pb-28">
@@ -76,6 +93,7 @@ export default function HomePage() {
       <BottomNav active={tab} onChange={setTab} />
 
       {passOpen && <RafflyPassDetail onClose={() => setPassOpen(false)} />}
+      {checkInPopupOpen && <DailyCheckInPopup onClose={() => setCheckInPopupOpen(false)} />}
     </main>
   );
 }
