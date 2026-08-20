@@ -51,20 +51,20 @@ export function DailyCheckInPopup({ onClose }: DailyCheckInPopupProps) {
       onClick={onClose}
     >
       <div
-        className="card-purple w-full max-w-sm rounded-[28px] p-5 text-white"
+        className="card-soft w-full max-w-sm rounded-[28px] border border-border bg-card p-5 text-text"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between">
           <div>
             <h2 className="font-heading text-xl font-bold text-balance">Daily Check-in</h2>
-            <p className="mt-0.5 text-xs text-white/70">
+            <p className="mt-0.5 text-xs text-text-faint">
               Streak: {currentStreak} day{currentStreak === 1 ? "" : "s"}
             </p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-text-dim"
           >
             <CloseIcon className="h-4 w-4" />
           </button>
@@ -76,21 +76,25 @@ export function DailyCheckInPopup({ onClose }: DailyCheckInPopupProps) {
             return (
               <div
                 key={day}
-                className={`flex items-center justify-between rounded-2xl px-4 py-2.5 transition ${
-                  isNext ? "bg-white/25 ring-2 ring-white" : "bg-white/10"
+                className={`flex items-center justify-between rounded-2xl border px-4 py-2.5 transition ${
+                  isNext ? "border-purple bg-purple-soft" : "border-border bg-background"
                 }`}
               >
                 <span className="flex items-center gap-2.5 text-sm font-semibold">
                   <span
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums ${
-                      isNext ? "bg-white text-purple" : "bg-white/20 text-white/80"
+                      isNext ? "bg-purple text-white" : "bg-card text-text-faint"
                     }`}
                   >
                     {day}
                   </span>
-                  Day {day}
+                  <span className={isNext ? "text-text" : "text-text-dim"}>Day {day}</span>
                 </span>
-                <span className="flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums">
+                <span
+                  className={`flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums ${
+                    isNext ? "text-purple" : "text-text-faint"
+                  }`}
+                >
                   +{rewardFor(day)}
                   <TicketImage size={16} />
                 </span>
@@ -102,11 +106,11 @@ export function DailyCheckInPopup({ onClose }: DailyCheckInPopupProps) {
         <button
           onClick={handleClaim}
           disabled={status === "loading"}
-          className="mt-5 w-full rounded-full bg-white px-4 py-3 text-sm font-bold text-purple shadow-lg transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-purple mt-5 w-full rounded-full px-4 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === "loading" ? "Claiming..." : `Claim +${rewardFor(nextDay)} tickets`}
         </button>
-        {message && <p className="mt-2 text-center text-xs text-white/70">{message}</p>}
+        {message && <p className="mt-2 text-center text-xs text-text-faint">{message}</p>}
       </div>
     </div>
   );
