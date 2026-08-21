@@ -9,6 +9,7 @@ import { ManageWinners } from "./manage-winners";
 import { BroadcastManager } from "./broadcast-manager";
 import { WelcomeMessageEditor } from "./welcome-message-editor";
 import { TrackingLinksManager } from "./tracking-links-manager";
+import { AutoEntryRules } from "./auto-entry-rules";
 
 type AdminUser = {
   id: string;
@@ -52,7 +53,8 @@ type TabType =
   | "manage-winners"
   | "notifications"
   | "welcome-message"
-  | "tracking-links";
+  | "tracking-links"
+  | "auto-entries";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -126,6 +128,7 @@ export default function AdminDashboard() {
           "notifications",
           "welcome-message",
           "tracking-links",
+          "auto-entries",
         ].map((tab) => (
           <button
             key={tab}
@@ -143,6 +146,7 @@ export default function AdminDashboard() {
             {tab === "notifications" && "Notifications"}
             {tab === "welcome-message" && "Welcome Message"}
             {tab === "tracking-links" && "Tracking Links"}
+            {tab === "auto-entries" && "Auto Entries"}
           </button>
         ))}
       </div>
@@ -245,6 +249,7 @@ export default function AdminDashboard() {
       {activeTab === "notifications" && <BroadcastManager />}
       {activeTab === "welcome-message" && <WelcomeMessageEditor />}
       {activeTab === "tracking-links" && <TrackingLinksManager />}
+      {activeTab === "auto-entries" && <AutoEntryRules />}
     </div>
   );
 }
