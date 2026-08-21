@@ -11,6 +11,13 @@ import { safeServerError } from "@/lib/logger";
 // only pays the referrer once their invitee crosses the ticket threshold.
 const NEW_USER_REWARD_TICKETS = 50;
 
+// Telegram's CDN URLs run well under this, but keep enough headroom that a
+// slightly longer one is never truncated into something broken.
+function sanitizePhotoUrl(value: string | undefined): string | null {
+  const cleaned = sanitizeProfileText(value, 512);
+  return cleaned && cleaned.startsWith("https://") ? cleaned : null;
+}
+
 export async function POST(req: NextRequest) {
   const ipCheck = await rateLimitByIp(req, "auth", RATE_LIMITS.auth.ip);
   if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
@@ -38,6 +45,23 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (existing) {
+    const photoUrl = sanitizePhotoUrl(tgUser.photoUrl);
+    if (photoUrl !== existing.photo_url) {
+      // Telegram's photo_url isn't in the HMAC-covered initData fields we
+      // already trust for anything else, but it comes from the same signed
+      // payload, so refreshing it here (photo_url only, nothing else) keeps
+      // an existing user's avatar current without touching balances or any
+      // other account state on this hot path.
+      const { data: updated } = await supabase
+        .from("users")
+        .update({ photo_url: photoUrl })
+        .eq("id", existing.id)
+        .select()
+        .single();
+      if (updated) {
+        return NextResponse.json({ user: await withReferralCount(supabase, updated) });
+      }
+    }
     return NextResponse.json({ user: await withReferralCount(supabase, existing) });
   }
 
@@ -77,6 +101,7 @@ export async function POST(req: NextRequest) {
       telegram_id: tgUser.id,
       username: sanitizeProfileText(tgUser.username),
       first_name: sanitizeProfileText(tgUser.first_name),
+      photo_url: sanitizePhotoUrl(tgUser.photoUrl),
       referred_by: referredBy,
       acquisition_link_code: acquisitionLinkCode,
       ticket_balance: NEW_USER_REWARD_TICKETS,

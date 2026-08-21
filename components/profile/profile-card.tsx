@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { ChevronRightIcon } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +16,7 @@ function initials(firstName: string | null, username: string | null): string {
 
 export function ProfileCard() {
   const { user, loadingUser } = useTelegram();
+  const [photoFailed, setPhotoFailed] = useState(false);
 
   if (loadingUser || !user) {
     return (
@@ -50,9 +52,18 @@ export function ProfileCard() {
   return (
     <section className="card-soft rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-3 border-b border-border pb-4">
-        <div className="btn-accent flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-heading text-lg font-bold">
-          {initials(user.first_name, user.username)}
-        </div>
+        {user.photo_url && !photoFailed ? (
+          <img
+            src={user.photo_url}
+            alt=""
+            className="h-14 w-14 shrink-0 rounded-full object-cover"
+            onError={() => setPhotoFailed(true)}
+          />
+        ) : (
+          <div className="btn-accent flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-heading text-lg font-bold">
+            {initials(user.first_name, user.username)}
+          </div>
+        )}
         <div>
           <p className="font-heading text-base font-semibold text-text">{displayName}</p>
           <p className="text-xs text-text-faint">

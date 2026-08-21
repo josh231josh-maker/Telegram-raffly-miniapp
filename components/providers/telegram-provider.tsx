@@ -18,6 +18,7 @@ type RafflyUser = {
   telegram_id: number;
   username: string | null;
   first_name: string | null;
+  photo_url: string | null;
   ticket_balance: number;
   usdt_balance: number;
   streak_count: number;

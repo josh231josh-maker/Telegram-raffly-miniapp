@@ -5,6 +5,7 @@ export type TelegramUser = {
   id: number;
   first_name: string;
   username?: string;
+  photoUrl?: string;
   /**
    * The Mini App's `?startapp=` deep-link value, if any — e.g. the referrer's
    * telegram_id from an invite link. Read here (from inside the HMAC-covered
@@ -65,6 +66,7 @@ export function verifyTelegramInitData(
       id: user.id,
       first_name: user.first_name,
       username: user.username,
+      photoUrl: typeof user.photo_url === "string" ? user.photo_url : undefined,
       startParam: params.get("start_param"),
     };
   } catch {
