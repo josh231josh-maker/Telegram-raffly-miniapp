@@ -57,7 +57,7 @@ export function DailyCheckIn() {
 
   return (
     <TaskRow
-      icon={<Image src="/images/daily-checkin-icon.png" alt="" width={24} height={25} />}
+      icon={<Image src="/images/daily-checkin-icon.png" alt="" width={28} height={29} />}
       tone="purple"
       label={label}
       sublabel={

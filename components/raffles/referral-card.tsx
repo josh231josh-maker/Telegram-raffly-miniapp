@@ -19,7 +19,7 @@ export function ReferralCard() {
   return (
     <>
       <TaskRow
-        icon={<Image src="/images/referral-icon.png" alt="" width={24} height={23} />}
+        icon={<Image src="/images/referral-icon.png" alt="" width={28} height={27} />}
         tone="pink"
         label="Invite Friends"
         sublabel="Earn tickets per referral"
