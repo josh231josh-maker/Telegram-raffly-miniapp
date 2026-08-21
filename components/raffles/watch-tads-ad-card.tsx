@@ -72,7 +72,7 @@ export function WatchTadsAdCard() {
           itself is expected to overlay the whole screen, not this box. */}
       <div id={`tads-container-${TADS_WIDGET_ID}`} />
       <TaskRow
-        icon={<Image src="/images/watch-ads-icon.png" alt="" width={36} height={37} />}
+        icon={<Image src="/images/watch-ads-icon.png" alt="" width={24} height={25} />}
         tone="orange"
         label={label}
         rewardLabel={rewardLabel}
