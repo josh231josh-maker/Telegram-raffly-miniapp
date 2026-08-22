@@ -127,6 +127,15 @@ export function ArrowDownCircleIcon({ className }: IconProps) {
   );
 }
 
+export function SendIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M4.5 11.2 19.5 4l-4.3 15.8-5-4.3Z" />
+      <path d="M15.2 15.5 10.2 11.9 19.5 4" />
+    </svg>
+  );
+}
+
 export function UsdtIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">

@@ -15,6 +15,8 @@ import { DailyCheckInPopup } from "@/components/raffles/daily-checkin-popup";
 import { WatchAdCard } from "@/components/raffles/watch-ad-card";
 import { WatchAdsgramAdCard } from "@/components/raffles/watch-adsgram-ad-card";
 import { ReferralCard } from "@/components/raffles/referral-card";
+import { JoinChannelCard } from "@/components/raffles/join-channel-card";
+import { CompletedTasksSection } from "@/components/raffles/completed-tasks-section";
 import { BuyRaffleBar } from "@/components/raffles/buy-raffle-bar";
 import { BalanceCards } from "@/components/profile/balance-cards";
 import { WithdrawButton } from "@/components/profile/withdraw-button";
@@ -85,6 +87,8 @@ export default function HomePage() {
                 safe, not exposed. */}
             {process.env.NEXT_PUBLIC_SHOW_ADSGRAM === "true" && <WatchAdsgramAdCard />}
             <ReferralCard />
+            <JoinChannelCard />
+            <CompletedTasksSection />
           </>
         )}
 

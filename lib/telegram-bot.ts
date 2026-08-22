@@ -5,6 +5,47 @@
 
 export type InlineButton = { text: string; url: string } | { text: string; web_app: { url: string } };
 
+// Anyone who has ever left or been kicked still gets a getChatMember row back
+// with one of these two statuses, rather than an error -- everything else
+// ("member", "administrator", "creator", and a supergroup's "restricted")
+// means they're currently in the chat.
+const NOT_A_MEMBER_STATUSES = new Set(["left", "kicked"]);
+
+export type ChatMembershipResult =
+  | { ok: true; isMember: boolean }
+  | { ok: false; description: string };
+
+/**
+ * Requires the bot to already be an admin of `chatUsername` -- Telegram
+ * rejects getChatMember for a channel/supergroup the bot hasn't been added
+ * to as an admin with a 400 ("member list is inaccessible" or similar),
+ * distinct from a real "not a member" answer for the user being checked.
+ */
+export async function checkChatMembership(
+  botToken: string,
+  chatUsername: string,
+  telegramUserId: number
+): Promise<ChatMembershipResult> {
+  const url = new URL(`https://api.telegram.org/bot${botToken}/getChatMember`);
+  url.searchParams.set("chat_id", `@${chatUsername}`);
+  url.searchParams.set("user_id", String(telegramUserId));
+
+  let res: Response;
+  try {
+    res = await fetch(url);
+  } catch {
+    return { ok: false, description: "Network error calling Telegram" };
+  }
+
+  const data = await res.json().catch(() => null);
+  if (!data?.ok) {
+    return { ok: false, description: data?.description ?? "Unknown Telegram API error" };
+  }
+
+  const status: string | undefined = data.result?.status;
+  return { ok: true, isMember: !!status && !NOT_A_MEMBER_STATUSES.has(status) };
+}
+
 export type SendMessageResult =
   | { ok: true }
   | { ok: false; errorCode: number; description: string; retryAfter?: number; blocked: boolean };

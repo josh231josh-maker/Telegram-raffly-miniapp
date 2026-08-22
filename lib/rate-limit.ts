@@ -68,6 +68,13 @@ export const RATE_LIMITS = {
     ip: { requests: 20, window: "60 s" },
     user: { requests: 5, window: "60 s" },
   },
+  // One-time task, but "Already Did" is meant to be re-tappable while
+  // waiting to actually join -- generous enough for a few retries, not
+  // for hammering the Telegram getChatMember call.
+  channelTask: {
+    ip: { requests: 20, window: "60 s" },
+    user: { requests: 10, window: "60 s" },
+  },
   walletConnect: {
     ip: { requests: 20, window: "60 s" },
     user: { requests: 5, window: "60 s" },

@@ -26,6 +26,7 @@ type RafflyUser = {
   ton_wallet_address: string | null;
   raffly_pass_expires_at: string | null;
   raffly_pass_last_claim_date: string | null;
+  channel_joined_at: string | null;
   referral_count: number;
   referral_reached_count: number;
 };
@@ -65,6 +66,14 @@ type ClaimPassResult = {
   error?: string;
 };
 
+type JoinChannelResult = {
+  verified?: boolean;
+  alreadyClaimed?: boolean;
+  ticketsEarned?: number;
+  user?: RafflyUser;
+  error?: string;
+};
+
 type TelegramContextValue = {
   isReady: boolean;
   isTelegram: boolean;
@@ -83,6 +92,7 @@ type TelegramContextValue = {
   enterRaffle: (ticketsToEnter: number) => Promise<EnterRaffleResult>;
   refreshRaffleEntry: () => Promise<void>;
   claimPassTickets: () => Promise<ClaimPassResult>;
+  claimChannelTask: () => Promise<JoinChannelResult>;
 };
 
 const TelegramContext = createContext<TelegramContextValue>({
@@ -100,6 +110,7 @@ const TelegramContext = createContext<TelegramContextValue>({
   enterRaffle: async () => ({ error: "Not ready" }),
   refreshRaffleEntry: async () => {},
   claimPassTickets: async () => ({ error: "Not ready" }),
+  claimChannelTask: async () => ({ error: "Not ready" }),
 });
 
 export function useTelegram() {
@@ -382,6 +393,27 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const claimChannelTask = useCallback(async (): Promise<JoinChannelResult> => {
+    if (!initDataRef.current) {
+      return { error: "Not ready" };
+    }
+    try {
+      // Safe to retry: claim_channel_task is gated on channel_joined_at,
+      // same idiom as checkIn/claimPassTickets.
+      const res = await fetchWithRetry("/api/tasks/join-channel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: initDataRef.current }),
+      });
+      const data: JoinChannelResult = await res.json();
+      if (data.user) setUser(data.user);
+      return data;
+    } catch (err) {
+      console.error("Join channel task fetch error:", err);
+      return { error: "Network error" };
+    }
+  }, []);
+
   const getInitData = useCallback(() => initDataRef.current, []);
 
   // The consumer set is large (nearly every screen reads from this context),
@@ -405,6 +437,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       enterRaffle,
       refreshRaffleEntry: fetchRaffleEntry,
       claimPassTickets,
+      claimChannelTask,
     }),
     [
       isReady,
@@ -421,6 +454,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       enterRaffle,
       fetchRaffleEntry,
       claimPassTickets,
+      claimChannelTask,
     ]
   );
 
