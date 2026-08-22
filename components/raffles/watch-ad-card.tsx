@@ -24,10 +24,23 @@ const POSTBACK_POLL_INTERVAL_MS = 700;
 const POSTBACK_VISIBLE_ATTEMPTS = 12; // ~8.4s on-screen as "Checking..."
 const POSTBACK_BACKGROUND_ATTEMPTS = 40; // ~28s more, quietly, after the button is usable again
 
+// Mirrors the server-side cooldown in record_ad_view/mint-reward-token --
+// only used here to phrase the message, the actual enforcement is the
+// server rejecting the token mint.
+function formatCooldown(cooldownUntil: string): string {
+  const remainingMs = new Date(cooldownUntil).getTime() - Date.now();
+  const minutes = Math.max(1, Math.ceil(remainingMs / 60_000));
+  if (minutes < 60) return `Come back in ${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return mins > 0 ? `Come back in ${hours}h ${mins}m` : `Come back in ${hours}h`;
+}
+
 export function WatchAdCard() {
   const { user, refreshUser, loadingUser, getInitData } = useTelegram();
   const [status, setStatus] = useState<Status>("idle");
   const [gapSecondsLeft, setGapSecondsLeft] = useState(0);
+  const [message, setMessage] = useState<string | null>(null);
   const { preloadAd, showAd } = useMonetagAd();
 
   // Bumped whenever a new watch starts, and once on unmount. A poll loop
@@ -70,23 +83,28 @@ export function WatchAdCard() {
   // hang indefinitely with no error, which looked identical to "the second
   // ad just never happens". fetchWithRetry caps each attempt and retries
   // instead of hanging forever.
-  const mintAdToken = async (): Promise<string | null> => {
+  const mintAdToken = async (): Promise<{ token: string | null; cooldownUntil?: string }> => {
     const tokenRes = await fetchWithRetry("/api/ads/mint-reward-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ initData: getInitData() }),
     }).catch(() => null);
     const tokenData = await tokenRes?.json().catch(() => null);
-    return tokenData?.token ?? null;
+    return { token: tokenData?.token ?? null, cooldownUntil: tokenData?.cooldownUntil };
   };
 
   const handleWatch = async () => {
     if (!user) return;
     const generation = (generationRef.current += 1);
     const startingBalance = user.ticket_balance;
+    setMessage(null);
 
-    const ymid1 = await mintAdToken();
-    if (!ymid1 || generationRef.current !== generation) return;
+    const { token: ymid1, cooldownUntil } = await mintAdToken();
+    if (generationRef.current !== generation) return;
+    if (!ymid1) {
+      if (cooldownUntil) setMessage(formatCooldown(cooldownUntil));
+      return;
+    }
 
     setStatus("ad1");
 
@@ -109,9 +127,9 @@ export function WatchAdCard() {
     // start preloading ad2's creative (Monetag's recommended pattern for
     // Rewarded Interstitials) -- this runs alongside the gap countdown
     // below, which is just a local timer, not another SDK call.
-    const ymid2AndPreload = ymid2Promise.then((ymid2) => {
-      if (ymid2) preloadAd(ymid2);
-      return ymid2;
+    const ymid2AndPreload = ymid2Promise.then(({ token }) => {
+      if (token) preloadAd(token);
+      return token;
     });
     for (let secondsLeft = AD_GAP_MS / 1000; secondsLeft > 0; secondsLeft--) {
       setGapSecondsLeft(secondsLeft);
@@ -120,7 +138,15 @@ export function WatchAdCard() {
     if (generationRef.current !== generation) return;
 
     const ymid2 = await ymid2AndPreload;
-    if (!ymid2 || generationRef.current !== generation) return;
+    if (generationRef.current !== generation) return;
+    if (!ymid2) {
+      // Rare: the cooldown kicked in between the two ads. ymid2Promise's own
+      // cooldownUntil isn't threaded through here since preload only needs
+      // the token, but the button un-sticking is what matters -- the next
+      // tap's own mint call will surface the actual message.
+      setStatus("failed");
+      return;
+    }
 
     setStatus("ad2");
     if (!(await showAd(ymid2))) {
@@ -175,13 +201,16 @@ export function WatchAdCard() {
   const disabled = status !== "idle" && status !== "failed";
 
   return (
-    <TaskRow
-      icon={<Image src="/images/watch-ads-icon.png" alt="" width={28} height={29} />}
-      tone="orange"
-      label={label}
-      rewardLabel={rewardLabel}
-      onClick={handleWatch}
-      disabled={disabled}
-    />
+    <div>
+      <TaskRow
+        icon={<Image src="/images/watch-ads-icon.png" alt="" width={28} height={29} />}
+        tone="orange"
+        label={label}
+        rewardLabel={rewardLabel}
+        onClick={handleWatch}
+        disabled={disabled}
+      />
+      {message && <p className="mt-1 px-2 text-xs text-text-faint">{message}</p>}
+    </div>
   );
 }
