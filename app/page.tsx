@@ -13,6 +13,7 @@ import { PreviousWinners } from "@/components/home/previous-winners";
 import { DailyCheckIn } from "@/components/raffles/daily-checkin";
 import { DailyCheckInPopup } from "@/components/raffles/daily-checkin-popup";
 import { WatchAdCard } from "@/components/raffles/watch-ad-card";
+import { WatchAdsgramAdCard } from "@/components/raffles/watch-adsgram-ad-card";
 import { ReferralCard } from "@/components/raffles/referral-card";
 import { BuyRaffleBar } from "@/components/raffles/buy-raffle-bar";
 import { BalanceCards } from "@/components/profile/balance-cards";
@@ -75,6 +76,7 @@ export default function HomePage() {
             </h1>
             <DailyCheckIn />
             <WatchAdCard />
+            <WatchAdsgramAdCard />
             <ReferralCard />
           </>
         )}

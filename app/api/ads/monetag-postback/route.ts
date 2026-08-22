@@ -89,6 +89,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, duplicate: true });
   }
 
+  if (ticketsAwarded === -2) {
+    return NextResponse.json({ success: true, cooldown: true });
+  }
+
   if (ticketsAwarded > 0) {
     await checkAndRewardReferral(supabase, user.id);
   }

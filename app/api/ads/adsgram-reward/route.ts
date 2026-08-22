@@ -75,6 +75,14 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  if (ticketsAwarded === -2) {
+    // In cooldown -- record_ad_view refused to record this view at all.
+    // AdsGram has no pre-check step before showing an ad the way Monetag's
+    // token mint does, so this is the only place that can actually catch
+    // it; nothing to credit, nothing to roll back.
+    return NextResponse.json({ success: true, cooldown: true });
+  }
+
   if (ticketsAwarded > 0) {
     await checkAndRewardReferral(supabase, user.id);
   }
