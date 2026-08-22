@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
-import { SendIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 import { JoinChannelDetail } from "@/components/raffles/join-channel-detail";
@@ -20,10 +20,9 @@ export function JoinChannelCard() {
   return (
     <>
       <TaskRow
-        icon={<SendIcon className="h-[18px] w-[18px]" />}
-        tone="purple"
+        icon={<Image src="/images/telegram-channel-icon.png" alt="" width={28} height={28} />}
+        tone="orange"
         label="Join Our Channel"
-        sublabel="Official Raffly Announcement channel"
         rewardLabel={`+${CHANNEL_TASK_REWARD_TICKETS}`}
         onClick={() => setOpen(true)}
       />

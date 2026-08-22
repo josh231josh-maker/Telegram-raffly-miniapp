@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { openTelegramLink } from "@telegram-apps/sdk";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { CHANNEL_TASK_REWARD_TICKETS, CHANNEL_TASK_URL } from "@/lib/channel-task";
 import { TicketImage } from "@/components/ticket-image";
-import { SendIcon, CloseIcon } from "@/components/icons";
+import { CloseIcon } from "@/components/icons";
 
 type JoinChannelDetailProps = {
   onClose: () => void;
@@ -46,8 +47,8 @@ export function JoinChannelDetail({ onClose }: JoinChannelDetailProps) {
       >
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-purple-soft text-purple">
-              <SendIcon className="h-5 w-5" />
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-soft">
+              <Image src="/images/telegram-channel-icon.png" alt="" width={26} height={26} />
             </span>
             <h2 className="font-heading text-lg font-bold text-balance">Join Our Channel</h2>
           </div>
@@ -61,11 +62,10 @@ export function JoinChannelDetail({ onClose }: JoinChannelDetailProps) {
         </div>
 
         <p className="mt-4 text-sm text-text-dim text-pretty">
-          Join the official Raffly Announcement channel for raffle updates and winner
-          announcements.
+          Join the Raffly Announcement channel for raffle updates and winner announcements.
         </p>
 
-        <div className="mt-4 flex items-center justify-center gap-1.5 rounded-2xl border border-border bg-background py-3 text-lg font-bold text-purple">
+        <div className="mt-4 flex items-center justify-center gap-1.5 rounded-2xl border border-border bg-background py-3 text-lg font-bold text-accent">
           +{CHANNEL_TASK_REWARD_TICKETS}
           <TicketImage size={20} />
         </div>
@@ -73,7 +73,7 @@ export function JoinChannelDetail({ onClose }: JoinChannelDetailProps) {
         <div className="mt-5 flex flex-col gap-2">
           <button
             onClick={openChannel}
-            className="btn-purple w-full rounded-full px-4 py-3 text-sm font-bold transition"
+            className="btn-accent w-full rounded-full px-4 py-3 text-sm font-bold transition"
           >
             Join Channel
           </button>
