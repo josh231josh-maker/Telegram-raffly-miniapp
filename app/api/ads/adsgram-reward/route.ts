@@ -1,27 +1,28 @@
-import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { checkAndRewardReferral } from "@/lib/referral";
 import { isPassActive } from "@/lib/raffly-pass";
 import { timingSafeEqual } from "@/lib/timing-safe";
-import { verifyAdRewardToken } from "@/lib/ad-reward-token";
 import { RATE_LIMITS, rateLimitByIp, rateLimitByUser, rateLimitResponse } from "@/lib/rate-limit";
-import { logger, safeServerError } from "@/lib/logger";
+import { safeServerError } from "@/lib/logger";
 
 const ADS_TO_TICKET_RATIO = 2;
 
 // Re-added after being retired for trusting a raw client-supplied userid
-// gated only by a static shared secret -- a live ticket-farming hole for
-// anyone who ever learned that secret (see the retirement commit on this
-// file). Rebuilt to match monetag-postback/route.ts's trust model instead:
-// AdsGram's postback macro is still literally named "userid" (that's fixed
-// by their platform, not something we control), but whatever client
-// integration triggers the ad must pass our own signed ad-reward token
-// (from /api/ads/mint-reward-token, via lib/ad-reward-token.ts) as AdsGram's
-// user id value -- NOT the raw Telegram id. That's what gets verified here,
-// the same way Monetag's ymid is. No AdsGram client wiring exists yet
-// (the hook was removed as dead code); when it's rebuilt, it needs to mint
-// that token first and hand it to AdsGram's SDK as the user identifier.
+// gated only by a static shared secret (see the retirement commit on this
+// file). The originally-planned fix -- verifying a signed token the same
+// way monetag-postback does -- turned out not to be possible: AdsGram's
+// reward postback only ever offers a single macro, [userId], which their
+// own SDK fills in from the Telegram WebApp context directly. There's no
+// slot for an app-supplied opaque value the way Monetag's ymid works, so
+// there's no per-session binding to fall back on here -- this is the
+// platform's ceiling, not a fixable implementation gap. Accepted
+// consciously: the secret is never present in any client code (AdsGram
+// calls this server-to-server only), and record_ad_view's 20-views/hour
+// cooldown (see lib/auto-entry.ts's sibling logic in record_ad_view) caps
+// how much a leaked secret could still be worth per account even with zero
+// replay protection at the request level. Same trust-gap shape already
+// documented for the `adReward` rate-limit scope in lib/rate-limit.ts.
 export async function GET(req: NextRequest) {
   const ipCheck = await rateLimitByIp(req, "adReward", RATE_LIMITS.adReward.ip);
   if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
@@ -34,10 +35,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const telegramId = verifyAdRewardToken(userid);
-  if (telegramId === null) {
-    logger.warn("ads.adsgram_invalid_token", { userid });
-    return NextResponse.json({ error: "Invalid or expired userid" }, { status: 401 });
+  const telegramId = Number(userid);
+  if (!userid || !Number.isFinite(telegramId)) {
+    return NextResponse.json({ error: "Invalid userid" }, { status: 400 });
   }
 
   const userCheck = await rateLimitByUser(req, "adReward", telegramId, RATE_LIMITS.adReward.user);
@@ -57,16 +57,15 @@ export async function GET(req: NextRequest) {
 
   const baseReward = isPassActive(user.raffly_pass_expires_at) ? 2 : 1;
 
-  // Same replay defense as Monetag: hash the token and let record_ad_view's
-  // unique constraint on token_hash reject a redelivered/replayed postback
-  // as a no-op instead of a second credited view.
-  const tokenHash = crypto.createHash("sha256").update(userid!).digest("hex");
-
+  // No token_hash here -- unlike Monetag/ymid, there's no per-request nonce
+  // AdsGram gives us to dedupe against, so this can't reject an exact
+  // replay the way record_ad_view does for the other networks. The
+  // rate limits above plus the 20-views/hour cooldown are what actually
+  // bound the damage instead.
   const { data: ticketsAwarded, error: rpcError } = await supabase.rpc("record_ad_view", {
     p_user_id: user.id,
     p_ratio: ADS_TO_TICKET_RATIO,
     p_reward: baseReward,
-    p_token_hash: tokenHash,
   });
 
   if (rpcError) {
@@ -74,10 +73,6 @@ export async function GET(req: NextRequest) {
       safeServerError("ads.adsgram_rpc_failed", rpcError, { userId: user.id }),
       { status: 500 }
     );
-  }
-
-  if (ticketsAwarded === -1) {
-    return NextResponse.json({ success: true, duplicate: true });
   }
 
   if (ticketsAwarded > 0) {
