@@ -14,7 +14,7 @@ type DailyCheckInPopupProps = {
 // Mirrors DailyCheckIn's own reward math exactly (lib nowhere shares this as
 // a helper -- both derive it straight from streak_count) so the preview
 // shown here always matches what tapping Claim actually pays out.
-const MAX_STREAK_DAY = 5;
+const MAX_STREAK_DAY = 7;
 
 export function DailyCheckInPopup({ onClose }: DailyCheckInPopupProps) {
   const { user, checkIn } = useTelegram();
@@ -28,7 +28,10 @@ export function DailyCheckInPopup({ onClose }: DailyCheckInPopupProps) {
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   const streakAlive = user.last_checkin_date === today || user.last_checkin_date === yesterday;
   const currentStreak = streakAlive ? user.streak_count ?? 0 : 0;
-  const nextDay = Math.min(currentStreak + 1, MAX_STREAK_DAY);
+  // Cycles 1..7 then back to 1, matching the server's 7-day reset -- a
+  // clamp would get stuck highlighting Day 7 forever once a full week's
+  // been claimed instead of showing the cycle actually restarting.
+  const nextDay = (currentStreak % MAX_STREAK_DAY) + 1;
 
   const hasPass = isPassActive(user.raffly_pass_expires_at);
   const rewardFor = (day: number) => (hasPass ? day * 2 : day);

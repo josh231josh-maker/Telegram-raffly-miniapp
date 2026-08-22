@@ -46,9 +46,15 @@ export async function POST(req: NextRequest) {
   }
 
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  // A 7-day cycle: +1 through +7, then back to +1 on day 8 rather than
+  // plateauing at +7 forever. Modulo on the *previous* streak_count (not a
+  // running total) means this self-corrects even for a row whose
+  // streak_count predates this cycle (e.g. still sitting at 12 from the old
+  // uncapped counter) -- its very next check-in lands back in the 1-7 range
+  // instead of needing a one-off data migration.
   const newStreak =
-    existing.last_checkin_date === yesterday ? existing.streak_count + 1 : 1;
-  const baseTicketsEarned = Math.min(newStreak, 5);
+    existing.last_checkin_date === yesterday ? (existing.streak_count % 7) + 1 : 1;
+  const baseTicketsEarned = newStreak;
   const ticketsEarned = isPassActive(existing.raffly_pass_expires_at)
     ? baseTicketsEarned * 2
     : baseTicketsEarned;

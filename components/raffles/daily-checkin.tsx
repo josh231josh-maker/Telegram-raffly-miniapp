@@ -30,7 +30,10 @@ export function DailyCheckIn() {
   const currentStreak = streakAlive ? user.streak_count ?? 0 : 0;
 
   const hasPass = isPassActive(user.raffly_pass_expires_at);
-  const nextBase = Math.min(currentStreak + 1, 5);
+  // Mirrors the server's 7-day cycle (app/api/checkin/route.ts): +1 through
+  // +7, then back to +1 -- not a clamp, or the preview would get stuck
+  // showing +7 forever once a full week's been claimed.
+  const nextBase = (currentStreak % 7) + 1;
   const rewardLabel = hasPass ? `+${nextBase}x2` : `+${nextBase}`;
 
   const handleCheckIn = async () => {
