@@ -14,10 +14,8 @@ export function CompletedTaskRow({ label, rewardAmount }: CompletedTaskRowProps)
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-soft text-green">
         <CheckIcon className="h-4 w-4" />
       </span>
-      <span className="min-w-0 flex-1 truncate text-base font-bold text-text-faint line-through">
-        {label}
-      </span>
-      <span className="flex shrink-0 items-center gap-1.5 text-base font-bold text-text-faint line-through">
+      <span className="min-w-0 flex-1 truncate text-base font-bold text-text-faint">{label}</span>
+      <span className="flex shrink-0 items-center gap-1.5 text-base font-bold text-text-faint">
         +{rewardAmount}
         <TicketImage size={22} />
       </span>

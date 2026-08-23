@@ -9,24 +9,25 @@ import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 
 export function DailyCheckIn() {
   const { user, checkIn, loadingUser } = useTelegram();
-  const [status, setStatus] = useState<"idle" | "loading" | "done" | "already">("idle");
-  const [claimedLabel, setClaimedLabel] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading">("idle");
+  const [message, setMessage] = useState<string | null>(null);
 
   if (loadingUser || !user) return <TaskRowSkeleton />;
 
   const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  const alreadyCheckedInToday = user.last_checkin_date === today;
-  const disabled = alreadyCheckedInToday || status !== "idle";
+  // Claimed today -- shows in the Completed section instead (see
+  // CompletedTasksSection), same as any other finished task.
+  if (user.last_checkin_date === today) return null;
 
   // The stored streak_count only actually resets server-side the next time
   // the user checks in (try_daily_checkin recomputes it then, same
-  // yesterday/not-yesterday check as below) -- until that happens, a missed
-  // day leaves streak_count stale on the user row. Mirroring that same
-  // "is the streak still alive" check here means the preview shown before
-  // tapping matches what tapping will actually do, instead of showing an
-  // already-broken streak as if it were still intact.
-  const streakAlive = alreadyCheckedInToday || user.last_checkin_date === yesterday;
+  // yesterday check as below) -- until that happens, a missed day leaves
+  // streak_count stale on the user row. Mirroring that same "is the streak
+  // still alive" check here means the preview shown before tapping matches
+  // what tapping will actually do, instead of showing an already-broken
+  // streak as if it were still intact.
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const streakAlive = user.last_checkin_date === yesterday;
   const currentStreak = streakAlive ? user.streak_count ?? 0 : 0;
 
   const hasPass = isPassActive(user.raffly_pass_expires_at);
@@ -37,38 +38,30 @@ export function DailyCheckIn() {
   const rewardLabel = hasPass ? `+${nextBase}x2` : `+${nextBase}`;
 
   const handleCheckIn = async () => {
+    setMessage(null);
     setStatus("loading");
-    setClaimedLabel(rewardLabel);
     const result = await checkIn();
-    if (result.alreadyCheckedIn) {
-      setStatus("already");
-    } else if (result.user) {
-      setStatus("done");
-    } else {
-      setStatus("idle");
+    setStatus("idle");
+    // On success, user.last_checkin_date updates via context and the early
+    // return above hides this row on the next render -- moving into the
+    // Completed section is the feedback, same as Join Channel's "Already Did".
+    if (result.error) {
+      setMessage(result.error);
     }
   };
 
-  const label =
-    status === "loading"
-      ? "Claiming..."
-      : status === "done"
-      ? `${claimedLabel} tickets claimed!`
-      : alreadyCheckedInToday || status === "already"
-      ? "Already claimed today"
-      : "Daily Check-in";
-
   return (
-    <TaskRow
-      icon={<Image src="/images/daily-checkin-icon.png" alt="" width={28} height={29} />}
-      tone="purple"
-      label={label}
-      sublabel={
-        disabled ? undefined : `Streak: ${currentStreak} day${currentStreak === 1 ? "" : "s"}`
-      }
-      rewardLabel={rewardLabel}
-      onClick={handleCheckIn}
-      disabled={disabled}
-    />
+    <>
+      <TaskRow
+        icon={<Image src="/images/daily-checkin-icon.png" alt="" width={28} height={29} />}
+        tone="purple"
+        label={status === "loading" ? "Claiming..." : "Daily Check-in"}
+        sublabel={`Streak: ${currentStreak} day${currentStreak === 1 ? "" : "s"}`}
+        rewardLabel={rewardLabel}
+        onClick={handleCheckIn}
+        disabled={status === "loading"}
+      />
+      {message && <p className="mt-1 px-2 text-xs text-text-faint">{message}</p>}
+    </>
   );
 }
