@@ -1,7 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
-import { UsdtIcon } from "@/components/icons";
 import { TicketImage } from "@/components/ticket-image";
 
 type BalanceCardProps = {
@@ -44,7 +44,7 @@ export function BalanceCards() {
       <BalanceCard
         label="USDT"
         value={loadingUser ? "…" : `$${usdtBalance}`}
-        icon={<UsdtIcon className="h-4 w-4" />}
+        icon={<Image src="/images/usdt-icon-3d.png" alt="" width={22} height={22} />}
         variant="green"
       />
     </section>

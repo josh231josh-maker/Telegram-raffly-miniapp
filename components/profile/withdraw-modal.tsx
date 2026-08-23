@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { fetchWithRetry } from "@/lib/fetch-retry";
-import { UsdtIcon, CloseIcon } from "@/components/icons";
+import { CloseIcon } from "@/components/icons";
 import { IconBadge } from "@/components/icon-badge";
 
 type WithdrawModalProps = {
@@ -147,7 +148,11 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
         </div>
 
         <div className="flex flex-col items-center gap-2 py-4">
-          <IconBadge icon={<UsdtIcon />} tone="green" size="lg" />
+          <IconBadge
+            icon={<Image src="/images/usdt-icon-3d.png" alt="" width={32} height={32} />}
+            tone="green"
+            size="lg"
+          />
           <span className="font-heading text-3xl font-bold text-text">${balance.toFixed(2)}</span>
         </div>
 
@@ -157,9 +162,13 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
 
         {walletConnected ? (
           <div className="mb-4 flex items-center gap-3 rounded-2xl border border-border p-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0098ea] text-[10px] font-bold text-white">
-              TON
-            </span>
+            <Image
+              src="/images/ton-icon-3d.png"
+              alt=""
+              width={32}
+              height={32}
+              className="shrink-0 rounded-full"
+            />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-text">
                 {user!.ton_wallet_address!.slice(0, 6)}...{user!.ton_wallet_address!.slice(-4)}
