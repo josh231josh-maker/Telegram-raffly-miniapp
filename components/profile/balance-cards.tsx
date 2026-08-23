@@ -18,9 +18,7 @@ function BalanceCard({ label, value, icon, variant }: BalanceCardProps) {
     <article className={`${cardClass} rounded-[24px] p-4 text-white`}>
       <div className="mb-2 flex items-center justify-between">
         <span className="text-sm font-medium text-white/80">{label}</span>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20">
-          {icon}
-        </span>
+        <span className="flex shrink-0 items-center justify-center">{icon}</span>
       </div>
       <p className="font-heading text-2xl font-bold tracking-tight">{value}</p>
     </article>
@@ -38,13 +36,13 @@ export function BalanceCards() {
       <BalanceCard
         label="Tickets"
         value={loadingUser ? "…" : String(ticketBalance)}
-        icon={<TicketImage size={22} />}
+        icon={<TicketImage size={30} />}
         variant="purple"
       />
       <BalanceCard
         label="USDT"
         value={loadingUser ? "…" : `$${usdtBalance}`}
-        icon={<Image src="/images/usdt-icon-3d.png" alt="" width={22} height={22} />}
+        icon={<Image src="/images/usdt-icon-3d.png" alt="" width={30} height={30} />}
         variant="green"
       />
     </section>

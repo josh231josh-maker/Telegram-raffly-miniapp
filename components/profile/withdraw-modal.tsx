@@ -7,7 +7,6 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { fetchWithRetry } from "@/lib/fetch-retry";
 import { CloseIcon } from "@/components/icons";
-import { IconBadge } from "@/components/icon-badge";
 
 type WithdrawModalProps = {
   onClose: () => void;
@@ -147,12 +146,8 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
           </button>
         </div>
 
-        <div className="flex flex-col items-center gap-2 py-4">
-          <IconBadge
-            icon={<Image src="/images/usdt-icon-3d.png" alt="" width={32} height={32} />}
-            tone="green"
-            size="lg"
-          />
+        <div className="flex flex-col items-center gap-1 py-4">
+          <Image src="/images/usdt-icon-3d.png" alt="" width={84} height={84} />
           <span className="font-heading text-3xl font-bold text-text">${balance.toFixed(2)}</span>
         </div>
 
@@ -162,13 +157,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
 
         {walletConnected ? (
           <div className="mb-4 flex items-center gap-3 rounded-2xl border border-border p-3">
-            <Image
-              src="/images/ton-icon-3d.png"
-              alt=""
-              width={32}
-              height={32}
-              className="shrink-0 rounded-full"
-            />
+            <Image src="/images/ton-icon-3d.png" alt="" width={40} height={40} className="shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-text">
                 {user!.ton_wallet_address!.slice(0, 6)}...{user!.ton_wallet_address!.slice(-4)}
