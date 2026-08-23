@@ -155,7 +155,6 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
             >
               {status === "loading" ? "Processing..." : "Get Raffly Pass"}
             </button>
-            <p className="mt-3 text-[11px] text-white/40">Does not auto-renew.</p>
           </>
         )}
 
