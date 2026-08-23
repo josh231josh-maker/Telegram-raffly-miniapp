@@ -6,11 +6,6 @@ import { sanitizeProfileText } from "@/lib/sanitize";
 import { RATE_LIMITS, rateLimitByIp, rateLimitByUser, rateLimitResponse } from "@/lib/rate-limit";
 import { safeServerError } from "@/lib/logger";
 
-// Granted once, on first sign-in, to every new user regardless of how they
-// arrived (referred or not) -- distinct from REFERRAL_REWARD_TICKETS, which
-// only pays the referrer once their invitee crosses the ticket threshold.
-const NEW_USER_REWARD_TICKETS = 50;
-
 // Telegram's CDN URLs run well under this, but keep enough headroom that a
 // slightly longer one is never truncated into something broken.
 function sanitizePhotoUrl(value: string | undefined): string | null {
@@ -104,7 +99,6 @@ export async function POST(req: NextRequest) {
       photo_url: sanitizePhotoUrl(tgUser.photoUrl),
       referred_by: referredBy,
       acquisition_link_code: acquisitionLinkCode,
-      ticket_balance: NEW_USER_REWARD_TICKETS,
     })
     .select()
     .single();

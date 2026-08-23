@@ -4,10 +4,12 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { CompletedTaskRow } from "@/components/raffles/completed-task-row";
 import { CHANNEL_TASK_REWARD_TICKETS } from "@/lib/channel-task";
+import { NEW_USER_BONUS_TICKETS } from "@/lib/new-user-bonus";
 
 // Lists finished tasks below the active task list: Daily Check-in once
-// claimed for today, and Join Channel once verified -- built to hold more
-// as they're added rather than hardcoding rows inline on the page.
+// claimed for today, Join Channel once verified, and the Welcome Bonus once
+// claimed -- built to hold more as they're added rather than hardcoding rows
+// inline on the page.
 export function CompletedTasksSection() {
   const { user } = useTelegram();
   if (!user) return null;
@@ -15,8 +17,9 @@ export function CompletedTasksSection() {
   const today = new Date().toISOString().slice(0, 10);
   const checkedInToday = user.last_checkin_date === today;
   const channelJoined = !!user.channel_joined_at;
+  const bonusClaimed = !!user.new_user_bonus_claimed_at;
 
-  if (!checkedInToday && !channelJoined) return null;
+  if (!checkedInToday && !channelJoined && !bonusClaimed) return null;
 
   // After a successful check-in, streak_count holds exactly the reward-cycle
   // day just claimed (see app/api/checkin/route.ts) -- the same value
@@ -30,6 +33,9 @@ export function CompletedTasksSection() {
       {checkedInToday && <CompletedTaskRow label="Daily Check-in" rewardAmount={dailyReward} />}
       {channelJoined && (
         <CompletedTaskRow label="Join Our Channel" rewardAmount={CHANNEL_TASK_REWARD_TICKETS} />
+      )}
+      {bonusClaimed && (
+        <CompletedTaskRow label="Welcome Bonus" rewardAmount={NEW_USER_BONUS_TICKETS} />
       )}
     </div>
   );

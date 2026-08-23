@@ -16,6 +16,7 @@ import { WatchAdCard } from "@/components/raffles/watch-ad-card";
 import { WatchAdsgramAdCard } from "@/components/raffles/watch-adsgram-ad-card";
 import { ReferralCard } from "@/components/raffles/referral-card";
 import { JoinChannelCard } from "@/components/raffles/join-channel-card";
+import { NewUserBonusCard } from "@/components/raffles/new-user-bonus-card";
 import { CompletedTasksSection } from "@/components/raffles/completed-tasks-section";
 import { BuyRaffleBar } from "@/components/raffles/buy-raffle-bar";
 import { BalanceCards } from "@/components/profile/balance-cards";
@@ -24,7 +25,6 @@ import { ProfileCard } from "@/components/profile/profile-card";
 import { RecentActivity } from "@/components/profile/recent-activity";
 import { RafflyPassDetail } from "@/components/raffly-pass/raffly-pass-detail";
 import { TicketImage } from "@/components/ticket-image";
-import { WelcomeBonusToast } from "@/components/welcome-bonus-toast";
 
 export default function HomePage() {
   const [tab, setTab] = useState<TabId>("home");
@@ -54,7 +54,6 @@ export default function HomePage() {
 
   return (
     <main className="min-h-dvh pb-28">
-      <WelcomeBonusToast />
       <div className="mx-auto flex max-w-md flex-col gap-4 px-4 pt-6">
         {tab === "home" && (
           <>
@@ -76,6 +75,7 @@ export default function HomePage() {
               Complete tasks and receive
               <TicketImage size={22} />
             </h1>
+            <NewUserBonusCard />
             <DailyCheckIn />
             <WatchAdCard />
             {/* AdsGram's ad block isn't active on their end yet (pending

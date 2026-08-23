@@ -27,6 +27,7 @@ type RafflyUser = {
   raffly_pass_expires_at: string | null;
   raffly_pass_last_claim_date: string | null;
   channel_joined_at: string | null;
+  new_user_bonus_claimed_at: string | null;
   referral_count: number;
   referral_reached_count: number;
 };
@@ -74,6 +75,14 @@ type JoinChannelResult = {
   error?: string;
 };
 
+type ClaimNewUserBonusResult = {
+  claimed?: boolean;
+  alreadyClaimed?: boolean;
+  ticketsEarned?: number;
+  user?: RafflyUser;
+  error?: string;
+};
+
 type TelegramContextValue = {
   isReady: boolean;
   isTelegram: boolean;
@@ -93,6 +102,7 @@ type TelegramContextValue = {
   refreshRaffleEntry: () => Promise<void>;
   claimPassTickets: () => Promise<ClaimPassResult>;
   claimChannelTask: () => Promise<JoinChannelResult>;
+  claimNewUserBonus: () => Promise<ClaimNewUserBonusResult>;
 };
 
 const TelegramContext = createContext<TelegramContextValue>({
@@ -111,6 +121,7 @@ const TelegramContext = createContext<TelegramContextValue>({
   refreshRaffleEntry: async () => {},
   claimPassTickets: async () => ({ error: "Not ready" }),
   claimChannelTask: async () => ({ error: "Not ready" }),
+  claimNewUserBonus: async () => ({ error: "Not ready" }),
 });
 
 export function useTelegram() {
@@ -414,6 +425,27 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const claimNewUserBonus = useCallback(async (): Promise<ClaimNewUserBonusResult> => {
+    if (!initDataRef.current) {
+      return { error: "Not ready" };
+    }
+    try {
+      // Safe to retry: claim_new_user_bonus is gated on
+      // new_user_bonus_claimed_at, same idiom as claimChannelTask.
+      const res = await fetchWithRetry("/api/tasks/new-user-bonus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: initDataRef.current }),
+      });
+      const data: ClaimNewUserBonusResult = await res.json();
+      if (data.user) setUser(data.user);
+      return data;
+    } catch (err) {
+      console.error("Claim new user bonus fetch error:", err);
+      return { error: "Network error" };
+    }
+  }, []);
+
   const getInitData = useCallback(() => initDataRef.current, []);
 
   // The consumer set is large (nearly every screen reads from this context),
@@ -438,6 +470,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       refreshRaffleEntry: fetchRaffleEntry,
       claimPassTickets,
       claimChannelTask,
+      claimNewUserBonus,
     }),
     [
       isReady,
@@ -455,6 +488,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       fetchRaffleEntry,
       claimPassTickets,
       claimChannelTask,
+      claimNewUserBonus,
     ]
   );
 

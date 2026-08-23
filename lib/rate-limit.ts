@@ -79,6 +79,12 @@ export const RATE_LIMITS = {
     ip: { requests: 20, window: "60 s" },
     user: { requests: 5, window: "60 s" },
   },
+  // One-time claim gated on new_user_bonus_claimed_at, no external check to
+  // retry against -- same shape as passClaim.
+  newUserBonus: {
+    ip: { requests: 20, window: "60 s" },
+    user: { requests: 5, window: "60 s" },
+  },
   // Financial and gated further by withdrawals_one_active_per_user at the DB
   // level, but a tight limit still stops request-spam cost abuse.
   withdraw: {
