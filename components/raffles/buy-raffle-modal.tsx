@@ -15,12 +15,12 @@ import { TicketImage } from "@/components/ticket-image";
 // here. Must stay in sync with that file so the price the user sees before
 // paying matches what they're actually charged.
 const TIERS = [
-  { id: "raffle50", stars: 50, tickets: 70, icon: "/images/tier-1.png" },
-  { id: "raffle100", stars: 100, tickets: 140, icon: "/images/tier-2.png" },
-  { id: "raffle250", stars: 250, tickets: 350, icon: "/images/tier-3.png" },
-  { id: "raffle500", stars: 500, tickets: 700, icon: "/images/tier-4.png" },
-  { id: "raffle1000", stars: 1000, tickets: 1400, icon: "/images/tier-5.png" },
-  { id: "raffle3000", stars: 3000, tickets: 4200, icon: "/images/tier-6.png" },
+  { id: "raffle50", stars: 50, tickets: 50, icon: "/images/tier-1.png" },
+  { id: "raffle100", stars: 100, tickets: 100, icon: "/images/tier-2.png" },
+  { id: "raffle250", stars: 250, tickets: 250, icon: "/images/tier-3.png" },
+  { id: "raffle500", stars: 500, tickets: 500, icon: "/images/tier-4.png" },
+  { id: "raffle1000", stars: 1000, tickets: 1000, icon: "/images/tier-5.png" },
+  { id: "raffle3000", stars: 3000, tickets: 3000, icon: "/images/tier-6.png" },
 ];
 
 type BuyRaffleModalProps = {
