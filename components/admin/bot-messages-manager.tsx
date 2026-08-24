@@ -23,6 +23,38 @@ const RANGES: { value: Range; label: string }[] = [
   { value: "all", label: "All time" },
 ];
 
+// Clamped to 3 lines by default so one very long message can't balloon its
+// whole table row -- "Show more" is a tap, not a hover, since hover never
+// triggers on mobile touch (the reason a title-attribute tooltip was
+// replaced with wrapped text in the first place).
+function LastMessageCell({ text }: { text: string | null }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!text) return <span className="text-white/30">—</span>;
+
+  // Rough heuristic for "would this actually get clamped": long enough to
+  // wrap past 3 lines, or already broken into more than 3 lines itself.
+  // Short messages skip the toggle entirely rather than showing a "Show
+  // more" button that would visibly do nothing.
+  const isLong = text.length > 140 || text.split("\n").length > 3;
+
+  if (!isLong) {
+    return <p className="whitespace-pre-wrap break-words">{text}</p>;
+  }
+
+  return (
+    <div>
+      <p className={`whitespace-pre-wrap break-words ${expanded ? "" : "line-clamp-3"}`}>{text}</p>
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="mt-1 text-xs font-semibold text-blue-400 hover:text-blue-300"
+      >
+        {expanded ? "Show less" : "Show more"}
+      </button>
+    </div>
+  );
+}
+
 export function BotMessagesManager() {
   const [range, setRange] = useState<Range>("7d");
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -108,8 +140,8 @@ export function BotMessagesManager() {
                   </td>
                   <td className="px-4 py-3 text-white/70 tabular-nums">{c.telegramId}</td>
                   <td className="px-4 py-3 text-white/70 tabular-nums">{c.messageCount}</td>
-                  <td className="max-w-[320px] whitespace-pre-wrap break-words px-4 py-3 text-white/70">
-                    {c.lastMessageText ?? <span className="text-white/30">—</span>}
+                  <td className="max-w-[320px] px-4 py-3 text-white/70">
+                    <LastMessageCell text={c.lastMessageText} />
                   </td>
                   <td className="px-4 py-3 text-white/50">{new Date(c.lastMessageAt).toLocaleString()}</td>
                 </tr>
