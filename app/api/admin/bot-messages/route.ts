@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = getSupabaseAdmin();
+  const rangeStart = hours !== null ? new Date(Date.now() - hours * 60 * 60 * 1000).toISOString() : null;
 
   let query = supabase
     .from("bot_messages")
@@ -40,14 +41,29 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: false })
     .limit(MAX_ROWS);
 
-  if (hours !== null) {
-    query = query.gte("created_at", new Date(Date.now() - hours * 60 * 60 * 1000).toISOString());
+  if (rangeStart !== null) {
+    query = query.gte("created_at", rangeStart);
   }
 
-  const { data: rows, error } = await query;
+  // The row fetch above is capped (both by MAX_ROWS and, underneath that, by
+  // Supabase's own API row limit) since it only needs to feed the visible
+  // contact list. The header counts must stay exact regardless of how many
+  // rows that cap drops, so they come from a separate aggregate query
+  // (COUNT(*) / COUNT(DISTINCT telegram_id)) that never materializes rows.
+  const [{ data: rows, error }, statsResult] = await Promise.all([
+    query,
+    supabase.rpc("bot_messages_stats", { range_start: rangeStart }).single(),
+  ]);
+  const { data: stats, error: statsError } = statsResult as {
+    data: { total_messages: number; total_users: number } | null;
+    error: { message: string } | null;
+  };
 
   if (error) {
     return NextResponse.json(safeServerError("admin.bot_messages_list_failed", error), { status: 500 });
+  }
+  if (statsError) {
+    return NextResponse.json(safeServerError("admin.bot_messages_stats_failed", statsError), { status: 500 });
   }
 
   // Small-scale aggregation in JS (same convention as tracking-links'
@@ -105,8 +121,10 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     contacts: contactsWithPhotos,
-    totalUsers: contacts.length,
-    totalMessages: rows?.length ?? 0,
-    truncated: (rows?.length ?? 0) >= MAX_ROWS,
+    totalUsers: stats?.total_users ?? contacts.length,
+    totalMessages: stats?.total_messages ?? rows?.length ?? 0,
+    // Now specifically means "the contact list below isn't everyone" --
+    // totalUsers/totalMessages above are always exact, from bot_messages_stats.
+    truncated: contacts.length < (stats?.total_users ?? contacts.length),
   });
 }

@@ -103,8 +103,8 @@ export function BotMessagesManager() {
           <span className="font-semibold text-white">{totalUsers}</span> {totalUsers === 1 ? "person" : "people"}{" "}
           messaged the bot in {rangeLabel.toLowerCase()} (
           <span className="font-semibold text-white">{totalMessages}</span> message
-          {totalMessages === 1 ? "" : "s"}
-          {truncated ? ", capped" : ""})
+          {totalMessages === 1 ? "" : "s"})
+          {truncated ? " — showing the most recently active contacts below" : ""}
         </p>
       )}
 
