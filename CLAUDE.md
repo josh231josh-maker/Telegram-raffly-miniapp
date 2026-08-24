@@ -38,12 +38,15 @@ export function SomeMiniAppOnlyThing() {
 }
 ```
 
-Live examples: `components/confetti-background.tsx` (renders nothing under
-`/admin`), and the `contextmenu` listener in
+Live examples: the `contextmenu` listener in
 `components/providers/telegram-provider.tsx` (skips attaching under
-`/admin`). The root layout itself stays a server component — the pathname
-check lives in a small client component like these, not in
-`app/layout.tsx` directly.
+`/admin`), and `components/mini-app-shell.tsx` itself, which returns early
+under `/admin` before mounting any mini-app-only provider (`ThemeProvider`,
+`LanguageProvider`, `TelegramProvider`) or ad script. The root layout itself
+stays a server component — the pathname check lives in a small client
+component like these, not in `app/layout.tsx` directly. (The original
+confetti-gif offender this rule was written after has since been removed
+from the app entirely, not just re-scoped.)
 
 This applies in both directions: something built for the admin dashboard
 should equally never leak onto the mini app.

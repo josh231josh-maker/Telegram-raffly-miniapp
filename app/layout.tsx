@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
-import { ConfettiBackground } from "@/components/confetti-background";
 import { MiniAppShell } from "@/components/mini-app-shell";
 import "./globals.css";
 
@@ -39,11 +38,6 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
       >
-        {/* See components/confetti-background.tsx for why this stacks the way
-            it does (canvas-background + relative-wrapper interaction) and
-            why it's a separate component (route-scoped to the mini app). */}
-        <ConfettiBackground />
-
         <div className="relative">
           {/* TonConnect (@tonconnect/ui-react, ~350KB) is deliberately NOT
               wrapped around the whole app here -- it's only used inside the
