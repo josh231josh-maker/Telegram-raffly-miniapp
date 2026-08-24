@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UserAvatar } from "./user-avatar";
 
 type Contact = {
   telegramId: number;
   username: string | null;
   firstName: string | null;
+  photoUrl: string | null;
   lastMessageAt: string;
   lastMessageText: string | null;
   messageCount: number;
@@ -97,13 +99,16 @@ export function BotMessagesManager() {
             </thead>
             <tbody>
               {contacts.map((c) => (
-                <tr key={c.telegramId} className="border-t border-white/5">
+                <tr key={c.telegramId} className="border-t border-white/5 align-top">
                   <td className="px-4 py-3 font-medium text-white">
-                    {c.username ? `@${c.username}` : c.firstName || "Unknown"}
+                    <div className="flex items-center gap-2.5">
+                      <UserAvatar photoUrl={c.photoUrl} firstName={c.firstName} username={c.username} />
+                      {c.username ? `@${c.username}` : c.firstName || "Unknown"}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-white/70 tabular-nums">{c.telegramId}</td>
                   <td className="px-4 py-3 text-white/70 tabular-nums">{c.messageCount}</td>
-                  <td className="max-w-[260px] truncate px-4 py-3 text-white/70" title={c.lastMessageText ?? undefined}>
+                  <td className="max-w-[320px] whitespace-pre-wrap break-words px-4 py-3 text-white/70">
                     {c.lastMessageText ?? <span className="text-white/30">—</span>}
                   </td>
                   <td className="px-4 py-3 text-white/50">{new Date(c.lastMessageAt).toLocaleString()}</td>

@@ -89,8 +89,22 @@ export async function GET(req: NextRequest) {
     (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
   );
 
+  // Not every bot contact is a Mini App user (someone can message the bot
+  // without ever opening the app), so this is a best-effort lookup, not a
+  // join the query depends on -- a contact with no matching row here just
+  // renders with no photo, the same as one who registered but never set one.
+  const telegramIds = contacts.map((c) => c.telegramId);
+  const { data: matchingUsers } = telegramIds.length
+    ? await supabase.from("users").select("telegram_id, photo_url").in("telegram_id", telegramIds)
+    : { data: [] as { telegram_id: number; photo_url: string | null }[] };
+  const photoByTelegramId = new Map((matchingUsers ?? []).map((u) => [u.telegram_id, u.photo_url]));
+  const contactsWithPhotos = contacts.map((c) => ({
+    ...c,
+    photoUrl: photoByTelegramId.get(c.telegramId) ?? null,
+  }));
+
   return NextResponse.json({
-    contacts,
+    contacts: contactsWithPhotos,
     totalUsers: contacts.length,
     totalMessages: rows?.length ?? 0,
     truncated: (rows?.length ?? 0) >= MAX_ROWS,
