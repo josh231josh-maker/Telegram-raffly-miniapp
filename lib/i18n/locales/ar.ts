@@ -107,6 +107,7 @@ const ar: Record<TranslationKey, string> = {
   "pass.benefit1": "{{daily}} تذكرة كل يوم لمدة {{days}} يومًا",
   "pass.benefit2": "تذاكر مضاعفة عند مشاهدة الإعلانات",
   "pass.benefit3": "مكافأة مضاعفة لتسجيل الحضور اليومي",
+  "pass.benefit4": "بدون إعلانات منبثقة غير مرغوب فيها",
   "pass.claiming": "جارٍ الاستلام...",
   "pass.alreadyClaimedToday": "تم الاستلام اليوم بالفعل",
   "pass.claimTodayTickets": "استلام تذاكر اليوم البالغة {{n}}",

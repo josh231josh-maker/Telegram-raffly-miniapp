@@ -106,6 +106,7 @@ const de: Record<TranslationKey, string> = {
   "pass.benefit1": "{{daily}} Tickets täglich für {{days}} Tage",
   "pass.benefit2": "2x Tickets beim Ansehen von Anzeigen",
   "pass.benefit3": "Doppelte Belohnung beim täglichen Check-in",
+  "pass.benefit4": "Keine unerwünschten Pop-up-Anzeigen",
   "pass.claiming": "Wird abgeholt...",
   "pass.alreadyClaimedToday": "Heute bereits abgeholt",
   "pass.claimTodayTickets": "Die heutigen {{n}} Tickets abholen",

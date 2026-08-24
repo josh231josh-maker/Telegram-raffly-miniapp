@@ -106,6 +106,7 @@ const ru: Record<TranslationKey, string> = {
   "pass.benefit1": "{{daily}} билетов каждый день в течение {{days}} дней",
   "pass.benefit2": "x2 билетов за просмотр рекламы",
   "pass.benefit3": "Двойная награда за ежедневный вход",
+  "pass.benefit4": "Без нежелательной всплывающей рекламы",
   "pass.claiming": "Получение...",
   "pass.alreadyClaimedToday": "Уже получено сегодня",
   "pass.claimTodayTickets": "Забрать сегодняшние {{n}} билетов",

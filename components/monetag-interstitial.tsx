@@ -1,42 +1,51 @@
 "use client";
 
 import { useEffect } from "react";
-import { isRewardedAdActive } from "@/lib/ad-session-lock";
+import { useTelegram } from "@/components/providers/telegram-provider";
+import { isPassActive } from "@/lib/raffly-pass";
+import { GAP_MS, getLastAdAt, isRewardedAdActive, markAdShown } from "@/lib/ad-session-lock";
 
-// Delay before arming, past the moment a fresh session might already be
-// showing the daily check-in popup -- a new session's first few seconds
-// shouldn't compete for attention with an unrelated ad.
-const ARM_DELAY_MS = 8000;
+// How often this checks whether an interstitial is due -- coarser than the
+// 2-minute gap itself, since firing a little late is harmless but firing
+// early defeats the point of the gap. 15s keeps the actual delay within a
+// negligible margin of the intended 2 minutes.
+const POLL_INTERVAL_MS = 15_000;
 
-// Passed straight through to Monetag's show_11527679({ type: "inApp", ... })
-// call: shows up to 2 ads automatically within a 0.1-hour (6-minute) window,
-// 30s apart, with a 5s delay before the first one; everyPage: false keeps
-// that window tied to this session rather than resetting on every in-app
-// tab switch (Home/Raffles/Profile aren't real navigations here).
+// Each check only ever asks Monetag for a single ad ("frequency: 1") --
+// unlike the original one-shot arm-and-let-Monetag-schedule-the-rest
+// approach, the 2-minute cadence and the "never during a rewarded watch"
+// rule both live in our own polling logic below, since Monetag's own
+// frequency/interval knobs have no way to know about that rewarded-watch
+// state. capping/interval/timeout are still passed through for whatever
+// per-call pacing Monetag applies around the single ad this asks for.
 const IN_APP_SETTINGS = {
-  frequency: 2,
+  frequency: 1,
   capping: 0.1,
   interval: 30,
   timeout: 5,
   everyPage: false,
 } as const;
 
-// Mounted once, mini-app only (see MiniAppShell) -- this is a single "start
-// showing these on your own schedule" call, not a per-ad trigger. Monetag's
-// SDK owns the actual timing (frequency/interval/timeout above) from here.
+// Mounted once, mini-app only (see MiniAppShell). Polls rather than using a
+// single scheduled timer because "when the next ad is due" can be pushed
+// back at any moment by WatchAdCard calling markAdShown() on its own --
+// a plain setTimeout computed once wouldn't notice that reset.
 export function MonetagInterstitial() {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // WatchAdCard's rewarded ad uses this same Monetag zone -- skip
-      // arming if one happens to be in progress right now rather than risk
-      // two concurrent calls into the same SDK. Rare at this point in a
-      // session, and next session gets another chance to arm.
-      if (isRewardedAdActive()) return;
-      window.show_11527679?.({ type: "inApp", inAppSettings: IN_APP_SETTINGS });
-    }, ARM_DELAY_MS);
+  const { user, loadingUser } = useTelegram();
 
-    return () => clearTimeout(timer);
-  }, []);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (loadingUser) return; // pass status not known yet -- safer to wait than risk showing a pass holder an ad
+      if (isPassActive(user?.raffly_pass_expires_at ?? null)) return; // Raffly Pass: no automatic ads, ever
+      if (isRewardedAdActive()) return; // never interrupt an active rewarded watch
+      if (Date.now() - getLastAdAt() < GAP_MS) return; // not due yet
+
+      window.show_11527679?.({ type: "inApp", inAppSettings: IN_APP_SETTINGS });
+      markAdShown();
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [user, loadingUser]);
 
   return null;
 }

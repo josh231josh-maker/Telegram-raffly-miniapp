@@ -7,7 +7,7 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { fetchWithRetry } from "@/lib/fetch-retry";
-import { setRewardedAdActive } from "@/lib/ad-session-lock";
+import { setRewardedAdActive, markAdShown } from "@/lib/ad-session-lock";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 import type { TranslationKey } from "@/lib/i18n/translations";
@@ -139,6 +139,9 @@ export function WatchAdCard() {
       return;
     }
     if (generationRef.current !== generation) return;
+    // Ad 1 actually shown -- pushes the automatic interstitial's next
+    // eligible moment out by another 2 minutes from here.
+    markAdShown();
 
     setStatus("gap");
     // Now that ad1's own show() call has fully resolved, it's safe to
@@ -172,6 +175,7 @@ export function WatchAdCard() {
       return;
     }
     if (generationRef.current !== generation) return;
+    markAdShown();
 
     setStatus("checking");
     const rewardedQuickly = await pollForReward(startingBalance, POSTBACK_VISIBLE_ATTEMPTS, generation);

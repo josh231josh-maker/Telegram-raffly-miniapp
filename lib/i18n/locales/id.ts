@@ -105,6 +105,7 @@ const id: Record<TranslationKey, string> = {
   "pass.benefit1": "{{daily}} tiket setiap hari selama {{days}} hari",
   "pass.benefit2": "Tiket 2x saat menonton iklan",
   "pass.benefit3": "Hadiah check-in harian ganda",
+  "pass.benefit4": "Tanpa iklan pop-up yang tidak diinginkan",
   "pass.claiming": "Mengklaim...",
   "pass.alreadyClaimedToday": "Sudah diklaim hari ini",
   "pass.claimTodayTickets": "Klaim {{n}} tiket hari ini",

@@ -86,6 +86,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
     t("pass.benefit1", { daily: RAFFLY_PASS_DAILY_TICKETS, days: RAFFLY_PASS_DURATION_DAYS }),
     t("pass.benefit2"),
     t("pass.benefit3"),
+    t("pass.benefit4"),
   ];
 
   return (

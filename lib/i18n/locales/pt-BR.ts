@@ -106,6 +106,7 @@ const ptBR: Record<TranslationKey, string> = {
   "pass.benefit1": "{{daily}} bilhetes todos os dias por {{days}} dias",
   "pass.benefit2": "Bilhetes em dobro ao assistir anúncios",
   "pass.benefit3": "Recompensa dobrada no check-in diário",
+  "pass.benefit4": "Sem anúncios pop-up indesejados",
   "pass.claiming": "Resgatando...",
   "pass.alreadyClaimedToday": "Já resgatado hoje",
   "pass.claimTodayTickets": "Resgatar os {{n}} bilhetes de hoje",

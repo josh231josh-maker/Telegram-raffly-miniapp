@@ -109,6 +109,7 @@ export const TRANSLATION_KEYS = [
   "pass.benefit1",
   "pass.benefit2",
   "pass.benefit3",
+  "pass.benefit4",
   "pass.claiming",
   "pass.alreadyClaimedToday",
   "pass.claimTodayTickets",
