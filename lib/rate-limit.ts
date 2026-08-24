@@ -97,10 +97,17 @@ export const RATE_LIMITS = {
     ip: { requests: 20, window: "60 s" },
     user: { requests: 10, window: "60 s" },
   },
-  // Telegram delivers updates from its own infrastructure; the secret-token
-  // check gates authenticity, this just bounds worst-case volume per source IP.
+  // Telegram delivers every update -- from every user, for every command,
+  // including payment confirmations -- from its own server infrastructure,
+  // so this single IP bucket carries the bot's entire real traffic, not one
+  // user's. The secret-token check (verified before this even runs) already
+  // gates authenticity; this is only a backstop against a genuinely runaway
+  // volume. Observed production bursts hit ~30 req/s for several seconds at
+  // a time (e.g. a wave of real /start's), so 120/60s was undersized by
+  // over an order of magnitude and was 429-ing more than half of all
+  // webhook traffic -- including, intermittently, payment updates.
   telegramWebhook: {
-    ip: { requests: 120, window: "60 s" },
+    ip: { requests: 3000, window: "60 s" },
   },
   // Mints the signed token that binds an ad-watch session to a verified
   // Telegram id -- called once per ad-watch attempt from the Mini App.

@@ -184,10 +184,19 @@ export async function POST(req: NextRequest) {
     if (settings?.enabled && settings.message_html?.trim()) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
       const buttons = (settings.buttons ?? []) as ButtonInput[];
-      await sendTelegramContent(botToken, chatId, settings.message_html, {
+      const result = await sendTelegramContent(botToken, chatId, settings.message_html, {
         imageUrl: settings.image_url,
         buttons: buildInlineButtons(buttons, appUrl),
       });
+      // Previously discarded -- a bad image URL, malformed HTML entity, or a
+      // user who has blocked the bot would fail here with no trace anywhere.
+      if (!result.ok) {
+        logger.warn("telegram.welcome_message_send_failed", {
+          errorCode: result.errorCode,
+          description: result.description,
+          blocked: result.blocked,
+        });
+      }
     }
     return NextResponse.json({ ok: true });
   }
