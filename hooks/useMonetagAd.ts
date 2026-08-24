@@ -4,7 +4,20 @@ import { useCallback } from "react";
 
 declare global {
   interface Window {
-    show_11527679?: (params: { type?: string; ymid: string }) => Promise<unknown>;
+    show_11527679?: (
+      params:
+        | { type?: string; ymid: string }
+        | {
+            type: "inApp";
+            inAppSettings: {
+              frequency: number;
+              capping: number;
+              interval: number;
+              timeout: number;
+              everyPage: boolean;
+            };
+          }
+    ) => Promise<unknown>;
   }
 }
 

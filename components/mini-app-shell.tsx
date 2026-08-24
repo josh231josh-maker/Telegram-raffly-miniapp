@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { TelegramProvider } from "@/components/providers/telegram-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { LanguageProvider } from "@/components/providers/language-provider";
+import { MonetagInterstitial } from "@/components/monetag-interstitial";
 
 // Everything here -- the Telegram SDK context and the ad network loader
 // scripts -- is mini-app-only. The admin dashboard shares this same root
@@ -20,9 +21,10 @@ export function MiniAppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {/* Ad SDKs are only needed once a user taps "Watch Ads" -- loading them
-          beforeInteractive would block the whole app's startup on
-          third-party ad CDNs that most sessions never even use. */}
+      {/* Neither ad SDK is needed for the app's own first paint -- loading
+          them beforeInteractive would block startup on third-party ad CDNs.
+          Monetag's script backs both the tap-to-watch rewarded ad
+          (WatchAdCard) and the automatic in-app interstitial below. */}
       <Script
         src="//libtl.com/sdk.js"
         data-zone="11527679"
@@ -32,7 +34,10 @@ export function MiniAppShell({ children }: { children: React.ReactNode }) {
       <Script src="https://w.tads.me/widget.js" strategy="afterInteractive" />
       <ThemeProvider>
         <LanguageProvider>
-          <TelegramProvider>{children}</TelegramProvider>
+          <TelegramProvider>
+            <MonetagInterstitial />
+            {children}
+          </TelegramProvider>
         </LanguageProvider>
       </ThemeProvider>
     </>

@@ -7,6 +7,7 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { fetchWithRetry } from "@/lib/fetch-retry";
+import { setRewardedAdActive } from "@/lib/ad-session-lock";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 import type { TranslationKey } from "@/lib/i18n/translations";
@@ -47,6 +48,18 @@ export function WatchAdCard() {
   const [gapSecondsLeft, setGapSecondsLeft] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const { preloadAd, showAd } = useMonetagAd();
+
+  // Marks the shared Monetag zone busy for as long as this component's own
+  // watch flow is active, so the automatic in-app interstitial (see
+  // components/monetag-interstitial.tsx) knows not to arm itself into the
+  // same SDK mid-watch. Reset on every status change and on unmount, not
+  // just when leaving "idle" -- a stale "busy" left set past this
+  // component's own lifetime would silently block the interstitial forever.
+  useEffect(() => {
+    const busy = status === "ad1" || status === "gap" || status === "ad2" || status === "checking";
+    setRewardedAdActive(busy);
+    return () => setRewardedAdActive(false);
+  }, [status]);
 
   // Bumped whenever a new watch starts, and once on unmount. A poll loop
   // checks this before every step and against the generation it was started
