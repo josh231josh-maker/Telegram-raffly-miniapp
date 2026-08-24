@@ -11,12 +11,14 @@ const RANGE_HOURS: Record<string, number | null> = {
   all: null,
 };
 
-// Hard cap on rows scanned per request -- this table only ever grows, and
-// without a limit a heavily-messaged "all time" query could pull an
-// unbounded number of rows into the function just to group them in JS.
-// Recent activity (the actual point of this view) always sorts first, so a
+// Hard cap on rows scanned per request, purely to bound the visible contact
+// table (the header totals come from bot_messages_stats() below and are
+// exact regardless of this cap). Recent activity always sorts first, so a
 // cap here only ever drops the oldest, least useful rows for a given range.
-const MAX_ROWS = 5000;
+// Kept small since every fetched row becomes a rendered table row with no
+// pagination/virtualization, plus an entry in the follow-up photo lookup's
+// IN (...) list.
+const MAX_ROWS = 100;
 
 export async function GET(req: NextRequest) {
   if (!(await isAdminAuthed())) {
