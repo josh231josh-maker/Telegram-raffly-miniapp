@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { TaskRow } from "@/components/raffles/task-row";
 import { InviteFriendsDetail } from "@/components/raffles/invite-friends-detail";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
@@ -10,6 +11,7 @@ import { REFERRAL_REWARD_TICKETS } from "@/lib/referral";
 
 export function ReferralCard() {
   const { user, loadingUser } = useTelegram();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   if (loadingUser || !user) return <TaskRowSkeleton />;
@@ -21,8 +23,8 @@ export function ReferralCard() {
       <TaskRow
         icon={<Image src="/images/referral-icon.png" alt="" width={28} height={27} />}
         tone="pink"
-        label="Invite Friends"
-        sublabel="Earn tickets per referral"
+        label={t("referral.inviteFriends")}
+        sublabel={t("referral.earnPerReferral")}
         rewardLabel={`+${REFERRAL_REWARD_TICKETS}`}
         onClick={() => setOpen(true)}
       />

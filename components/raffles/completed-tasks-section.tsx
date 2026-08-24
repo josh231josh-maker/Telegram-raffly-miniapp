@@ -1,6 +1,7 @@
 "use client";
 
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { CompletedTaskRow } from "@/components/raffles/completed-task-row";
 import { CHANNEL_TASK_REWARD_TICKETS } from "@/lib/channel-task";
@@ -12,6 +13,7 @@ import { NEW_USER_BONUS_TICKETS } from "@/lib/new-user-bonus";
 // inline on the page.
 export function CompletedTasksSection() {
   const { user } = useTelegram();
+  const { t } = useLanguage();
   if (!user) return null;
 
   const today = new Date().toISOString().slice(0, 10);
@@ -29,13 +31,15 @@ export function CompletedTasksSection() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-sm font-bold text-text-dim">Completed</h2>
-      {checkedInToday && <CompletedTaskRow label="Daily Check-in" rewardAmount={dailyReward} />}
+      <h2 className="text-sm font-bold text-text-dim">{t("completed.title")}</h2>
+      {checkedInToday && (
+        <CompletedTaskRow label={t("completed.dailyCheckin")} rewardAmount={dailyReward} />
+      )}
       {channelJoined && (
-        <CompletedTaskRow label="Join Our Channel" rewardAmount={CHANNEL_TASK_REWARD_TICKETS} />
+        <CompletedTaskRow label={t("completed.joinChannel")} rewardAmount={CHANNEL_TASK_REWARD_TICKETS} />
       )}
       {bonusClaimed && (
-        <CompletedTaskRow label="Welcome Bonus" rewardAmount={NEW_USER_BONUS_TICKETS} />
+        <CompletedTaskRow label={t("completed.welcomeBonus")} rewardAmount={NEW_USER_BONUS_TICKETS} />
       )}
     </div>
   );

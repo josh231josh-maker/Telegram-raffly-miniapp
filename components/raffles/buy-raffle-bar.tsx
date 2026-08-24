@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { TicketImage } from "@/components/ticket-image";
 import { BuyRaffleModal } from "@/components/raffles/buy-raffle-modal";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +10,7 @@ import { AnimatedTicketValue } from "@/components/animated-ticket-value";
 
 export function BuyRaffleBar() {
   const { user, loadingUser } = useTelegram();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   if (loadingUser) {
@@ -33,7 +35,7 @@ export function BuyRaffleBar() {
           <TicketImage size={26} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-white/50">Raffle tickets</p>
+          <p className="text-xs text-white/50">{t("buyRaffle.raffleTickets")}</p>
           <p className="font-heading text-xl font-bold text-white">
             <AnimatedTicketValue value={balance} />
           </p>
@@ -42,7 +44,7 @@ export function BuyRaffleBar() {
           onClick={() => setOpen(true)}
           className="btn-green flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold transition"
         >
-          Buy
+          {t("buyRaffle.buy")}
           <TicketImage size={16} />
         </button>
       </div>

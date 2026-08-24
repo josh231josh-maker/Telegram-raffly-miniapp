@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { fetchWithRetry } from "@/lib/fetch-retry";
@@ -29,6 +30,7 @@ type BuyRaffleModalProps = {
 
 export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
   const { user, refreshUser, getInitData } = useTelegram();
+  const { t } = useLanguage();
   const openInvoice = useTelegramInvoice();
   useTelegramBackButton(onClose);
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
@@ -56,7 +58,7 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
 
       const status = await openInvoice(data.invoiceUrl);
       if (status === "paid") {
-        setSuccessMessage("Payment successful! Tickets added.");
+        setSuccessMessage(t("buyRaffle.paymentSuccess"));
         setTimeout(() => refreshUser(), 1500);
       }
     } finally {
@@ -74,14 +76,14 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
         >
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-sm text-white/70">
-              Balance
+              {t("buyRaffle.balance")}
               <TicketImage size={16} />
               <span className="font-semibold text-white tabular-nums">{balance}</span>
             </div>
             <Dialog.Close asChild>
               <button
                 className="flex size-8 items-center justify-center rounded-full bg-white/10 text-white/70"
-                aria-label="Close"
+                aria-label={t("common.close")}
               >
                 <CloseIcon className="h-3.5 w-3.5" />
               </button>
@@ -91,25 +93,25 @@ export function BuyRaffleModal({ onClose }: BuyRaffleModalProps) {
           <div className="flex flex-col items-center py-3">
             <TicketImage size={56} />
             <Dialog.Title className="mt-3 font-heading text-xl font-bold text-white text-balance">
-              Purchase Tickets
+              {t("buyRaffle.purchaseTickets")}
             </Dialog.Title>
           </div>
 
           <div className="grid grid-cols-3 gap-2.5">
-            {TIERS.map((t) => (
+            {TIERS.map((tier) => (
               <button
-                key={t.id}
-                onClick={() => handleBuy(t.id)}
+                key={tier.id}
+                onClick={() => handleBuy(tier.id)}
                 disabled={loadingTier !== null}
                 className="flex w-full flex-col items-center gap-1 rounded-2xl bg-white/5 px-2 py-3.5 transition disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Image src={t.icon} alt="" width={44} height={44} />
+                <Image src={tier.icon} alt="" width={44} height={44} />
                 <span className="font-heading text-base font-bold text-white tabular-nums">
-                  {t.tickets}
+                  {tier.tickets}
                 </span>
-                <span className="text-[10px] text-white/45">tickets</span>
+                <span className="text-[10px] text-white/45">{t("buyRaffle.ticketsLabel")}</span>
                 <span className="mt-1 flex items-center gap-1 rounded-full bg-accent/20 px-2 py-1 text-[11px] font-semibold text-accent-2 tabular-nums">
-                  {loadingTier === t.id ? "..." : t.stars}
+                  {loadingTier === tier.id ? "..." : tier.stars}
                   <Image src="/images/star-icon.png" alt="" width={12} height={12} />
                 </span>
               </button>

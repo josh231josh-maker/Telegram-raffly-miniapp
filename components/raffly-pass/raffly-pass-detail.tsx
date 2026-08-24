@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useTelegramInvoice } from "@/hooks/useTelegramInvoice";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import {
@@ -18,14 +19,9 @@ type RafflyPassDetailProps = {
   onClose: () => void;
 };
 
-const BENEFITS = [
-  `${RAFFLY_PASS_DAILY_TICKETS} tickets every day for ${RAFFLY_PASS_DURATION_DAYS} days`,
-  "2x tickets from watching ads",
-  "Double daily check-in rewards",
-];
-
 export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
   const { user, loadingUser, getInitData, refreshUser, claimPassTickets } = useTelegram();
+  const { t } = useLanguage();
   const openInvoice = useTelegramInvoice();
   useTelegramBackButton(onClose);
   const [status, setStatus] = useState<"idle" | "loading">("idle");
@@ -51,22 +47,22 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
       });
       const data = await res.json();
       if (!data.invoiceUrl) {
-        setMessage(data.error ?? "Could not start payment");
+        setMessage(data.error ?? t("pass.couldNotStartPayment"));
         setStatus("idle");
         return;
       }
 
       const invoiceStatus = await openInvoice(data.invoiceUrl);
       if (invoiceStatus === "paid") {
-        setMessage("Raffly Pass activated!");
+        setMessage(t("pass.activated"));
         setTimeout(() => refreshUser(), 1500);
       } else if (invoiceStatus === "cancelled") {
-        setMessage("Payment cancelled");
+        setMessage(t("pass.paymentCancelled"));
       } else if (invoiceStatus !== "pending") {
-        setMessage("Payment did not complete");
+        setMessage(t("pass.paymentIncomplete"));
       }
     } catch {
-      setMessage("Something went wrong");
+      setMessage(t("common.somethingWrong"));
     } finally {
       setStatus("idle");
     }
@@ -78,20 +74,26 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
     const result = await claimPassTickets();
     setStatus("idle");
     if (result.alreadyClaimed) {
-      setMessage("Already claimed today's tickets");
+      setMessage(t("pass.alreadyClaimedTodayMsg"));
     } else if (result.error) {
       setMessage(result.error);
     } else if (result.ticketsEarned) {
-      setMessage(`+${result.ticketsEarned} tickets claimed!`);
+      setMessage(t("pass.ticketsClaimed", { n: result.ticketsEarned }));
     }
   };
+
+  const benefits = [
+    t("pass.benefit1", { daily: RAFFLY_PASS_DAILY_TICKETS, days: RAFFLY_PASS_DURATION_DAYS }),
+    t("pass.benefit2"),
+    t("pass.benefit3"),
+  ];
 
   return (
     <div className="pass-gradient fixed inset-0 z-50 flex flex-col text-white">
       <div className="flex items-center justify-between px-5 pt-6">
         <button
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t("common.close")}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10"
         >
           <CloseIcon className="h-4 w-4" />
@@ -100,17 +102,17 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
 
       <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8 text-center">
         <Image src="/images/crown-icon.png" alt="" width={60} height={35} />
-        <h1 className="font-heading mt-4 text-2xl font-bold text-balance">Raffly Pass</h1>
+        <h1 className="font-heading mt-4 text-2xl font-bold text-balance">{t("pass.title")}</h1>
 
         {hasPass ? (
           <div className="mt-4 flex w-full items-center divide-x divide-white/20 rounded-2xl border border-white/20 bg-white/10 py-3">
             <div className="flex-1">
               <p className="font-heading text-2xl font-bold tabular-nums">{daysLeft}</p>
-              <p className="text-[11px] text-white/60">Days left</p>
+              <p className="text-[11px] text-white/60">{t("pass.daysLeft")}</p>
             </div>
             <div className="flex-1">
               <p className="font-heading text-2xl font-bold tabular-nums">{RAFFLY_PASS_DAILY_TICKETS}</p>
-              <p className="text-[11px] text-white/60">Tickets/day</p>
+              <p className="text-[11px] text-white/60">{t("pass.ticketsPerDay")}</p>
             </div>
           </div>
         ) : (
@@ -119,12 +121,12 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
               {RAFFLY_PASS_STARS}
               <Image src="/images/star-icon.png" alt="" width={28} height={27} />
             </p>
-            <p className="text-xs text-white/50">one-time purchase</p>
+            <p className="text-xs text-white/50">{t("pass.oneTimePurchase")}</p>
           </>
         )}
 
         <div className="mt-6 w-full rounded-2xl bg-white/5 p-4 text-left">
-          {BENEFITS.map((benefit) => (
+          {benefits.map((benefit) => (
             <div key={benefit} className="flex items-start gap-3 py-2">
               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/25 text-white">
                 <CheckIcon className="h-3 w-3" />
@@ -141,10 +143,10 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
             className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-semibold text-accent shadow-lg transition active:scale-[0.98] disabled:opacity-60"
           >
             {status === "loading"
-              ? "Claiming..."
+              ? t("pass.claiming")
               : alreadyClaimedToday
-              ? "Already claimed today"
-              : `Claim today's ${RAFFLY_PASS_DAILY_TICKETS} tickets`}
+              ? t("pass.alreadyClaimedToday")
+              : t("pass.claimTodayTickets", { n: RAFFLY_PASS_DAILY_TICKETS })}
           </button>
         ) : (
           <>
@@ -153,7 +155,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
               disabled={status === "loading" || loadingUser}
               className="mt-6 w-full rounded-full bg-white px-4 py-3 text-sm font-semibold text-accent shadow-lg transition active:scale-[0.98] disabled:opacity-60"
             >
-              {status === "loading" ? "Processing..." : "Get Raffly Pass"}
+              {status === "loading" ? t("pass.processing") : t("pass.getRafflyPass")}
             </button>
           </>
         )}

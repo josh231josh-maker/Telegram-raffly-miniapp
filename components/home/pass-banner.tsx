@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { RAFFLY_PASS_DAILY_TICKETS, isPassActive } from "@/lib/raffly-pass";
 import { ChevronRightIcon } from "@/components/icons";
+import { useLanguage } from "@/components/providers/language-provider";
 
 type PassBannerProps = {
   onOpen: () => void;
@@ -11,6 +12,7 @@ type PassBannerProps = {
 
 export function PassBanner({ onOpen }: PassBannerProps) {
   const { user } = useTelegram();
+  const { t } = useLanguage();
   const hasPass = isPassActive(user?.raffly_pass_expires_at ?? null);
 
   const banner = (
@@ -24,11 +26,13 @@ export function PassBanner({ onOpen }: PassBannerProps) {
           Raffly Pass
           {hasPass && (
             <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold">
-              Active
+              {t("home.passActive")}
             </span>
           )}
         </span>
-        <span className="block text-xs text-white/70">{RAFFLY_PASS_DAILY_TICKETS} tickets/day · 2x rewards</span>
+        <span className="block text-xs text-white/70">
+          {t("home.passTicketsPerDay", { n: RAFFLY_PASS_DAILY_TICKETS })}
+        </span>
       </span>
       <ChevronRightIcon className="h-4 w-4 text-white/60" />
     </button>

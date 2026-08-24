@@ -6,6 +6,7 @@ import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { isPassActive } from "@/lib/raffly-pass";
 import { TicketImage } from "@/components/ticket-image";
 import { CloseIcon } from "@/components/icons";
+import { useLanguage } from "@/components/providers/language-provider";
 
 type DailyCheckInPopupProps = {
   onClose: () => void;
@@ -18,6 +19,7 @@ const MAX_STREAK_DAY = 7;
 
 export function DailyCheckInPopup({ onClose }: DailyCheckInPopupProps) {
   const { user, checkIn } = useTelegram();
+  const { t } = useLanguage();
   useTelegramBackButton(onClose);
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [message, setMessage] = useState<string | null>(null);
@@ -59,14 +61,16 @@ export function DailyCheckInPopup({ onClose }: DailyCheckInPopupProps) {
       >
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="font-heading text-xl font-bold text-balance">Daily Check-in</h2>
+            <h2 className="font-heading text-xl font-bold text-balance">{t("dailyCheckin.label")}</h2>
             <p className="mt-0.5 text-xs text-text-faint">
-              Streak: {currentStreak} day{currentStreak === 1 ? "" : "s"}
+              {t(currentStreak === 1 ? "dailyCheckin.streakOne" : "dailyCheckin.streakMany", {
+                n: currentStreak,
+              })}
             </p>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("common.close")}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-text-dim"
           >
             <CloseIcon className="h-4 w-4" />
@@ -91,7 +95,9 @@ export function DailyCheckInPopup({ onClose }: DailyCheckInPopupProps) {
                   >
                     {day}
                   </span>
-                  <span className={isNext ? "text-text" : "text-text-dim"}>Day {day}</span>
+                  <span className={isNext ? "text-text" : "text-text-dim"}>
+                    {t("dailyCheckin.day", { n: day })}
+                  </span>
                 </span>
                 <span
                   className={`flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums ${
@@ -111,7 +117,9 @@ export function DailyCheckInPopup({ onClose }: DailyCheckInPopupProps) {
           disabled={status === "loading"}
           className="btn-purple mt-5 w-full rounded-full px-4 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {status === "loading" ? "Claiming..." : `Claim +${rewardFor(nextDay)} tickets`}
+          {status === "loading"
+            ? t("dailyCheckin.claiming")
+            : t("dailyCheckin.claimReward", { n: rewardFor(nextDay) })}
         </button>
         {message && <p className="mt-2 text-center text-xs text-text-faint">{message}</p>}
       </div>

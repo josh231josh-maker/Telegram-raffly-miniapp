@@ -19,7 +19,7 @@ export function ProfileCard() {
   const { language, t } = useLanguage();
   const [photoFailed, setPhotoFailed] = useState(false);
   const [languagePickerOpen, setLanguagePickerOpen] = useState(false);
-  const currentLanguageLabel = LANGUAGES.find((l) => l.code === language)?.nativeLabel ?? language;
+  const currentLanguage = LANGUAGES.find((l) => l.code === language);
 
   if (loadingUser || !user) {
     return (
@@ -108,7 +108,8 @@ export function ProfileCard() {
         >
           <span>{t("profile.language")}</span>
           <span className="flex items-center gap-1.5 text-text-faint">
-            {currentLanguageLabel}
+            <span aria-hidden="true">{currentLanguage?.flag}</span>
+            {currentLanguage?.nativeLabel ?? language}
             <ChevronRightIcon className="h-4 w-4" />
           </span>
         </button>

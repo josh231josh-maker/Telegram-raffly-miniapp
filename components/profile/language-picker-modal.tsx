@@ -23,7 +23,7 @@ export function LanguagePickerModal({ onClose }: LanguagePickerModalProps) {
           <h2 className="font-heading text-lg font-bold text-balance">{t("profile.languagePickerTitle")}</h2>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("common.close")}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-text-dim"
           >
             <CloseIcon className="h-4 w-4" />
@@ -40,7 +40,12 @@ export function LanguagePickerModal({ onClose }: LanguagePickerModalProps) {
               }}
               className="flex items-center justify-between py-3 text-left text-sm font-medium text-text"
             >
-              <span>{lang.nativeLabel}</span>
+              <span className="flex items-center gap-2.5">
+                <span className="text-lg leading-none" aria-hidden="true">
+                  {lang.flag}
+                </span>
+                {lang.nativeLabel}
+              </span>
               {language === lang.code && <CheckIcon className="h-4 w-4 text-accent" />}
             </button>
           ))}

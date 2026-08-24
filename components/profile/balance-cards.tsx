@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { TicketImage } from "@/components/ticket-image";
 
 type BalanceCardProps = {
@@ -27,14 +28,15 @@ function BalanceCard({ label, value, icon, variant }: BalanceCardProps) {
 
 export function BalanceCards() {
   const { user, loadingUser } = useTelegram();
+  const { t } = useLanguage();
 
   const ticketBalance = user?.ticket_balance ?? 0;
   const usdtBalance = (user?.usdt_balance ?? 0).toFixed(2);
 
   return (
-    <section className="grid grid-cols-2 gap-3" aria-label="Your balances">
+    <section className="grid grid-cols-2 gap-3" aria-label={t("profile.balancesAria")}>
       <BalanceCard
-        label="Tickets"
+        label={t("nav.raffles")}
         value={loadingUser ? "…" : String(ticketBalance)}
         icon={<TicketImage size={30} />}
         variant="purple"

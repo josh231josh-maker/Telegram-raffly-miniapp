@@ -74,7 +74,7 @@ export default function HomePage() {
           <>
             <BuyRaffleBar />
             <h1 className="flex items-center justify-center gap-2 text-center font-heading text-xl font-bold text-text">
-              Complete tasks and receive
+              {t("raffles.heading")}
               <TicketImage size={22} />
             </h1>
             <NewUserBonusCard />

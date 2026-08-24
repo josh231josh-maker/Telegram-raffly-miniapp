@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useAdsgramAd } from "@/hooks/useAdsgram";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { fetchWithRetry } from "@/lib/fetch-retry";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
+import type { TranslationKey } from "@/lib/i18n/translations";
 
 type Status = "idle" | "watching" | "checking" | "done" | "failed";
 
@@ -19,17 +21,20 @@ const POSTBACK_POLL_INTERVAL_MS = 700;
 const POSTBACK_VISIBLE_ATTEMPTS = 12;
 const POSTBACK_BACKGROUND_ATTEMPTS = 40;
 
-function formatCooldown(cooldownUntil: string): string {
+function formatCooldown(t: (key: TranslationKey, params?: Record<string, string | number>) => string, cooldownUntil: string): string {
   const remainingMs = new Date(cooldownUntil).getTime() - Date.now();
   const minutes = Math.max(1, Math.ceil(remainingMs / 60_000));
-  if (minutes < 60) return `Come back in ${minutes}m`;
+  if (minutes < 60) return t("watchAd.comeBackMinutes", { n: minutes });
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  return mins > 0 ? `Come back in ${hours}h ${mins}m` : `Come back in ${hours}h`;
+  return mins > 0
+    ? t("watchAd.comeBackHoursMinutes", { h: hours, m: mins })
+    : t("watchAd.comeBackHours", { n: hours });
 }
 
 export function WatchAdsgramAdCard() {
   const { user, refreshUser, loadingUser, getInitData } = useTelegram();
+  const { t } = useLanguage();
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const { showAd } = useAdsgramAd();
@@ -83,7 +88,7 @@ export function WatchAdsgramAdCard() {
     const cooldownUntil = await checkCooldown();
     if (generationRef.current !== generation) return;
     if (cooldownUntil) {
-      setMessage(formatCooldown(cooldownUntil));
+      setMessage(formatCooldown(t, cooldownUntil));
       return;
     }
 
@@ -120,14 +125,14 @@ export function WatchAdsgramAdCard() {
 
   const label =
     status === "watching"
-      ? "Watching ad..."
+      ? t("watchAd.watchingAd")
       : status === "checking"
-      ? "Checking..."
+      ? t("watchAd.checking")
       : status === "done"
       ? rewardLabel
       : status === "failed"
-      ? "Failed, try again"
-      : "Watch Ad";
+      ? t("watchAd.failedTryAgain")
+      : t("watchAd.watchAd");
 
   const disabled = status !== "idle" && status !== "failed";
 

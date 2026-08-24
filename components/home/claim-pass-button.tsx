@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
 import { RAFFLY_PASS_DAILY_TICKETS, isPassActive, hasClaimedPassToday } from "@/lib/raffly-pass";
 import { TicketImage } from "@/components/ticket-image";
+import { useLanguage } from "@/components/providers/language-provider";
 
 type Status = "idle" | "loading" | "failed";
 
@@ -14,6 +15,7 @@ type Status = "idle" | "loading" | "failed";
 // state needed, same reasoning as the "Active" badge on PassBanner.
 export function ClaimPassButton() {
   const { user, loadingUser, claimPassTickets } = useTelegram();
+  const { t } = useLanguage();
   const [status, setStatus] = useState<Status>("idle");
 
   const hasPass = !loadingUser && isPassActive(user?.raffly_pass_expires_at ?? null);
@@ -31,7 +33,12 @@ export function ClaimPassButton() {
     }
   };
 
-  const label = status === "loading" ? "..." : status === "failed" ? "Retry" : "Claim";
+  const label =
+    status === "loading"
+      ? t("home.claimPassLoading")
+      : status === "failed"
+      ? t("home.claimPassRetry")
+      : t("home.claimPassClaim");
 
   return (
     // The outer div owns the absolute positioning (overlapping PassBanner --
@@ -46,7 +53,7 @@ export function ClaimPassButton() {
         <button
           onClick={handleClaim}
           disabled={status === "loading"}
-          aria-label={`Claim today's ${RAFFLY_PASS_DAILY_TICKETS} Raffly Pass tickets`}
+          aria-label={t("home.claimPassAriaLabel", { n: RAFFLY_PASS_DAILY_TICKETS })}
           className="pass-banner-gradient relative flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-70"
         >
           {label}

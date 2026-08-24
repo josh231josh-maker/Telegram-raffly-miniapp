@@ -7,6 +7,7 @@ import { winProbabilityPct } from "@/lib/raffle-odds";
 import { TicketImage } from "@/components/ticket-image";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { RaffleInfo } from "@/hooks/useRaffleInfo";
+import { useLanguage } from "@/components/providers/language-provider";
 
 const RADIUS = 42;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -18,6 +19,7 @@ type OddsRingCardProps = {
 
 export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
   const { user, raffleEntry, loadingUser, loadingRaffleEntry, enterRaffle } = useTelegram();
+  const { t } = useLanguage();
   const [amount, setAmount] = useState(0);
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [message, setMessage] = useState<string | null>(null);
@@ -64,19 +66,21 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
     const result = await enterRaffle(clampedAmount);
     setStatus("idle");
     if (result.success) {
-      setMessage(`Entered ${clampedAmount} ticket${clampedAmount === 1 ? "" : "s"} into this draw!`);
+      setMessage(
+        t(clampedAmount === 1 ? "odds.enteredOne" : "odds.enteredMany", { n: clampedAmount })
+      );
       setAmount(0);
     } else {
-      setMessage(result.error ?? "Something went wrong");
+      setMessage(result.error ?? t("common.somethingWrong"));
     }
   };
 
   return (
     <section className="card-soft rounded-[28px] border border-border bg-card p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-text-dim">Your Odds</p>
+        <p className="text-sm font-medium text-text-dim">{t("odds.title")}</p>
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-text-dim">This Draw</span>
+          <span className="text-sm font-medium text-text-dim">{t("odds.thisDraw")}</span>
           <TicketImage size={20} />
         </div>
       </div>
@@ -108,11 +112,11 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
 
         <div className="flex-1 text-sm">
           <div className="flex items-center justify-between border-b border-border py-1.5">
-            <span className="text-text-dim">Your tickets</span>
+            <span className="text-text-dim">{t("odds.yourTickets")}</span>
             <span className="font-semibold text-text">{yourTickets}</span>
           </div>
           <div className="flex items-center justify-between py-1.5">
-            <span className="text-text-dim">Total pool</span>
+            <span className="text-text-dim">{t("odds.totalPool")}</span>
             <span className="font-semibold text-text">{totalTickets}</span>
           </div>
         </div>
@@ -121,17 +125,15 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
       <div className="my-3 border-t border-border" />
 
       {raffleClosed ? (
-        <p className="text-center text-xs text-text-faint">
-          Entries are closed while this draw is in progress.
-        </p>
+        <p className="text-center text-xs text-text-faint">{t("odds.entriesClosed")}</p>
       ) : available <= 0 ? (
         <div className="flex flex-col items-center gap-3 py-1">
-          <p className="text-center text-xs text-text-faint">You have no tickets to enter.</p>
+          <p className="text-center text-xs text-text-faint">{t("odds.noTickets")}</p>
           <button
             onClick={onGetMore}
             className="btn-accent flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition"
           >
-            Get More
+            {t("odds.getMore")}
             <TicketImage size={14} />
           </button>
         </div>
@@ -142,7 +144,7 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
               onClick={() => setClamped(clampedAmount - 1)}
               disabled={status === "loading" || clampedAmount <= 0}
               className="btn-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Decrease amount"
+              aria-label={t("odds.decreaseAmount")}
             >
               −
             </button>
@@ -157,13 +159,13 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
                 disabled={status === "loading"}
                 className="w-20 bg-transparent text-center font-heading text-3xl font-bold text-text outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
-              <span className="text-[11px] text-text-faint">of {available} tickets</span>
+              <span className="text-[11px] text-text-faint">{t("odds.ofTickets", { n: available })}</span>
             </div>
             <button
               onClick={() => setClamped(clampedAmount + 1)}
               disabled={status === "loading" || clampedAmount >= available}
               className="btn-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="Increase amount"
+              aria-label={t("odds.increaseAmount")}
             >
               +
             </button>
@@ -177,7 +179,7 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
                 disabled={status === "loading"}
                 className="rounded-full border border-border py-2 text-xs font-semibold text-text-dim transition disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {pct === 100 ? "Max" : `${pct}%`}
+                {pct === 100 ? t("odds.max") : `${pct}%`}
               </button>
             ))}
           </div>
@@ -187,7 +189,11 @@ export function OddsRingCard({ onGetMore, info }: OddsRingCardProps) {
             disabled={status === "loading" || clampedAmount <= 0}
             className="btn-accent w-full rounded-full px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
           >
-            {status === "loading" ? "Entering..." : `Enter ${clampedAmount || ""} ticket${clampedAmount === 1 ? "" : "s"}`}
+            {status === "loading"
+              ? t("odds.entering")
+              : t(clampedAmount === 1 ? "odds.enterTicketsOne" : "odds.enterTicketsMany", {
+                  n: clampedAmount,
+                })}
           </button>
         </>
       )}

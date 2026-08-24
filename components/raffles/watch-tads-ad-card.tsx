@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useTadsAd, TADS_WIDGET_ID } from "@/hooks/useTadsAd";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
@@ -20,6 +21,7 @@ const REFRESH_DELAY_MS = 2000;
 
 export function WatchTadsAdCard() {
   const { user, refreshUser, loadingUser } = useTelegram();
+  const { t } = useLanguage();
   const [status, setStatus] = useState<Status>("idle");
   // Temporary, while this integration is still being verified against
   // TADS' real runtime behavior -- surfaces exactly what's happening in the
@@ -51,12 +53,12 @@ export function WatchTadsAdCard() {
 
   const label =
     status === "watching"
-      ? "Watching ad..."
+      ? t("watchAd.watchingAd")
       : status === "checking"
-      ? "Checking..."
+      ? t("watchAd.checking")
       : status === "failed"
-      ? "Failed, try again"
-      : "Watch Ad";
+      ? t("watchAd.failedTryAgain")
+      : t("watchAd.watchAd");
 
   // "failed" is a resting state like "idle", not in-progress -- see
   // watch-ad-card.tsx for why the button stays tappable in it.

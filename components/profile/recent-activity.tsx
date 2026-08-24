@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDownIcon } from "@/components/icons";
+import { useLanguage } from "@/components/providers/language-provider";
 
 type ActivityItem = {
   id: string;
@@ -11,6 +12,7 @@ type ActivityItem = {
 };
 
 export function RecentActivity() {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   // No transaction-history endpoint exists yet, so this renders an empty
@@ -24,7 +26,7 @@ export function RecentActivity() {
         className="flex w-full items-center justify-between px-5 py-4 text-left"
         aria-expanded={open}
       >
-        <span className="text-sm font-medium text-text-dim">Recent Activity</span>
+        <span className="text-sm font-medium text-text-dim">{t("recentActivity.title")}</span>
         <ChevronDownIcon
           className={`h-4 w-4 text-text-faint transition-transform ${open ? "rotate-180" : ""}`}
         />
@@ -33,7 +35,7 @@ export function RecentActivity() {
       {open && (
         <div className="border-t border-border px-5 py-4">
           {items.length === 0 ? (
-            <p className="py-2 text-center text-xs text-text-faint">No recent activity yet</p>
+            <p className="py-2 text-center text-xs text-text-faint">{t("recentActivity.empty")}</p>
           ) : (
             <ul className="flex flex-col divide-y divide-border">
               {items.map((item) => (

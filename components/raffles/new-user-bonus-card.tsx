@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { GiftIcon } from "@/components/icons";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
@@ -9,6 +10,7 @@ import { NEW_USER_BONUS_TICKETS } from "@/lib/new-user-bonus";
 
 export function NewUserBonusCard() {
   const { user, claimNewUserBonus, loadingUser } = useTelegram();
+  const { t } = useLanguage();
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -32,8 +34,8 @@ export function NewUserBonusCard() {
       <TaskRow
         icon={<GiftIcon />}
         tone="pink"
-        label={status === "loading" ? "Claiming..." : "Welcome Bonus"}
-        sublabel="One-time reward for new players"
+        label={status === "loading" ? t("newUserBonus.claiming") : t("newUserBonus.label")}
+        sublabel={t("newUserBonus.sublabel")}
         rewardLabel={`+${NEW_USER_BONUS_TICKETS}`}
         onClick={handleClaim}
         disabled={status === "loading"}

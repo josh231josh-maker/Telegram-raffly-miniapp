@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { openTelegramLink } from "@telegram-apps/sdk";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { CHANNEL_TASK_REWARD_TICKETS, CHANNEL_TASK_URL } from "@/lib/channel-task";
 import { TicketImage } from "@/components/ticket-image";
@@ -23,6 +24,7 @@ function openChannel() {
 
 export function JoinChannelDetail({ onClose }: JoinChannelDetailProps) {
   const { claimChannelTask } = useTelegram();
+  const { t } = useLanguage();
   useTelegramBackButton(onClose);
   const [status, setStatus] = useState<"idle" | "verifying">("idle");
   const [message, setMessage] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export function JoinChannelDetail({ onClose }: JoinChannelDetailProps) {
       onClose();
       return;
     }
-    setMessage(result.error ?? "Something went wrong. Please try again.");
+    setMessage(result.error ?? t("joinChannel.genericError"));
   };
 
   return (
@@ -50,20 +52,18 @@ export function JoinChannelDetail({ onClose }: JoinChannelDetailProps) {
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-soft">
               <Image src="/images/telegram-channel-icon.png" alt="" width={26} height={26} />
             </span>
-            <h2 className="font-heading text-lg font-bold text-balance">Join Our Channel</h2>
+            <h2 className="font-heading text-lg font-bold text-balance">{t("joinChannel.label")}</h2>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("common.close")}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-text-dim"
           >
             <CloseIcon className="h-4 w-4" />
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-text-dim text-pretty">
-          Join the Raffly Announcement channel for raffle updates and winner announcements.
-        </p>
+        <p className="mt-4 text-sm text-text-dim text-pretty">{t("joinChannel.description")}</p>
 
         <div className="mt-4 flex items-center justify-center gap-1.5 rounded-2xl border border-border bg-background py-3 text-lg font-bold text-accent">
           +{CHANNEL_TASK_REWARD_TICKETS}
@@ -75,14 +75,14 @@ export function JoinChannelDetail({ onClose }: JoinChannelDetailProps) {
             onClick={openChannel}
             className="btn-accent w-full rounded-full px-4 py-3 text-sm font-bold transition"
           >
-            Join Channel
+            {t("joinChannel.joinButton")}
           </button>
           <button
             onClick={handleVerify}
             disabled={status === "verifying"}
             className="w-full rounded-full border border-border px-4 py-3 text-sm font-bold text-text transition disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {status === "verifying" ? "Checking..." : "Already Did"}
+            {status === "verifying" ? t("joinChannel.checking") : t("joinChannel.alreadyDid")}
           </button>
         </div>
         {message && <p className="mt-2 text-center text-xs text-text-faint">{message}</p>}

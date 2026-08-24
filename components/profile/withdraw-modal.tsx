@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useTelegramBackButton } from "@/hooks/useTelegramBackButton";
 import { fetchWithRetry } from "@/lib/fetch-retry";
 import { CloseIcon } from "@/components/icons";
@@ -14,6 +15,7 @@ type WithdrawModalProps = {
 
 export function WithdrawModal({ onClose }: WithdrawModalProps) {
   const { user, requestWithdrawal, getInitData, refreshUser } = useTelegram();
+  const { t } = useLanguage();
   useTelegramBackButton(onClose);
   const address = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
@@ -81,7 +83,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
 
       const initData = getInitData();
       if (!initData) {
-        throw new Error("Not ready — reopen the app and try again.");
+        throw new Error(t("withdraw.notReady"));
       }
 
       const res = await fetchWithRetry("/api/wallet/connect-ton", {
@@ -91,13 +93,13 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? `Server error (${res.status})`);
+        throw new Error(data.error ?? t("withdraw.serverError", { status: res.status }));
       }
 
       await refreshUser();
-      setMessage("Wallet disconnected.");
+      setMessage(t("withdraw.disconnected"));
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Could not disconnect. Try again.");
+      setMessage(err instanceof Error ? err.message : t("withdraw.disconnectFailed"));
     } finally {
       setDisconnecting(false);
     }
@@ -112,10 +114,10 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
       const result = await requestWithdrawal();
       if (result.success) {
         setStatus("done");
-        setMessage("Withdrawal requested! We'll process it shortly.");
+        setMessage(t("withdraw.requested"));
       } else {
         setStatus("idle");
-        setMessage(result.error ?? "Something went wrong");
+        setMessage(result.error ?? t("common.somethingWrong"));
       }
     } finally {
       submittingRef.current = false;
@@ -136,11 +138,11 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 22px)" }}
       >
         <div className="mb-1 flex items-center justify-between">
-          <h3 className="font-heading text-base font-bold text-text">Withdraw USDT</h3>
+          <h3 className="font-heading text-base font-bold text-text">{t("withdraw.title")}</h3>
           <button
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-text-dim"
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             <CloseIcon className="h-3.5 w-3.5" />
           </button>
@@ -151,9 +153,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
           <span className="font-heading text-3xl font-bold text-text">${balance.toFixed(2)}</span>
         </div>
 
-        <p className="mb-4 text-center text-xs text-text-dim">
-          Sent to the TON wallet below.
-        </p>
+        <p className="mb-4 text-center text-xs text-text-dim">{t("withdraw.sentToWallet")}</p>
 
         {walletConnected ? (
           <div className="mb-4 flex items-center gap-3 rounded-2xl border border-border p-3">
@@ -162,21 +162,19 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
               <p className="truncate text-sm font-semibold text-text">
                 {user!.ton_wallet_address!.slice(0, 6)}...{user!.ton_wallet_address!.slice(-4)}
               </p>
-              <p className="text-[11px] text-text-faint">TON Wallet</p>
+              <p className="text-[11px] text-text-faint">{t("withdraw.tonWallet")}</p>
             </div>
             <button
               onClick={handleDisconnect}
               disabled={disconnecting}
               className="shrink-0 rounded-full bg-background px-3 py-1.5 text-xs font-semibold text-text-dim disabled:opacity-50"
             >
-              {disconnecting ? "..." : "Disconnect"}
+              {disconnecting ? "..." : t("withdraw.disconnect")}
             </button>
           </div>
         ) : (
           <div className="mb-4 flex flex-col items-center gap-3 rounded-2xl border border-border p-4">
-            <p className="text-center text-xs text-text-dim">
-              Connect a TON wallet to receive your withdrawal.
-            </p>
+            <p className="text-center text-xs text-text-dim">{t("withdraw.connectPrompt")}</p>
             <TonConnectButton />
           </div>
         )}
@@ -186,7 +184,7 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
           disabled={!canWithdraw}
           className="btn-green w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
         >
-          {status === "loading" ? "Processing..." : `Withdraw $${balance.toFixed(2)}`}
+          {status === "loading" ? t("withdraw.processing") : t("withdraw.button", { amount: balance.toFixed(2) })}
         </button>
 
         {message && <p className="mt-2 text-center text-xs text-text-faint">{message}</p>}

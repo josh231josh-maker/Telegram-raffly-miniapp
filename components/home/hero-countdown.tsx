@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { getCurrentWeekEnd, PRIZE_POOL_USDT } from "@/lib/raffle-week";
 import { StarIcon, TrophyIcon } from "@/components/icons";
+import { useLanguage } from "@/components/providers/language-provider";
 
 type Segments = { days: string; hours: string; minutes: string; seconds: string };
 
@@ -28,6 +29,7 @@ const SPARKLES = [
 ];
 
 export function HeroCountdown() {
+  const { t } = useLanguage();
   const [target, setTarget] = useState(() => getCurrentWeekEnd());
   const [segments, setSegments] = useState<Segments>({
     days: "--",
@@ -54,16 +56,16 @@ export function HeroCountdown() {
   }, [target]);
 
   const items = [
-    { label: "Days", value: segments.days },
-    { label: "Hours", value: segments.hours },
-    { label: "Mins", value: segments.minutes },
-    { label: "Secs", value: segments.seconds },
+    { label: t("home.days"), value: segments.days },
+    { label: t("home.hours"), value: segments.hours },
+    { label: t("home.mins"), value: segments.minutes },
+    { label: t("home.secs"), value: segments.seconds },
   ];
 
   return (
     <section
       className="hero-rise relative isolate p-5 text-white"
-      aria-label="Next draw"
+      aria-label={t("home.nextDrawAria")}
     >
       <Image
         src="/images/hero-ticket-full.png"
@@ -83,7 +85,7 @@ export function HeroCountdown() {
           <TrophyIcon className="h-3 w-3 text-white" />
         </span>
         <span className="text-[10px] font-semibold uppercase tracking-widest text-white/90">
-          This Draw&apos;s Prize Pool
+          {t("home.prizePoolLabel")}
         </span>
       </div>
 
@@ -95,7 +97,7 @@ export function HeroCountdown() {
 
       <div className="relative mt-1.5 border-t border-white/15 px-5 pt-1.5">
         <p className="mb-1 text-center text-[9px] font-medium uppercase tracking-wide text-white/60">
-          Next draw in
+          {t("home.nextDrawIn")}
         </p>
         <div className="grid grid-cols-4 gap-0.5 text-center">
           {items.map((item) => (

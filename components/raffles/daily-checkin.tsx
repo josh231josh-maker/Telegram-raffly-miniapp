@@ -3,12 +3,14 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 
 export function DailyCheckIn() {
   const { user, checkIn, loadingUser } = useTelegram();
+  const { t } = useLanguage();
   const [status, setStatus] = useState<"idle" | "loading">("idle");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -55,8 +57,10 @@ export function DailyCheckIn() {
       <TaskRow
         icon={<Image src="/images/daily-checkin-icon.png" alt="" width={28} height={29} />}
         tone="purple"
-        label={status === "loading" ? "Claiming..." : "Daily Check-in"}
-        sublabel={`Streak: ${currentStreak} day${currentStreak === 1 ? "" : "s"}`}
+        label={status === "loading" ? t("dailyCheckin.claiming") : t("dailyCheckin.label")}
+        sublabel={t(currentStreak === 1 ? "dailyCheckin.streakOne" : "dailyCheckin.streakMany", {
+          n: currentStreak,
+        })}
         rewardLabel={rewardLabel}
         onClick={handleCheckIn}
         disabled={status === "loading"}

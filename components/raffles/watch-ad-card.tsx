@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useMonetagAd } from "@/hooks/useMonetagAd";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { fetchWithRetry } from "@/lib/fetch-retry";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
+import type { TranslationKey } from "@/lib/i18n/translations";
 
 type Status = "idle" | "ad1" | "gap" | "ad2" | "checking" | "done" | "failed";
 
@@ -27,17 +29,20 @@ const POSTBACK_BACKGROUND_ATTEMPTS = 40; // ~28s more, quietly, after the button
 // Mirrors the server-side cooldown in record_ad_view/mint-reward-token --
 // only used here to phrase the message, the actual enforcement is the
 // server rejecting the token mint.
-function formatCooldown(cooldownUntil: string): string {
+function formatCooldown(t: (key: TranslationKey, params?: Record<string, string | number>) => string, cooldownUntil: string): string {
   const remainingMs = new Date(cooldownUntil).getTime() - Date.now();
   const minutes = Math.max(1, Math.ceil(remainingMs / 60_000));
-  if (minutes < 60) return `Come back in ${minutes}m`;
+  if (minutes < 60) return t("watchAd.comeBackMinutes", { n: minutes });
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  return mins > 0 ? `Come back in ${hours}h ${mins}m` : `Come back in ${hours}h`;
+  return mins > 0
+    ? t("watchAd.comeBackHoursMinutes", { h: hours, m: mins })
+    : t("watchAd.comeBackHours", { n: hours });
 }
 
 export function WatchAdCard() {
   const { user, refreshUser, loadingUser, getInitData } = useTelegram();
+  const { t } = useLanguage();
   const [status, setStatus] = useState<Status>("idle");
   const [gapSecondsLeft, setGapSecondsLeft] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
@@ -102,7 +107,7 @@ export function WatchAdCard() {
     const { token: ymid1, cooldownUntil } = await mintAdToken();
     if (generationRef.current !== generation) return;
     if (!ymid1) {
-      if (cooldownUntil) setMessage(formatCooldown(cooldownUntil));
+      if (cooldownUntil) setMessage(formatCooldown(t, cooldownUntil));
       return;
     }
 
@@ -182,18 +187,18 @@ export function WatchAdCard() {
 
   const label =
     status === "ad1"
-      ? "Watching ad 1 of 2..."
+      ? t("watchAd.watchingAd1")
       : status === "gap"
-      ? `Next ad in ${gapSecondsLeft}s...`
+      ? t("watchAd.nextAdIn", { n: gapSecondsLeft })
       : status === "ad2"
-      ? "Watching ad 2 of 2..."
+      ? t("watchAd.watchingAd2")
       : status === "checking"
-      ? "Checking..."
+      ? t("watchAd.checking")
       : status === "done"
       ? rewardLabel
       : status === "failed"
-      ? "Failed, try again"
-      : "Watch 2 Ads";
+      ? t("watchAd.failedTryAgain")
+      : t("watchAd.watch2Ads");
 
   // "failed" is a resting state like "idle", not an in-progress one -- the
   // button stays tappable so the retry the label asks for actually works

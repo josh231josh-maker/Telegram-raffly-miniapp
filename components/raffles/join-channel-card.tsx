@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 import { JoinChannelDetail } from "@/components/raffles/join-channel-detail";
@@ -10,6 +11,7 @@ import { CHANNEL_TASK_REWARD_TICKETS } from "@/lib/channel-task";
 
 export function JoinChannelCard() {
   const { user, loadingUser } = useTelegram();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   if (loadingUser || !user) return <TaskRowSkeleton />;
@@ -22,7 +24,7 @@ export function JoinChannelCard() {
       <TaskRow
         icon={<Image src="/images/telegram-channel-icon.png" alt="" width={28} height={28} />}
         tone="orange"
-        label="Join Our Channel"
+        label={t("joinChannel.label")}
         rewardLabel={`+${CHANNEL_TASK_REWARD_TICKETS}`}
         onClick={() => setOpen(true)}
       />

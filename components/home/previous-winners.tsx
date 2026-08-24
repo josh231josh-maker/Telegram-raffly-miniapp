@@ -5,12 +5,14 @@ import { TrophyIcon, ChevronDownIcon } from "@/components/icons";
 import { IconBadge } from "@/components/icon-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { RaffleWinner } from "@/hooks/useRaffleInfo";
+import { useLanguage } from "@/components/providers/language-provider";
 
 type PreviousWinnersProps = {
   winners: RaffleWinner[] | null;
 };
 
 export function PreviousWinners({ winners }: PreviousWinnersProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   if (winners === null) {
@@ -39,7 +41,7 @@ export function PreviousWinners({ winners }: PreviousWinnersProps) {
         <div className="flex items-center gap-3">
           <IconBadge icon={<TrophyIcon />} tone="gold" size="sm" />
           <div className="flex flex-col items-start">
-            <span className="text-sm font-medium text-text-dim">Previous Winners</span>
+            <span className="text-sm font-medium text-text-dim">{t("winners.title")}</span>
           </div>
         </div>
         <ChevronDownIcon
