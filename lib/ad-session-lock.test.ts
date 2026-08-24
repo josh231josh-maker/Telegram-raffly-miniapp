@@ -14,9 +14,9 @@ describe("ad-session-lock", () => {
     expect(isRewardedAdActive()).toBe(false);
   });
 
-  it("exposes a 2-minute gap", async () => {
+  it("exposes a 40-second gap", async () => {
     const { GAP_MS } = await import("./ad-session-lock");
-    expect(GAP_MS).toBe(2 * 60_000);
+    expect(GAP_MS).toBe(40_000);
   });
 
   it("seeds lastAdAt so the very first interstitial is due after a short grace period, not a full gap", async () => {

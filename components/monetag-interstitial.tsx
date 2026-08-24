@@ -6,14 +6,14 @@ import { isPassActive } from "@/lib/raffly-pass";
 import { GAP_MS, getLastAdAt, isRewardedAdActive, markAdShown } from "@/lib/ad-session-lock";
 
 // How often this checks whether an interstitial is due -- coarser than the
-// 2-minute gap itself, since firing a little late is harmless but firing
-// early defeats the point of the gap. 15s keeps the actual delay within a
-// negligible margin of the intended 2 minutes.
-const POLL_INTERVAL_MS = 15_000;
+// gap itself, since firing a little late is harmless but firing early
+// defeats the point of the gap. 5s keeps the actual delay within a
+// negligible margin of the intended 40s (GAP_MS).
+const POLL_INTERVAL_MS = 5_000;
 
 // Each check only ever asks Monetag for a single ad ("frequency: 1") --
 // unlike the original one-shot arm-and-let-Monetag-schedule-the-rest
-// approach, the 2-minute cadence and the "never during a rewarded watch"
+// approach, the GAP_MS cadence and the "never during a rewarded watch"
 // rule both live in our own polling logic below, since Monetag's own
 // frequency/interval knobs have no way to know about that rewarded-watch
 // state. capping/interval/timeout are still passed through for whatever

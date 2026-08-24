@@ -140,7 +140,7 @@ export function WatchAdCard() {
     }
     if (generationRef.current !== generation) return;
     // Ad 1 actually shown -- pushes the automatic interstitial's next
-    // eligible moment out by another 2 minutes from here.
+    // eligible moment out by another GAP_MS from here.
     markAdShown();
 
     setStatus("gap");

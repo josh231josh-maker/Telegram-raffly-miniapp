@@ -17,15 +17,15 @@ export function isRewardedAdActive(): boolean {
 }
 
 // When any ad (rewarded or the automatic interstitial) last actually
-// finished showing -- the interstitial's own 2-minute cadence counts down
-// from this moment, not from a fixed schedule, so watching a rewarded ad
-// pushes the next automatic interstitial back by the same 2 minutes.
+// finished showing -- the interstitial's own cadence counts down from this
+// moment, not from a fixed schedule, so watching a rewarded ad pushes the
+// next automatic interstitial back by the same gap.
 //
 // Seeded at module load slightly in the past so the very first interstitial
 // of a session still fires a short grace period (INITIAL_GRACE_MS, kept in
 // monetag-interstitial.tsx) after load rather than making that first ad
-// wait a full 2 minutes too.
-const GAP_MS = 2 * 60_000;
+// wait a full gap too.
+const GAP_MS = 40_000;
 const INITIAL_GRACE_MS = 8_000;
 let lastAdAt = Date.now() - GAP_MS + INITIAL_GRACE_MS;
 
