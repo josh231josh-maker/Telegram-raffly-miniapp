@@ -10,6 +10,7 @@ import { BroadcastManager } from "./broadcast-manager";
 import { WelcomeMessageEditor } from "./welcome-message-editor";
 import { TrackingLinksManager } from "./tracking-links-manager";
 import { AutoEntryRules } from "./auto-entry-rules";
+import { BotMessagesManager } from "./bot-messages-manager";
 
 type AdminUser = {
   id: string;
@@ -54,7 +55,8 @@ type TabType =
   | "notifications"
   | "welcome-message"
   | "tracking-links"
-  | "auto-entries";
+  | "auto-entries"
+  | "bot-activity";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -129,6 +131,7 @@ export default function AdminDashboard() {
           "welcome-message",
           "tracking-links",
           "auto-entries",
+          "bot-activity",
         ].map((tab) => (
           <button
             key={tab}
@@ -147,6 +150,7 @@ export default function AdminDashboard() {
             {tab === "welcome-message" && "Welcome Message"}
             {tab === "tracking-links" && "Tracking Links"}
             {tab === "auto-entries" && "Auto Entries"}
+            {tab === "bot-activity" && "Bot Activity"}
           </button>
         ))}
       </div>
@@ -250,6 +254,7 @@ export default function AdminDashboard() {
       {activeTab === "welcome-message" && <WelcomeMessageEditor />}
       {activeTab === "tracking-links" && <TrackingLinksManager />}
       {activeTab === "auto-entries" && <AutoEntryRules />}
+      {activeTab === "bot-activity" && <BotMessagesManager />}
     </div>
   );
 }

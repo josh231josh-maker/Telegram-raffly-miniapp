@@ -27,6 +27,23 @@ export async function POST(req: NextRequest) {
   const update = await req.json();
   const botToken = process.env.TELEGRAM_BOT_TOKEN!;
 
+  // Logged for every update that carries a message.from (text, commands,
+  // payment notifications, ...), independent of whatever else this update
+  // triggers below -- this is the only place any record of "who has
+  // messaged the bot" gets created, so it needs to run regardless of which
+  // branch (if any) the update goes on to hit. Awaited (not fire-and-forget)
+  // since a serverless function can be frozen the instant the response is
+  // sent, which would abandon an un-awaited insert mid-flight. Best-effort:
+  // a logging failure here must never block the actual webhook handling
+  // underneath.
+  const sender = update.message?.from;
+  if (sender?.id) {
+    const { error } = await getSupabaseAdmin()
+      .from("bot_messages")
+      .insert({ telegram_id: sender.id, username: sender.username ?? null, first_name: sender.first_name ?? null });
+    if (error) logger.error("telegram.bot_message_log_failed", { error: error.message });
+  }
+
   if (update.pre_checkout_query) {
     const query = update.pre_checkout_query;
 
