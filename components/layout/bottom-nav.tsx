@@ -1,11 +1,14 @@
 "use client";
 
+import { useLanguage } from "@/components/providers/language-provider";
+import type { TranslationKey } from "@/lib/i18n/translations";
+
 export type TabId = "home" | "raffles" | "profile";
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "home", label: "Raffle" },
-  { id: "raffles", label: "Tickets" },
-  { id: "profile", label: "Profile" },
+const TABS: { id: TabId; labelKey: TranslationKey }[] = [
+  { id: "home", labelKey: "nav.home" },
+  { id: "raffles", labelKey: "nav.raffles" },
+  { id: "profile", labelKey: "nav.profile" },
 ];
 
 function HomeIcon({ className }: { className?: string }) {
@@ -74,6 +77,7 @@ type BottomNavProps = {
 };
 
 export function BottomNav({ active, onChange }: BottomNavProps) {
+  const { t } = useLanguage();
   return (
     <div
       className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4"
@@ -97,7 +101,7 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
               <span
                 className={`text-[10px] font-medium ${isActive ? "text-accent" : "text-text-faint"}`}
               >
-                {tab.label}
+                {t(tab.labelKey)}
               </span>
             </button>
           );

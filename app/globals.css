@@ -28,6 +28,36 @@
   --surface-dark: #050810;
 }
 
+/* Light theme override -- applied via data-theme="light" on <html> (see
+   components/providers/theme-provider.tsx). Only mini-app-only surfaces
+   ever get this attribute; the admin dashboard is intentionally never
+   touched (see CLAUDE.md). Every component already reads color through the
+   --color-* tokens below rather than hardcoded hex, so redefining the raw
+   values here is enough to re-theme the whole app -- no component changes
+   needed. */
+:root[data-theme="light"] {
+  --background: #f6f5fb;
+  --card: #ffffff;
+  --border: #e3e0f0;
+  --border-soft: rgba(20, 16, 40, 0.06);
+  --purple: #7c4dff;
+  --purple-2: #6a3aff;
+  --purple-soft: #efe9ff;
+  --orange: #ff7a45;
+  --orange-2: #ff9a66;
+  --orange-soft: #fff0e6;
+  --pink: #ff5ca8;
+  --pink-soft: #ffe6f2;
+  --green: #16a34a;
+  --green-2: #22c55e;
+  --green-soft: #e7f8ed;
+  --text: #1a1f36;
+  --text-dim: #5c6584;
+  --text-faint: #9aa1bd;
+
+  --surface-dark: #1a1f36;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--text);

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useRaffleInfo } from "@/hooks/useRaffleInfo";
 import { BottomNav, type TabId } from "@/components/layout/bottom-nav";
 import { HomeHeader } from "@/components/home/home-header";
@@ -31,6 +32,7 @@ export default function HomePage() {
   const [passOpen, setPassOpen] = useState(false);
   const [checkInPopupOpen, setCheckInPopupOpen] = useState(false);
   const { user, loadingUser, raffleEntry } = useTelegram();
+  const { t } = useLanguage();
   // Fetched once here rather than separately inside OddsRingCard and
   // PreviousWinners, which both need data from this same endpoint. Still
   // refetches when ticketsEntered changes, same trigger OddsRingCard used on
@@ -94,7 +96,7 @@ export default function HomePage() {
 
         {tab === "profile" && (
           <>
-            <h1 className="font-heading text-2xl font-bold text-text">Profile</h1>
+            <h1 className="font-heading text-2xl font-bold text-text">{t("profile.heading")}</h1>
             <BalanceCards />
             <WithdrawButton />
             <ProfileCard />

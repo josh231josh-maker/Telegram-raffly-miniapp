@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useTelegram } from "@/components/providers/telegram-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { ChevronRightIcon } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const SETTINGS_ROWS: { label: string; href?: string }[] = [
-  { label: "Support", href: "https://t.me/RafflySupportBot" },
-];
+import { ThemeToggle } from "@/components/profile/theme-toggle";
+import { LanguagePickerModal } from "@/components/profile/language-picker-modal";
+import { LANGUAGES } from "@/lib/i18n/languages";
 
 function initials(firstName: string | null, username: string | null): string {
   const source = firstName || username || "?";
@@ -16,7 +16,10 @@ function initials(firstName: string | null, username: string | null): string {
 
 export function ProfileCard() {
   const { user, loadingUser } = useTelegram();
+  const { language, t } = useLanguage();
   const [photoFailed, setPhotoFailed] = useState(false);
+  const [languagePickerOpen, setLanguagePickerOpen] = useState(false);
+  const currentLanguageLabel = LANGUAGES.find((l) => l.code === language)?.nativeLabel ?? language;
 
   if (loadingUser || !user) {
     return (
@@ -75,40 +78,43 @@ export function ProfileCard() {
       <div className="grid grid-cols-3 gap-2 border-b border-border py-4 text-center">
         <div>
           <p className="font-heading text-lg font-bold text-text">{user.referral_count}</p>
-          <p className="text-xs text-text-faint">Referrals</p>
+          <p className="text-xs text-text-faint">{t("profile.referrals")}</p>
         </div>
         <div>
           <p className="font-heading text-lg font-bold text-text">{user.streak_count}</p>
-          <p className="text-xs text-text-faint">Day streak</p>
+          <p className="text-xs text-text-faint">{t("profile.streak")}</p>
         </div>
         <div>
           {/* Lifetime winnings aren't tracked separately from the spendable usdt_balance yet. */}
           <p className="font-heading text-lg font-bold text-text">—</p>
-          <p className="text-xs text-text-faint">Total won</p>
+          <p className="text-xs text-text-faint">{t("profile.totalWon")}</p>
         </div>
       </div>
 
       <div className="flex flex-col divide-y divide-border">
-        {SETTINGS_ROWS.map((row) =>
-          row.href ? (
-            <a
-              key={row.label}
-              href={row.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between py-3 text-sm text-text"
-            >
-              <span>{row.label}</span>
-              <ChevronRightIcon className="h-4 w-4 text-text-faint" />
-            </a>
-          ) : (
-            <div key={row.label} className="flex items-center justify-between py-3 text-sm text-text-faint">
-              <span>{row.label}</span>
-              <span className="text-xs">Coming soon</span>
-            </div>
-          )
-        )}
+        <a
+          href="https://t.me/RafflySupportBot"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between py-3 text-sm text-text"
+        >
+          <span>{t("profile.support")}</span>
+          <ChevronRightIcon className="h-4 w-4 text-text-faint" />
+        </a>
+        <ThemeToggle />
+        <button
+          onClick={() => setLanguagePickerOpen(true)}
+          className="flex items-center justify-between py-3 text-left text-sm text-text"
+        >
+          <span>{t("profile.language")}</span>
+          <span className="flex items-center gap-1.5 text-text-faint">
+            {currentLanguageLabel}
+            <ChevronRightIcon className="h-4 w-4" />
+          </span>
+        </button>
       </div>
+
+      {languagePickerOpen && <LanguagePickerModal onClose={() => setLanguagePickerOpen(false)} />}
     </section>
   );
 }

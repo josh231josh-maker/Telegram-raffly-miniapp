@@ -3,6 +3,8 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { TelegramProvider } from "@/components/providers/telegram-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { LanguageProvider } from "@/components/providers/language-provider";
 
 // Everything here -- the Telegram SDK context and the two ad network loader
 // scripts -- is mini-app-only. The admin dashboard shares this same root
@@ -29,7 +31,11 @@ export function MiniAppShell({ children }: { children: React.ReactNode }) {
         strategy="afterInteractive"
       />
       <Script src="https://w.tads.me/widget.js" strategy="afterInteractive" />
-      <TelegramProvider>{children}</TelegramProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <TelegramProvider>{children}</TelegramProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </>
   );
 }
