@@ -6,7 +6,7 @@ import { TelegramProvider } from "@/components/providers/telegram-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { LanguageProvider } from "@/components/providers/language-provider";
 
-// Everything here -- the Telegram SDK context and the two ad network loader
+// Everything here -- the Telegram SDK context and the ad network loader
 // scripts -- is mini-app-only. The admin dashboard shares this same root
 // layout but is a plain logged-in browser page, never opened inside
 // Telegram, and never calls useTelegram(); loading any of this there is
@@ -21,9 +21,8 @@ export function MiniAppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       {/* Ad SDKs are only needed once a user taps "Watch Ads" -- loading them
-          beforeInteractive would block the whole app's startup on three
+          beforeInteractive would block the whole app's startup on
           third-party ad CDNs that most sessions never even use. */}
-      <Script src="https://sad.adsgram.ai/js/sad.min.js" strategy="afterInteractive" />
       <Script
         src="//libtl.com/sdk.js"
         data-zone="11527679"

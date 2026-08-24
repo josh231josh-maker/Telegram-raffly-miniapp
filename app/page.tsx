@@ -14,7 +14,6 @@ import { PreviousWinners } from "@/components/home/previous-winners";
 import { DailyCheckIn } from "@/components/raffles/daily-checkin";
 import { DailyCheckInPopup } from "@/components/raffles/daily-checkin-popup";
 import { WatchAdCard } from "@/components/raffles/watch-ad-card";
-import { WatchAdsgramAdCard } from "@/components/raffles/watch-adsgram-ad-card";
 import { ReferralCard } from "@/components/raffles/referral-card";
 import { JoinChannelCard } from "@/components/raffles/join-channel-card";
 import { NewUserBonusCard } from "@/components/raffles/new-user-bonus-card";
@@ -80,14 +79,6 @@ export default function HomePage() {
             <NewUserBonusCard />
             <DailyCheckIn />
             <WatchAdCard />
-            {/* AdsGram's ad block isn't active on their end yet (pending
-                setup/moderation) -- gated behind an explicit, fail-closed
-                flag so real users never see a button that currently errors,
-                while it stays visible in Preview deployments to keep
-                testing against. Absent (or anything other than "true")
-                means hidden, so forgetting to set it anywhere defaults to
-                safe, not exposed. */}
-            {process.env.NEXT_PUBLIC_SHOW_ADSGRAM === "true" && <WatchAdsgramAdCard />}
             <ReferralCard />
             <JoinChannelCard />
             <CompletedTasksSection />
