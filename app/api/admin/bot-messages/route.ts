@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("bot_messages")
-    .select("telegram_id, username, first_name, created_at")
+    .select("telegram_id, username, first_name, message_text, created_at")
     .order("created_at", { ascending: false })
     .limit(MAX_ROWS);
 
@@ -52,12 +52,17 @@ export async function GET(req: NextRequest) {
 
   // Small-scale aggregation in JS (same convention as tracking-links'
   // acquisition counts) -- rows already arrive newest-first, so the first
-  // occurrence of each telegram_id is that contact's most recent message.
+  // occurrence of each telegram_id is that contact's most recent event, and
+  // the first occurrence carrying actual text is their most recent typed
+  // message (some events, like payment notifications, have no message.text
+  // at all -- skipping those for lastMessageText avoids showing "—" for a
+  // contact who did type something, just not in their very last event).
   type Contact = {
     telegramId: number;
     username: string | null;
     firstName: string | null;
     lastMessageAt: string;
+    lastMessageText: string | null;
     messageCount: number;
   };
   const byId = new Map<number, Contact>();
@@ -65,12 +70,16 @@ export async function GET(req: NextRequest) {
     const existing = byId.get(row.telegram_id);
     if (existing) {
       existing.messageCount += 1;
+      if (existing.lastMessageText === null && row.message_text) {
+        existing.lastMessageText = row.message_text;
+      }
     } else {
       byId.set(row.telegram_id, {
         telegramId: row.telegram_id,
         username: row.username,
         firstName: row.first_name,
         lastMessageAt: row.created_at,
+        lastMessageText: row.message_text ?? null,
         messageCount: 1,
       });
     }

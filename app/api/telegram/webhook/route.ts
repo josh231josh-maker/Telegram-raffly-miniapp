@@ -38,9 +38,17 @@ export async function POST(req: NextRequest) {
   // underneath.
   const sender = update.message?.from;
   if (sender?.id) {
-    const { error } = await getSupabaseAdmin()
-      .from("bot_messages")
-      .insert({ telegram_id: sender.id, username: sender.username ?? null, first_name: sender.first_name ?? null });
+    // Telegram allows up to 4096 chars per message -- capped well below
+    // that purely to keep this log table's row size bounded, not as a
+    // security measure (nothing here is ever executed or rendered as HTML).
+    const messageText =
+      typeof update.message?.text === "string" ? update.message.text.slice(0, 1000) : null;
+    const { error } = await getSupabaseAdmin().from("bot_messages").insert({
+      telegram_id: sender.id,
+      username: sender.username ?? null,
+      first_name: sender.first_name ?? null,
+      message_text: messageText,
+    });
     if (error) logger.error("telegram.bot_message_log_failed", { error: error.message });
   }
 

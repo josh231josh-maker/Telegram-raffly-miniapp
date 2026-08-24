@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { UserAvatar } from "./user-avatar";
 
 type AdminUser = {
   id: string;
   telegram_id: number;
   username: string | null;
   first_name: string | null;
+  photo_url: string | null;
   ticket_balance: number;
   usdt_balance: number;
   ton_wallet_address: string | null;
@@ -117,10 +119,15 @@ export default function UserDetail({ id }: { id: string }) {
       </Link>
 
       <div className="mt-4 mb-6 rounded-2xl border border-white/10 bg-white/5 p-5">
-        <h1 className="text-lg font-semibold">
-          {user.username ? `@${user.username}` : user.first_name || "Unknown"}
-        </h1>
-        <p className="mb-4 text-sm text-white/50">Telegram ID: {user.telegram_id}</p>
+        <div className="mb-4 flex items-center gap-3">
+          <UserAvatar photoUrl={user.photo_url} firstName={user.first_name} username={user.username} size={48} />
+          <div>
+            <h1 className="text-lg font-semibold">
+              {user.username ? `@${user.username}` : user.first_name || "Unknown"}
+            </h1>
+            <p className="text-sm text-white/50">Telegram ID: {user.telegram_id}</p>
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
           <Stat label="Tickets" value={user.ticket_balance} />

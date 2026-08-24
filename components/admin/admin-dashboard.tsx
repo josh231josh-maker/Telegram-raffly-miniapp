@@ -11,12 +11,14 @@ import { WelcomeMessageEditor } from "./welcome-message-editor";
 import { TrackingLinksManager } from "./tracking-links-manager";
 import { AutoEntryRules } from "./auto-entry-rules";
 import { BotMessagesManager } from "./bot-messages-manager";
+import { UserAvatar } from "./user-avatar";
 
 type AdminUser = {
   id: string;
   telegram_id: number;
   username: string | null;
   first_name: string | null;
+  photo_url: string | null;
   ticket_balance: number;
   usdt_balance: number;
   streak_count: number;
@@ -58,9 +60,38 @@ type TabType =
   | "auto-entries"
   | "bot-activity";
 
+const TABS: { id: TabType; label: string }[] = [
+  { id: "users", label: "Users" },
+  { id: "withdrawals", label: "Withdrawals" },
+  { id: "winners", label: "Winners" },
+  { id: "manage-winners", label: "Manage Winners" },
+  { id: "notifications", label: "Notifications" },
+  { id: "welcome-message", label: "Welcome Message" },
+  { id: "tracking-links", label: "Tracking Links" },
+  { id: "auto-entries", label: "Auto Entries" },
+  { id: "bot-activity", label: "Bot Activity" },
+];
+
+function MenuIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className={className} aria-hidden="true">
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className={className} aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("users");
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState("");
@@ -98,6 +129,11 @@ export default function AdminDashboard() {
     }
   }
 
+  function selectTab(tab: TabType) {
+    setActiveTab(tab);
+    setDrawerOpen(false);
+  }
+
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.push("/admin/login");
@@ -105,156 +141,187 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl overflow-x-hidden px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">Raffly Admin</h1>
-          <p className="text-sm text-white/50">
-            {activeTab === "users" ? `${totalCount} registered user${totalCount === 1 ? "" : "s"}` : ""}
-          </p>
+    <div className="flex min-h-dvh">
+      {/* Backdrop -- mobile only, closes the drawer on tap-outside. The
+          sidebar itself is always in-flow (not fixed) at md+, so this never
+          renders there regardless of drawerOpen. */}
+      {drawerOpen && (
+        <div
+          onClick={() => setDrawerOpen(false)}
+          className="fixed inset-0 z-40 bg-black/60 md:hidden"
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar on md+ (always visible, part of the flex layout), slide-in
+          drawer below that breakpoint (fixed, off-canvas until opened). */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col border-r border-white/10 bg-[#0a0e17] p-4 transition-transform duration-200 md:static md:translate-x-0 ${
+          drawerOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-lg font-semibold">Raffly Admin</h1>
+          <button
+            onClick={() => setDrawerOpen(false)}
+            aria-label="Close menu"
+            className="rounded-lg p-1.5 text-white/60 hover:bg-white/5 md:hidden"
+          >
+            <CloseIcon className="h-5 w-5" />
+          </button>
         </div>
+
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => selectTab(tab.id)}
+              className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "bg-blue-500/15 text-blue-300"
+                  : "text-white/60 hover:bg-white/5 hover:text-white/80"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
         <button
           onClick={handleLogout}
-          className="rounded-lg border border-white/15 px-3 py-1.5 text-sm text-white/70 hover:bg-white/5"
+          className="mt-4 shrink-0 rounded-lg border border-white/15 px-3 py-2 text-sm text-white/70 hover:bg-white/5"
         >
           Log out
         </button>
-      </div>
+      </aside>
 
-      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-white/10">
-        {[
-          "users",
-          "withdrawals",
-          "winners",
-          "manage-winners",
-          "notifications",
-          "welcome-message",
-          "tracking-links",
-          "auto-entries",
-          "bot-activity",
-        ].map((tab) => (
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4 md:hidden">
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab as TabType)}
-            className={`shrink-0 whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors ${
-              activeTab === tab
-                ? "border-b-2 border-blue-400 text-blue-400"
-                : "text-white/50 hover:text-white/70"
-            }`}
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open menu"
+            className="rounded-lg p-1.5 text-white/70 hover:bg-white/5"
           >
-            {tab === "users" && "Users"}
-            {tab === "withdrawals" && "Withdrawals"}
-            {tab === "winners" && "Winners"}
-            {tab === "manage-winners" && "Manage Winners"}
-            {tab === "notifications" && "Notifications"}
-            {tab === "welcome-message" && "Welcome Message"}
-            {tab === "tracking-links" && "Tracking Links"}
-            {tab === "auto-entries" && "Auto Entries"}
-            {tab === "bot-activity" && "Bot Activity"}
+            <MenuIcon className="h-5 w-5" />
           </button>
-        ))}
-      </div>
+          <span className="text-sm font-semibold">
+            {TABS.find((t) => t.id === activeTab)?.label}
+          </span>
+        </div>
 
-      {activeTab === "users" && (
-        <>
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by username or Telegram ID..."
-              className="w-full max-w-md rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none focus:border-white/30"
-            />
-            <select
-              value={passFilter}
-              onChange={(e) => setPassFilter(e.target.value as PassFilter)}
-              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white/70 outline-none focus:border-white/30"
-            >
-              <option value="all">All passes</option>
-              <option value="active">Pass: Active</option>
-              <option value="inactive">Pass: Inactive</option>
-            </select>
-          </div>
+        <div className="mx-auto max-w-6xl overflow-x-hidden px-4 py-6 md:py-8">
+          {activeTab === "users" && (
+            <p className="mb-4 text-sm text-white/50">
+              {totalCount} registered user{totalCount === 1 ? "" : "s"}
+            </p>
+          )}
 
-          <div className="overflow-x-auto rounded-2xl border border-white/10">
-            <table className="w-full min-w-[800px] text-left text-sm">
-              <thead className="bg-white/5 text-white/50">
-                <tr>
-                  <th className="px-4 py-3 font-medium">User</th>
-                  {COLUMNS.map((col) => (
-                    <th key={col.key} className="px-4 py-3 font-medium">
-                      <button
-                        onClick={() => handleSort(col.key)}
-                        className="flex items-center gap-1 hover:text-white/80"
+          {activeTab === "users" && (
+            <>
+              <div className="mb-4 flex flex-wrap items-center gap-3">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by username or Telegram ID..."
+                  className="w-full max-w-md rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none focus:border-white/30"
+                />
+                <select
+                  value={passFilter}
+                  onChange={(e) => setPassFilter(e.target.value as PassFilter)}
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white/70 outline-none focus:border-white/30"
+                >
+                  <option value="all">All passes</option>
+                  <option value="active">Pass: Active</option>
+                  <option value="inactive">Pass: Inactive</option>
+                </select>
+              </div>
+
+              <div className="overflow-x-auto rounded-2xl border border-white/10">
+                <table className="w-full min-w-[800px] text-left text-sm">
+                  <thead className="bg-white/5 text-white/50">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">User</th>
+                      {COLUMNS.map((col) => (
+                        <th key={col.key} className="px-4 py-3 font-medium">
+                          <button
+                            onClick={() => handleSort(col.key)}
+                            className="flex items-center gap-1 hover:text-white/80"
+                          >
+                            {col.label}
+                            {sortBy === col.key && <span>{sortDir === "asc" ? "↑" : "↓"}</span>}
+                          </button>
+                        </th>
+                      ))}
+                      <th className="px-4 py-3 font-medium">Pass</th>
+                      <th className="px-4 py-3 font-medium">
+                        <button
+                          onClick={() => handleSort("created_at")}
+                          className="flex items-center gap-1 hover:text-white/80"
+                        >
+                          Joined
+                          {sortBy === "created_at" && <span>{sortDir === "asc" ? "↑" : "↓"}</span>}
+                        </button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {!loading && users.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-6 text-center text-white/40">
+                          No users found.
+                        </td>
+                      </tr>
+                    )}
+                    {users.map((u) => (
+                      <tr
+                        key={u.id}
+                        onClick={() => router.push(`/admin/users/${u.id}`)}
+                        className="cursor-pointer border-t border-white/5 hover:bg-white/5"
                       >
-                        {col.label}
-                        {sortBy === col.key && <span>{sortDir === "asc" ? "↑" : "↓"}</span>}
-                      </button>
-                    </th>
-                  ))}
-                  <th className="px-4 py-3 font-medium">Pass</th>
-                  <th className="px-4 py-3 font-medium">
-                    <button
-                      onClick={() => handleSort("created_at")}
-                      className="flex items-center gap-1 hover:text-white/80"
-                    >
-                      Joined
-                      {sortBy === "created_at" && <span>{sortDir === "asc" ? "↑" : "↓"}</span>}
-                    </button>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {!loading && users.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-6 text-center text-white/40">
-                      No users found.
-                    </td>
-                  </tr>
-                )}
-                {users.map((u) => (
-                  <tr
-                    key={u.id}
-                    onClick={() => router.push(`/admin/users/${u.id}`)}
-                    className="cursor-pointer border-t border-white/5 hover:bg-white/5"
-                  >
-                    <td className="px-4 py-3">
-                      <Link href={`/admin/users/${u.id}`} className="font-medium text-white hover:underline">
-                        {u.username ? `@${u.username}` : u.first_name || "Unknown"}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-white/70 tabular-nums">{u.telegram_id}</td>
-                    <td className="px-4 py-3 text-white/70 tabular-nums">{u.ticket_balance}</td>
-                    <td className="px-4 py-3 text-white/70 tabular-nums">${Number(u.usdt_balance).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-white/70 tabular-nums">{u.streak_count}</td>
-                    <td className="px-4 py-3 text-white/70 tabular-nums">{u.referral_count}</td>
-                    <td className="px-4 py-3">
-                      {hasActivePass(u) ? (
-                        <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-xs text-orange-300">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="text-white/30">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-white/50">
-                      {new Date(u.created_at).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/admin/users/${u.id}`}
+                            className="flex items-center gap-2.5 font-medium text-white hover:underline"
+                          >
+                            <UserAvatar photoUrl={u.photo_url} firstName={u.first_name} username={u.username} />
+                            {u.username ? `@${u.username}` : u.first_name || "Unknown"}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3 text-white/70 tabular-nums">{u.telegram_id}</td>
+                        <td className="px-4 py-3 text-white/70 tabular-nums">{u.ticket_balance}</td>
+                        <td className="px-4 py-3 text-white/70 tabular-nums">${Number(u.usdt_balance).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-white/70 tabular-nums">{u.streak_count}</td>
+                        <td className="px-4 py-3 text-white/70 tabular-nums">{u.referral_count}</td>
+                        <td className="px-4 py-3">
+                          {hasActivePass(u) ? (
+                            <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-xs text-orange-300">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="text-white/30">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-white/50">
+                          {new Date(u.created_at).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
 
-      {activeTab === "withdrawals" && <PendingWithdrawals />}
-      {activeTab === "winners" && <PendingWinners />}
-      {activeTab === "manage-winners" && <ManageWinners />}
-      {activeTab === "notifications" && <BroadcastManager />}
-      {activeTab === "welcome-message" && <WelcomeMessageEditor />}
-      {activeTab === "tracking-links" && <TrackingLinksManager />}
-      {activeTab === "auto-entries" && <AutoEntryRules />}
-      {activeTab === "bot-activity" && <BotMessagesManager />}
+          {activeTab === "withdrawals" && <PendingWithdrawals />}
+          {activeTab === "winners" && <PendingWinners />}
+          {activeTab === "manage-winners" && <ManageWinners />}
+          {activeTab === "notifications" && <BroadcastManager />}
+          {activeTab === "welcome-message" && <WelcomeMessageEditor />}
+          {activeTab === "tracking-links" && <TrackingLinksManager />}
+          {activeTab === "auto-entries" && <AutoEntryRules />}
+          {activeTab === "bot-activity" && <BotMessagesManager />}
+        </div>
+      </div>
     </div>
   );
 }

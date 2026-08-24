@@ -8,6 +8,7 @@ type Contact = {
   username: string | null;
   firstName: string | null;
   lastMessageAt: string;
+  lastMessageText: string | null;
   messageCount: number;
 };
 
@@ -84,12 +85,13 @@ export function BotMessagesManager() {
         </p>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-white/10">
-          <table className="w-full min-w-[560px] text-left text-sm">
+          <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-white/5 text-white/50">
               <tr>
                 <th className="px-4 py-3 font-medium">User</th>
                 <th className="px-4 py-3 font-medium">Telegram ID</th>
                 <th className="px-4 py-3 font-medium">Messages</th>
+                <th className="px-4 py-3 font-medium">Last message</th>
                 <th className="px-4 py-3 font-medium">Last messaged</th>
               </tr>
             </thead>
@@ -101,6 +103,9 @@ export function BotMessagesManager() {
                   </td>
                   <td className="px-4 py-3 text-white/70 tabular-nums">{c.telegramId}</td>
                   <td className="px-4 py-3 text-white/70 tabular-nums">{c.messageCount}</td>
+                  <td className="max-w-[260px] truncate px-4 py-3 text-white/70" title={c.lastMessageText ?? undefined}>
+                    {c.lastMessageText ?? <span className="text-white/30">—</span>}
+                  </td>
                   <td className="px-4 py-3 text-white/50">{new Date(c.lastMessageAt).toLocaleString()}</td>
                 </tr>
               ))}
