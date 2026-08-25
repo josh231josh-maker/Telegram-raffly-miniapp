@@ -16,15 +16,29 @@ export function isRewardedAdActive(): boolean {
   return rewardedAdActive;
 }
 
+// The mirror of the flag above: "is an automatic interstitial on screen
+// right now". Without this the guard only ran one way -- the interstitial
+// checked for a rewarded watch, but a rewarded watch never checked for an
+// interstitial, so both could end up driving the same Monetag global at
+// once (the hazard watch-ad-card.tsx already documents for preload+show).
+let interstitialActive = false;
+
+export function setInterstitialActive(active: boolean): void {
+  interstitialActive = active;
+}
+
+export function isInterstitialActive(): boolean {
+  return interstitialActive;
+}
+
 // When any ad (rewarded or the automatic interstitial) last actually
 // finished showing -- the interstitial's own cadence counts down from this
 // moment, not from a fixed schedule, so watching a rewarded ad pushes the
 // next automatic interstitial back by the same gap.
 //
 // Seeded at module load slightly in the past so the very first interstitial
-// of a session still fires a short grace period (INITIAL_GRACE_MS, kept in
-// monetag-interstitial.tsx) after load rather than making that first ad
-// wait a full gap too.
+// of a session still fires a short grace period (INITIAL_GRACE_MS below)
+// after load rather than making that first ad wait a full gap too.
 const GAP_MS = 40_000;
 const INITIAL_GRACE_MS = 3_000;
 let lastAdAt = Date.now() - GAP_MS + INITIAL_GRACE_MS;

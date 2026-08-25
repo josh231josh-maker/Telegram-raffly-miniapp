@@ -7,7 +7,7 @@ import { useTelegram } from "@/components/providers/telegram-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { isPassActive } from "@/lib/raffly-pass";
 import { fetchWithRetry } from "@/lib/fetch-retry";
-import { setRewardedAdActive, markAdShown } from "@/lib/ad-session-lock";
+import { setRewardedAdActive, markAdShown, isInterstitialActive } from "@/lib/ad-session-lock";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
 
@@ -135,6 +135,12 @@ export function WatchAdCard() {
 
   const handleWatch = async () => {
     if (!user) return;
+    // The other half of the guard in ad-session-lock: an automatic
+    // interstitial is a full-screen ad, so this is hard to hit by hand, but
+    // starting a rewarded watch while one is up would put two concurrent
+    // calls into the same Monetag global -- the exact hazard the preload
+    // comment below documents.
+    if (isInterstitialActive()) return;
     const generation = (generationRef.current += 1);
     const startingBalance = user.ticket_balance;
 

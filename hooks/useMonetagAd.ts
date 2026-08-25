@@ -4,20 +4,22 @@ import { useCallback } from "react";
 
 declare global {
   interface Window {
-    show_11527679?: (
-      params:
-        | { type?: string; ymid: string }
-        | {
-            type: "inApp";
-            inAppSettings: {
-              frequency: number;
-              capping: number;
-              interval: number;
-              timeout: number;
-              everyPage: boolean;
-            };
-          }
-    ) => Promise<unknown>;
+    // Two distinct call shapes, both documented by Monetag:
+    //  - no arguments: shows ONE interstitial immediately, on demand, and
+    //    resolves once the user is done with it. This is what the automatic
+    //    interstitial (components/monetag-interstitial.tsx) uses, so the
+    //    cadence stays under our own control.
+    //  - { ymid }: the same format bound to a signed impression id, used by
+    //    the tap-to-watch rewarded flow so the postback can credit a ticket.
+    //    { type: "preload", ymid } warms the creative for that call.
+    // The { type: "inApp", inAppSettings } shape is deliberately absent --
+    // that mode hands the whole schedule to Monetag's own scheduler, whose
+    // frequency/capping/timeout knobs silently overrode the cadence we
+    // actually want and can't know about an in-progress rewarded watch.
+    show_11527679?: {
+      (): Promise<unknown>;
+      (params: { type?: string; ymid: string }): Promise<unknown>;
+    };
   }
 }
 
