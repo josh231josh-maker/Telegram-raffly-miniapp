@@ -131,8 +131,6 @@ const ar: Record<TranslationKey, string> = {
   "withdraw.disconnectFailed": "تعذّر قطع الاتصال. حاول مرة أخرى.",
   "withdraw.serverError": "خطأ في الخادم ({{status}})",
 
-  "recentActivity.title": "النشاط الأخير",
-  "recentActivity.empty": "لا يوجد نشاط بعد",
 
   "profile.heading": "الملف الشخصي",
   "profile.referrals": "الإحالات",

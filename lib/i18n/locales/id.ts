@@ -129,8 +129,6 @@ const id: Record<TranslationKey, string> = {
   "withdraw.disconnectFailed": "Tidak dapat memutuskan. Coba lagi.",
   "withdraw.serverError": "Kesalahan server ({{status}})",
 
-  "recentActivity.title": "Aktivitas Terbaru",
-  "recentActivity.empty": "Belum ada aktivitas",
 
   "profile.heading": "Profil",
   "profile.referrals": "Referral",

@@ -22,7 +22,6 @@ import { BuyRaffleBar } from "@/components/raffles/buy-raffle-bar";
 import { BalanceCards } from "@/components/profile/balance-cards";
 import { WithdrawButton } from "@/components/profile/withdraw-button";
 import { ProfileCard } from "@/components/profile/profile-card";
-import { RecentActivity } from "@/components/profile/recent-activity";
 import { RafflyPassDetail } from "@/components/raffly-pass/raffly-pass-detail";
 import { TicketImage } from "@/components/ticket-image";
 
@@ -96,7 +95,6 @@ export default function HomePage() {
             <BalanceCards />
             <WithdrawButton />
             <ProfileCard />
-            <RecentActivity />
           </>
         )}
       </div>

@@ -130,8 +130,6 @@ const fr: Record<TranslationKey, string> = {
   "withdraw.disconnectFailed": "Impossible de déconnecter. Réessayez.",
   "withdraw.serverError": "Erreur serveur ({{status}})",
 
-  "recentActivity.title": "Activité récente",
-  "recentActivity.empty": "Aucune activité pour le moment",
 
   "profile.heading": "Profil",
   "profile.referrals": "Parrainages",

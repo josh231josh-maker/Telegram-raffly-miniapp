@@ -133,9 +133,6 @@ export const TRANSLATION_KEYS = [
   "withdraw.disconnectFailed",
   "withdraw.serverError",
 
-  "recentActivity.title",
-  "recentActivity.empty",
-
   "profile.heading",
   "profile.referrals",
   "profile.streak",

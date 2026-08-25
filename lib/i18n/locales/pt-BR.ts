@@ -130,8 +130,6 @@ const ptBR: Record<TranslationKey, string> = {
   "withdraw.disconnectFailed": "Não foi possível desconectar. Tente novamente.",
   "withdraw.serverError": "Erro do servidor ({{status}})",
 
-  "recentActivity.title": "Atividade recente",
-  "recentActivity.empty": "Ainda não há atividade",
 
   "profile.heading": "Perfil",
   "profile.referrals": "Indicações",

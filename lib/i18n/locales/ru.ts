@@ -130,8 +130,6 @@ const ru: Record<TranslationKey, string> = {
   "withdraw.disconnectFailed": "Не удалось отключить. Попробуйте снова.",
   "withdraw.serverError": "Ошибка сервера ({{status}})",
 
-  "recentActivity.title": "Последние операции",
-  "recentActivity.empty": "Пока нет активности",
 
   "profile.heading": "Профиль",
   "profile.referrals": "Рефералы",
