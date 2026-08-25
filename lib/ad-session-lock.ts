@@ -39,7 +39,7 @@ export function isInterstitialActive(): boolean {
 // Seeded at module load slightly in the past so the very first interstitial
 // of a session still fires a short grace period (INITIAL_GRACE_MS below)
 // after load rather than making that first ad wait a full gap too.
-const GAP_MS = 40_000;
+const GAP_MS = 90_000;
 const INITIAL_GRACE_MS = 3_000;
 let lastAdAt = Date.now() - GAP_MS + INITIAL_GRACE_MS;
 

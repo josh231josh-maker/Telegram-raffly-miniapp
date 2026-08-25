@@ -15,7 +15,7 @@ import {
 // first tick only lands one full interval after mount, so this also bounds
 // how late the first ad of a session can be past its 3s grace period (see
 // ad-session-lock's INITIAL_GRACE_MS) -- 1s keeps that, and the recurring
-// 40s (GAP_MS) cadence, within a negligible margin. The check itself is a
+// 90s (GAP_MS) cadence, within a negligible margin. The check itself is a
 // few comparisons, so running it every second costs nothing.
 const POLL_INTERVAL_MS = 1_000;
 
@@ -34,7 +34,7 @@ const FAILED_RETRY_BACKOFF_MS = 15_000;
 // at 8s), its frequency/capping pair silently capped delivery at one ad per
 // six minutes regardless of what we asked for, and it has no way to know a
 // rewarded watch is in progress. Driving single ads ourselves is what makes
-// the 3s-then-every-40s cadence, the Pass exemption, and the "never during a
+// the 3s-then-every-90s cadence, the Pass exemption, and the "never during a
 // rewarded watch" rule all actually enforceable.
 export function MonetagInterstitial() {
   const { user, loadingUser } = useTelegram();
