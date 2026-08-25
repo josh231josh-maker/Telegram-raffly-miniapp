@@ -173,13 +173,13 @@ export async function POST(req: NextRequest) {
 
   const text = update.message?.text;
   const chatId = update.message?.chat?.id;
-  if (typeof text === "string" && chatId && BARE_START_REGEX.test(text.trim())) {
+  if (typeof text === "string" && chatId) {
     const supabase = getSupabaseAdmin();
-    const { data: settings } = await supabase
-      .from("welcome_message_settings")
-      .select("*")
-      .eq("id", true)
-      .single();
+    const isBareStart = BARE_START_REGEX.test(text.trim());
+    const settingsTable = isBareStart ? "welcome_message_settings" : "fallback_message_settings";
+    const failureLogKey = isBareStart ? "telegram.welcome_message_send_failed" : "telegram.fallback_message_send_failed";
+
+    const { data: settings } = await supabase.from(settingsTable).select("*").eq("id", true).single();
 
     if (settings?.enabled && settings.message_html?.trim()) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
@@ -191,7 +191,7 @@ export async function POST(req: NextRequest) {
       // Previously discarded -- a bad image URL, malformed HTML entity, or a
       // user who has blocked the bot would fail here with no trace anywhere.
       if (!result.ok) {
-        logger.warn("telegram.welcome_message_send_failed", {
+        logger.warn(failureLogKey, {
           errorCode: result.errorCode,
           description: result.description,
           blocked: result.blocked,

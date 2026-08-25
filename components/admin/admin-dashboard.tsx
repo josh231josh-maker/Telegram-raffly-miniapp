@@ -8,6 +8,7 @@ import { PendingWinners } from "./pending-winners";
 import { ManageWinners } from "./manage-winners";
 import { BroadcastManager } from "./broadcast-manager";
 import { WelcomeMessageEditor } from "./welcome-message-editor";
+import { FallbackMessageEditor } from "./fallback-message-editor";
 import { TrackingLinksManager } from "./tracking-links-manager";
 import { AutoEntryRules } from "./auto-entry-rules";
 import { BotMessagesManager } from "./bot-messages-manager";
@@ -61,6 +62,7 @@ type TabType =
   | "manage-winners"
   | "notifications"
   | "welcome-message"
+  | "fallback-message"
   | "tracking-links"
   | "auto-entries"
   | "bot-activity";
@@ -72,6 +74,7 @@ const TABS: { id: TabType; label: string }[] = [
   { id: "manage-winners", label: "Manage Winners" },
   { id: "notifications", label: "Notifications" },
   { id: "welcome-message", label: "Welcome Message" },
+  { id: "fallback-message", label: "Fallback Message" },
   { id: "tracking-links", label: "Tracking Links" },
   { id: "auto-entries", label: "Auto Entries" },
   { id: "bot-activity", label: "Bot Activity" },
@@ -327,6 +330,7 @@ export default function AdminDashboard() {
           {activeTab === "manage-winners" && <ManageWinners />}
           {activeTab === "notifications" && <BroadcastManager />}
           {activeTab === "welcome-message" && <WelcomeMessageEditor />}
+          {activeTab === "fallback-message" && <FallbackMessageEditor />}
           {activeTab === "tracking-links" && <TrackingLinksManager />}
           {activeTab === "auto-entries" && <AutoEntryRules />}
           {activeTab === "bot-activity" && <BotMessagesManager />}
