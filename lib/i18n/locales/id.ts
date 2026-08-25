@@ -59,9 +59,7 @@ const id: Record<TranslationKey, string> = {
   "watchAd.nextAdIn": "Iklan berikutnya dalam {{n}}d...",
   "watchAd.checking": "Memeriksa...",
   "watchAd.failedTryAgain": "Gagal, coba lagi",
-  "watchAd.comeBackMinutes": "Kembali dalam {{n}}mnt",
-  "watchAd.comeBackHours": "Kembali dalam {{n}}jam",
-  "watchAd.comeBackHoursMinutes": "Kembali dalam {{h}}jam {{m}}mnt",
+  "watchAd.cooldownLabel": "Kembali dalam {{time}}",
 
   "referral.inviteFriends": "Undang Teman",
   "referral.earnPerReferral": "Dapatkan tiket per referral",

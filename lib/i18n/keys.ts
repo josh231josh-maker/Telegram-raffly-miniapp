@@ -64,9 +64,7 @@ export const TRANSLATION_KEYS = [
   "watchAd.nextAdIn",
   "watchAd.checking",
   "watchAd.failedTryAgain",
-  "watchAd.comeBackMinutes",
-  "watchAd.comeBackHours",
-  "watchAd.comeBackHoursMinutes",
+  "watchAd.cooldownLabel",
 
   "referral.inviteFriends",
   "referral.earnPerReferral",

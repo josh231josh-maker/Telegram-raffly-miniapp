@@ -43,13 +43,18 @@ export default function HomePage() {
   // later user-object update elsewhere in the app (any balance change
   // re-fetches the full user row) can't re-trigger this and pop the modal
   // back open right after someone closes it.
+  //
+  // Delayed slightly past the automatic interstitial's own 3s fire point
+  // (see ad-session-lock's INITIAL_GRACE_MS) so that ad reliably shows
+  // first on a fresh open instead of this popup covering the screen first.
   const hasCheckedCheckInPopupRef = useRef(false);
   useEffect(() => {
     if (loadingUser || !user || hasCheckedCheckInPopupRef.current) return;
     hasCheckedCheckInPopupRef.current = true;
     const today = new Date().toISOString().slice(0, 10);
     if (user.last_checkin_date !== today) {
-      setCheckInPopupOpen(true);
+      const timeout = setTimeout(() => setCheckInPopupOpen(true), 4000);
+      return () => clearTimeout(timeout);
     }
   }, [loadingUser, user]);
 

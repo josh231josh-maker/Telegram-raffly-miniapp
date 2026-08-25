@@ -10,7 +10,6 @@ import { fetchWithRetry } from "@/lib/fetch-retry";
 import { setRewardedAdActive, markAdShown } from "@/lib/ad-session-lock";
 import { TaskRow } from "@/components/raffles/task-row";
 import { TaskRowSkeleton } from "@/components/raffles/task-row-skeleton";
-import type { TranslationKey } from "@/lib/i18n/translations";
 
 type Status = "idle" | "ad1" | "gap" | "ad2" | "checking" | "done" | "failed";
 
@@ -28,17 +27,18 @@ const POSTBACK_VISIBLE_ATTEMPTS = 12; // ~8.4s on-screen as "Checking..."
 const POSTBACK_BACKGROUND_ATTEMPTS = 40; // ~28s more, quietly, after the button is usable again
 
 // Mirrors the server-side cooldown in record_ad_view/mint-reward-token --
-// only used here to phrase the message, the actual enforcement is the
-// server rejecting the token mint.
-function formatCooldown(t: (key: TranslationKey, params?: Record<string, string | number>) => string, cooldownUntil: string): string {
-  const remainingMs = new Date(cooldownUntil).getTime() - Date.now();
-  const minutes = Math.max(1, Math.ceil(remainingMs / 60_000));
-  if (minutes < 60) return t("watchAd.comeBackMinutes", { n: minutes });
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return mins > 0
-    ? t("watchAd.comeBackHoursMinutes", { h: hours, m: mins })
-    : t("watchAd.comeBackHours", { n: hours });
+// only used here to render the live countdown, the actual enforcement is
+// the server rejecting the token mint. Under an hour shows mm:ss, at or
+// past an hour shows h:mm:ss (the cooldown is capped at 2 hours server-side,
+// so this never needs to handle a day+ remaining).
+function formatRemaining(remainingMs: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const mm = String(minutes).padStart(2, "0");
+  const ss = String(seconds).padStart(2, "0");
+  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
 export function WatchAdCard() {
@@ -46,8 +46,30 @@ export function WatchAdCard() {
   const { t } = useLanguage();
   const [status, setStatus] = useState<Status>("idle");
   const [gapSecondsLeft, setGapSecondsLeft] = useState(0);
-  const [message, setMessage] = useState<string | null>(null);
+  const [adCooldownUntil, setAdCooldownUntil] = useState<string | null>(null);
+  const [nowTick, setNowTick] = useState(() => Date.now());
   const { preloadAd, showAd } = useMonetagAd();
+
+  // Keeps the locally-known cooldown in sync with whatever the user object
+  // carries -- e.g. a cooldown that was set by a watch on another device/
+  // session and only shows up once refreshUser() picks up the latest row,
+  // or simply what's already there on first load so the countdown is
+  // visible immediately instead of only after a rejected watch attempt.
+  useEffect(() => {
+    setAdCooldownUntil(user?.ad_cooldown_until ?? null);
+  }, [user?.ad_cooldown_until]);
+
+  const cooldownRemainingMs = adCooldownUntil ? new Date(adCooldownUntil).getTime() - nowTick : 0;
+  const inCooldown = cooldownRemainingMs > 0;
+
+  // Ticks once a second only while an active cooldown is actually being
+  // displayed, so this component isn't running an interval for the entire
+  // time it's mounted and idle.
+  useEffect(() => {
+    if (!inCooldown) return;
+    const interval = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [inCooldown]);
 
   // Marks the shared Monetag zone busy for as long as this component's own
   // watch flow is active, so the automatic in-app interstitial (see
@@ -115,12 +137,11 @@ export function WatchAdCard() {
     if (!user) return;
     const generation = (generationRef.current += 1);
     const startingBalance = user.ticket_balance;
-    setMessage(null);
 
     const { token: ymid1, cooldownUntil } = await mintAdToken();
     if (generationRef.current !== generation) return;
     if (!ymid1) {
-      if (cooldownUntil) setMessage(formatCooldown(t, cooldownUntil));
+      if (cooldownUntil) setAdCooldownUntil(cooldownUntil);
       return;
     }
 
@@ -202,37 +223,35 @@ export function WatchAdCard() {
   const hasPass = isPassActive(user?.raffly_pass_expires_at ?? null);
   const rewardLabel = hasPass ? "+1x2" : "+1";
 
-  const label =
-    status === "ad1"
-      ? t("watchAd.watchingAd1")
-      : status === "gap"
-      ? t("watchAd.nextAdIn", { n: gapSecondsLeft })
-      : status === "ad2"
-      ? t("watchAd.watchingAd2")
-      : status === "checking"
-      ? t("watchAd.checking")
-      : status === "done"
-      ? rewardLabel
-      : status === "failed"
-      ? t("watchAd.failedTryAgain")
-      : t("watchAd.watch2Ads");
+  const label = inCooldown
+    ? t("watchAd.cooldownLabel", { time: formatRemaining(cooldownRemainingMs) })
+    : status === "ad1"
+    ? t("watchAd.watchingAd1")
+    : status === "gap"
+    ? t("watchAd.nextAdIn", { n: gapSecondsLeft })
+    : status === "ad2"
+    ? t("watchAd.watchingAd2")
+    : status === "checking"
+    ? t("watchAd.checking")
+    : status === "done"
+    ? rewardLabel
+    : status === "failed"
+    ? t("watchAd.failedTryAgain")
+    : t("watchAd.watch2Ads");
 
   // "failed" is a resting state like "idle", not an in-progress one -- the
   // button stays tappable so the retry the label asks for actually works
   // (tapping it re-runs handleWatch from the top, straight to "ad 1 of 2").
-  const disabled = status !== "idle" && status !== "failed";
+  const disabled = inCooldown || (status !== "idle" && status !== "failed");
 
   return (
-    <div>
-      <TaskRow
-        icon={<Image src="/images/watch-ads-icon.png" alt="" width={28} height={29} />}
-        tone="orange"
-        label={label}
-        rewardLabel={rewardLabel}
-        onClick={handleWatch}
-        disabled={disabled}
-      />
-      {message && <p className="mt-1 px-2 text-xs text-text-faint">{message}</p>}
-    </div>
+    <TaskRow
+      icon={<Image src="/images/watch-ads-icon.png" alt="" width={28} height={29} />}
+      tone="orange"
+      label={label}
+      rewardLabel={rewardLabel}
+      onClick={handleWatch}
+      disabled={disabled}
+    />
   );
 }

@@ -59,9 +59,7 @@ const ptBR: Record<TranslationKey, string> = {
   "watchAd.nextAdIn": "Próximo anúncio em {{n}}s...",
   "watchAd.checking": "Verificando...",
   "watchAd.failedTryAgain": "Falhou, tente novamente",
-  "watchAd.comeBackMinutes": "Volte em {{n}}min",
-  "watchAd.comeBackHours": "Volte em {{n}}h",
-  "watchAd.comeBackHoursMinutes": "Volte em {{h}}h {{m}}min",
+  "watchAd.cooldownLabel": "Volta em {{time}}",
 
   "referral.inviteFriends": "Convidar amigos",
   "referral.earnPerReferral": "Ganhe bilhetes por indicação",

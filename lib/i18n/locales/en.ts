@@ -59,9 +59,7 @@ const en: Record<TranslationKey, string> = {
   "watchAd.nextAdIn": "Next ad in {{n}}s...",
   "watchAd.checking": "Checking...",
   "watchAd.failedTryAgain": "Failed, try again",
-  "watchAd.comeBackMinutes": "Come back in {{n}}m",
-  "watchAd.comeBackHours": "Come back in {{n}}h",
-  "watchAd.comeBackHoursMinutes": "Come back in {{h}}h {{m}}m",
+  "watchAd.cooldownLabel": "Back in {{time}}",
 
   "referral.inviteFriends": "Invite Friends",
   "referral.earnPerReferral": "Earn tickets per referral",

@@ -49,7 +49,7 @@ export function TaskRow({
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-base font-bold text-text">{label}</span>
+        <span className="block text-base font-bold tabular-nums text-text">{label}</span>
         {sublabel && <span className="block text-xs text-text-faint">{sublabel}</span>}
       </span>
       <span

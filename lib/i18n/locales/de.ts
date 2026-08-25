@@ -59,9 +59,7 @@ const de: Record<TranslationKey, string> = {
   "watchAd.nextAdIn": "Nächste Anzeige in {{n}}s...",
   "watchAd.checking": "Wird überprüft...",
   "watchAd.failedTryAgain": "Fehlgeschlagen, erneut versuchen",
-  "watchAd.comeBackMinutes": "Komm in {{n}} Min. wieder",
-  "watchAd.comeBackHours": "Komm in {{n}} Std. wieder",
-  "watchAd.comeBackHoursMinutes": "Komm in {{h}} Std. {{m}} Min. wieder",
+  "watchAd.cooldownLabel": "Zurück in {{time}}",
 
   "referral.inviteFriends": "Freunde einladen",
   "referral.earnPerReferral": "Tickets pro Empfehlung verdienen",

@@ -59,9 +59,7 @@ const ru: Record<TranslationKey, string> = {
   "watchAd.nextAdIn": "Следующая реклама через {{n}} с...",
   "watchAd.checking": "Проверка...",
   "watchAd.failedTryAgain": "Ошибка, попробуйте снова",
-  "watchAd.comeBackMinutes": "Вернитесь через {{n}} мин",
-  "watchAd.comeBackHours": "Вернитесь через {{n}} ч",
-  "watchAd.comeBackHoursMinutes": "Вернитесь через {{h}} ч {{m}} мин",
+  "watchAd.cooldownLabel": "Вернитесь через {{time}}",
 
   "referral.inviteFriends": "Пригласить друзей",
   "referral.earnPerReferral": "Билеты за каждого друга",

@@ -59,9 +59,7 @@ const es: Record<TranslationKey, string> = {
   "watchAd.nextAdIn": "Siguiente anuncio en {{n}}s...",
   "watchAd.checking": "Comprobando...",
   "watchAd.failedTryAgain": "Error, inténtalo de nuevo",
-  "watchAd.comeBackMinutes": "Vuelve en {{n}} min",
-  "watchAd.comeBackHours": "Vuelve en {{n}} h",
-  "watchAd.comeBackHoursMinutes": "Vuelve en {{h}} h {{m}} min",
+  "watchAd.cooldownLabel": "Vuelve en {{time}}",
 
   "referral.inviteFriends": "Invitar amigos",
   "referral.earnPerReferral": "Gana boletos por cada referido",

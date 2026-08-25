@@ -26,7 +26,7 @@ export function isRewardedAdActive(): boolean {
 // monetag-interstitial.tsx) after load rather than making that first ad
 // wait a full gap too.
 const GAP_MS = 40_000;
-const INITIAL_GRACE_MS = 8_000;
+const INITIAL_GRACE_MS = 3_000;
 let lastAdAt = Date.now() - GAP_MS + INITIAL_GRACE_MS;
 
 export function markAdShown(): void {

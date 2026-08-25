@@ -59,9 +59,7 @@ const fr: Record<TranslationKey, string> = {
   "watchAd.nextAdIn": "Prochaine pub dans {{n}}s...",
   "watchAd.checking": "Vérification...",
   "watchAd.failedTryAgain": "Échec, réessayez",
-  "watchAd.comeBackMinutes": "Revenez dans {{n}} min",
-  "watchAd.comeBackHours": "Revenez dans {{n}} h",
-  "watchAd.comeBackHoursMinutes": "Revenez dans {{h}} h {{m}} min",
+  "watchAd.cooldownLabel": "Retour dans {{time}}",
 
   "referral.inviteFriends": "Inviter des amis",
   "referral.earnPerReferral": "Gagnez des tickets par parrainage",

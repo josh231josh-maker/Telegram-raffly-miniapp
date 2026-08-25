@@ -30,6 +30,7 @@ type RafflyUser = {
   new_user_bonus_claimed_at: string | null;
   referral_count: number;
   referral_reached_count: number;
+  ad_cooldown_until: string | null;
 };
 
 type CheckInResult = {

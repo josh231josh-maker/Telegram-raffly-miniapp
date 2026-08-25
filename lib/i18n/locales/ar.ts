@@ -61,9 +61,7 @@ const ar: Record<TranslationKey, string> = {
   "watchAd.nextAdIn": "الإعلان التالي خلال {{n}} ث...",
   "watchAd.checking": "جارٍ التحقق...",
   "watchAd.failedTryAgain": "فشلت المحاولة، حاول مرة أخرى",
-  "watchAd.comeBackMinutes": "عد بعد {{n}} د",
-  "watchAd.comeBackHours": "عد بعد {{n}} س",
-  "watchAd.comeBackHoursMinutes": "عد بعد {{h}} س {{m}} د",
+  "watchAd.cooldownLabel": "العودة خلال {{time}}",
 
   "referral.inviteFriends": "دعوة الأصدقاء",
   "referral.earnPerReferral": "اكسب تذاكر عن كل إحالة",
