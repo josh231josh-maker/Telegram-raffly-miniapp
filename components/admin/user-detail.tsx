@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserAvatar } from "./user-avatar";
+import { CountryFlag } from "./country-flag";
 
 type AdminUser = {
   id: string;
@@ -11,6 +12,7 @@ type AdminUser = {
   username: string | null;
   first_name: string | null;
   photo_url: string | null;
+  country_code: string | null;
   ticket_balance: number;
   usdt_balance: number;
   ton_wallet_address: string | null;
@@ -144,6 +146,7 @@ export default function UserDetail({ id }: { id: string }) {
           />
           <Stat label="Wallet" value={user.ton_wallet_address ? "Connected" : "Not connected"} />
           <Stat label="Joined" value={new Date(user.created_at).toLocaleDateString()} />
+          <Stat label="Country" value={<CountryFlag countryCode={user.country_code} />} />
         </div>
       </div>
 
@@ -209,7 +212,7 @@ export default function UserDetail({ id }: { id: string }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-xl bg-black/20 p-3">
       <p className="text-xs text-white/40">{label}</p>

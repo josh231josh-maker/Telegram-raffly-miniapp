@@ -12,6 +12,7 @@ import { TrackingLinksManager } from "./tracking-links-manager";
 import { AutoEntryRules } from "./auto-entry-rules";
 import { BotMessagesManager } from "./bot-messages-manager";
 import { UserAvatar } from "./user-avatar";
+import { CountryFlag } from "./country-flag";
 
 type AdminUser = {
   id: string;
@@ -19,6 +20,7 @@ type AdminUser = {
   username: string | null;
   first_name: string | null;
   photo_url: string | null;
+  country_code: string | null;
   ticket_balance: number;
   usdt_balance: number;
   streak_count: number;
@@ -237,10 +239,11 @@ export default function AdminDashboard() {
               </div>
 
               <div className="overflow-x-auto rounded-2xl border border-white/10">
-                <table className="w-full min-w-[800px] text-left text-sm">
+                <table className="w-full min-w-[920px] text-left text-sm">
                   <thead className="bg-white/5 text-white/50">
                     <tr>
                       <th className="px-4 py-3 font-medium">User</th>
+                      <th className="px-4 py-3 font-medium">Country</th>
                       {COLUMNS.map((col) => (
                         <th key={col.key} className="px-4 py-3 font-medium">
                           <button
@@ -267,7 +270,7 @@ export default function AdminDashboard() {
                   <tbody>
                     {!loading && users.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="px-4 py-6 text-center text-white/40">
+                        <td colSpan={9} className="px-4 py-6 text-center text-white/40">
                           No users found.
                         </td>
                       </tr>
@@ -286,6 +289,9 @@ export default function AdminDashboard() {
                             <UserAvatar photoUrl={u.photo_url} firstName={u.first_name} username={u.username} />
                             {u.username ? `@${u.username}` : u.first_name || "Unknown"}
                           </Link>
+                        </td>
+                        <td className="px-4 py-3 text-white/70">
+                          <CountryFlag countryCode={u.country_code} />
                         </td>
                         <td className="px-4 py-3 text-white/70 tabular-nums">{u.telegram_id}</td>
                         <td className="px-4 py-3 text-white/70 tabular-nums">{u.ticket_balance}</td>

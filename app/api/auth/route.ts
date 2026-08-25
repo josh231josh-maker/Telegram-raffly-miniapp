@@ -13,6 +13,19 @@ function sanitizePhotoUrl(value: string | undefined): string | null {
   return cleaned && cleaned.startsWith("https://") ? cleaned : null;
 }
 
+// Vercel's edge network adds this header to every request before it reaches
+// the function -- a two-letter ISO 3166-1 code geolocated from the caller's
+// real IP. This route is the right place to read it specifically because
+// it's called directly from the user's own device on every Mini App open;
+// the Telegram bot webhook, by contrast, is called from Telegram's own
+// server infrastructure, so this header there would describe Telegram's
+// datacenter, not the user. Only the derived country is ever stored -- the
+// IP address itself never reaches application code.
+function countryFromRequest(req: NextRequest): string | null {
+  const code = req.headers.get("x-vercel-ip-country");
+  return code && /^[A-Z]{2}$/.test(code) ? code : null;
+}
+
 export async function POST(req: NextRequest) {
   const ipCheck = await rateLimitByIp(req, "auth", RATE_LIMITS.auth.ip);
   if (!ipCheck.allowed) return rateLimitResponse(ipCheck);
@@ -40,16 +53,23 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (existing) {
+    // Telegram's photo_url isn't in the HMAC-covered initData fields we
+    // already trust for anything else, but it comes from the same signed
+    // payload, so refreshing it here keeps an existing user's avatar current
+    // without touching balances or any other account state on this hot
+    // path. country_code rides along the same conditional update since it's
+    // just as cheap to keep current on every open (a traveling user's
+    // country reflects their most recent session, not a first-touch value).
     const photoUrl = sanitizePhotoUrl(tgUser.photoUrl);
-    if (photoUrl !== existing.photo_url) {
-      // Telegram's photo_url isn't in the HMAC-covered initData fields we
-      // already trust for anything else, but it comes from the same signed
-      // payload, so refreshing it here (photo_url only, nothing else) keeps
-      // an existing user's avatar current without touching balances or any
-      // other account state on this hot path.
+    const countryCode = countryFromRequest(req);
+    const updates: Record<string, string | null> = {};
+    if (photoUrl !== existing.photo_url) updates.photo_url = photoUrl;
+    if (countryCode && countryCode !== existing.country_code) updates.country_code = countryCode;
+
+    if (Object.keys(updates).length > 0) {
       const { data: updated } = await supabase
         .from("users")
-        .update({ photo_url: photoUrl })
+        .update(updates)
         .eq("id", existing.id)
         .select()
         .single();
@@ -99,6 +119,7 @@ export async function POST(req: NextRequest) {
       photo_url: sanitizePhotoUrl(tgUser.photoUrl),
       referred_by: referredBy,
       acquisition_link_code: acquisitionLinkCode,
+      country_code: countryFromRequest(req),
     })
     .select()
     .single();

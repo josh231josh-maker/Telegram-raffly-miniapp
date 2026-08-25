@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   let query = supabase
     .from("users")
     .select(
-      "id, telegram_id, username, first_name, photo_url, ticket_balance, usdt_balance, streak_count, raffly_pass_expires_at, created_at",
+      "id, telegram_id, username, first_name, photo_url, country_code, ticket_balance, usdt_balance, streak_count, raffly_pass_expires_at, created_at",
       { count: "exact" }
     );
 
