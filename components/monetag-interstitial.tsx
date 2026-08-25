@@ -13,7 +13,7 @@ import {
 
 // How often this checks whether an interstitial is due. A plain setInterval's
 // first tick only lands one full interval after mount, so this also bounds
-// how late the first ad of a session can be past its 20s grace period (see
+// how late the first ad of a session can be past its 30s grace period (see
 // ad-session-lock's INITIAL_GRACE_MS) -- 1s keeps that, and the recurring
 // 2-minute (GAP_MS) cadence, within a negligible margin. The check itself is
 // a few comparisons, so running it every second costs nothing.
@@ -34,7 +34,7 @@ const FAILED_RETRY_BACKOFF_MS = 15_000;
 // at 8s), its frequency/capping pair silently capped delivery at one ad per
 // six minutes regardless of what we asked for, and it has no way to know a
 // rewarded watch is in progress. Driving single ads ourselves is what makes
-// the 20s-then-every-2min cadence, the Pass exemption, and the "never during a
+// the 30s-then-every-2min cadence, the Pass exemption, and the "never during a
 // rewarded watch" rule all actually enforceable.
 export function MonetagInterstitial() {
   const { user, loadingUser } = useTelegram();
@@ -69,7 +69,7 @@ export function MonetagInterstitial() {
 
       // Monetag's script loads afterInteractive (a third-party network
       // fetch), so this can still be undefined for the first few seconds of
-      // a session -- exactly when the 20s grace period lands. Bail without
+      // a session -- exactly when the 30s grace period lands. Bail without
       // marking anything, so the next tick retries rather than losing the
       // session's first ad entirely.
       const show = window.show_11527679;

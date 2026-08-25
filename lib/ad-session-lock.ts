@@ -38,11 +38,11 @@ export function isInterstitialActive(): boolean {
 //
 // Seeded at module load slightly in the past so the very first interstitial
 // of a session still fires a short grace period (INITIAL_GRACE_MS below)
-// after load rather than making that first ad wait a full gap too. 20s
+// after load rather than making that first ad wait a full gap too. 30s
 // deliberately leaves room for the daily check-in popup (app/page.tsx) to
 // show first when it's due, rather than the two competing for the screen.
 const GAP_MS = 120_000;
-const INITIAL_GRACE_MS = 20_000;
+const INITIAL_GRACE_MS = 30_000;
 let lastAdAt = Date.now() - GAP_MS + INITIAL_GRACE_MS;
 
 export function markAdShown(): void {

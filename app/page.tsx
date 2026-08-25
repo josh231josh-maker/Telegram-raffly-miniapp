@@ -44,7 +44,7 @@ export default function HomePage() {
   // back open right after someone closes it.
   //
   // Opens as soon as it's due (no artificial delay): the automatic
-  // interstitial's own first fire point is 20s after load (see
+  // interstitial's own first fire point is 30s after load (see
   // ad-session-lock's INITIAL_GRACE_MS), which already gives this popup
   // plenty of room to show first when check-in is available.
   const hasCheckedCheckInPopupRef = useRef(false);
