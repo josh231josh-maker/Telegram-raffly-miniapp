@@ -38,15 +38,22 @@ export function SomeMiniAppOnlyThing() {
 }
 ```
 
-Live examples: the `contextmenu` listener in
-`components/providers/telegram-provider.tsx` (skips attaching under
-`/admin`), and `components/mini-app-shell.tsx` itself, which returns early
-under `/admin` before mounting any mini-app-only provider (`ThemeProvider`,
-`LanguageProvider`, `TelegramProvider`) or ad script. The root layout itself
-stays a server component — the pathname check lives in a small client
-component like these, not in `app/layout.tsx` directly. (The original
-confetti-gif offender this rule was written after has since been removed
-from the app entirely, not just re-scoped.)
+Live examples: `components/confetti-background.tsx` (renders nothing under
+`/admin` — the original offender this rule was written after; it stays in
+the mini app, just correctly scoped away from admin, not removed outright),
+the `contextmenu` listener in `components/providers/telegram-provider.tsx`
+(skips attaching under `/admin`), and `components/mini-app-shell.tsx` itself,
+which returns early under `/admin` before mounting any mini-app-only
+provider (`ThemeProvider`, `LanguageProvider`, `TelegramProvider`) or ad
+script. The root layout itself stays a server component — the pathname
+check lives in a small client component like these, not in `app/layout.tsx`
+directly.
+
+**If a fix for an admin-leak bug is going to remove a mini-app feature
+instead of just scoping it away from admin, confirm that's actually wanted
+first** — "I saw X on admin" is a report that X leaked onto the wrong
+surface, not automatically a request to delete X from the surface it
+belongs on.
 
 This applies in both directions: something built for the admin dashboard
 should equally never leak onto the mini app.
