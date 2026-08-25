@@ -16,7 +16,7 @@
 
 | Rule | Detail |
 |------|--------|
-| Draw frequency | Weekly — $1,000 pool split across 5 winners ($200 USDT each) |
+| Draw frequency | Weekly (every Monday 00:00 UTC) — $2,500 pool split across 5 winners ($500 USDT each) |
 | Ticket sources | Ads (3 ads = 1 ticket), daily check-in, referrals, Telegram Stars, TON (TON Connect) |
 | Ad limit | No daily cap for now |
 | Ticket expiry | Tickets do **not** carry over — reset each week |
