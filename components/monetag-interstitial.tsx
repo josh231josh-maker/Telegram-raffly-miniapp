@@ -7,9 +7,12 @@ import { GAP_MS, getLastAdAt, isRewardedAdActive, markAdShown } from "@/lib/ad-s
 
 // How often this checks whether an interstitial is due -- coarser than the
 // gap itself, since firing a little late is harmless but firing early
-// defeats the point of the gap. 5s keeps the actual delay within a
-// negligible margin of the intended 40s (GAP_MS).
-const POLL_INTERVAL_MS = 5_000;
+// defeats the point of the gap. A plain setInterval's first tick only lands
+// one full POLL_INTERVAL_MS after mount, so this also bounds how late the
+// very first ad of a session can fire past its 3s grace period (see
+// ad-session-lock's INITIAL_GRACE_MS) -- 1s keeps that, and the recurring
+// 40s (GAP_MS) cadence, within a negligible margin of the intended timing.
+const POLL_INTERVAL_MS = 1_000;
 
 // Each check only ever asks Monetag for a single ad ("frequency: 1") --
 // unlike the original one-shot arm-and-let-Monetag-schedule-the-rest
@@ -40,7 +43,18 @@ export function MonetagInterstitial() {
       if (isRewardedAdActive()) return; // never interrupt an active rewarded watch
       if (Date.now() - getLastAdAt() < GAP_MS) return; // not due yet
 
-      window.show_11527679?.({ type: "inApp", inAppSettings: IN_APP_SETTINGS });
+      // Monetag's script tag loads afterInteractive (a third-party network
+      // fetch), so window.show_11527679 can still be undefined for the
+      // first few seconds of a session -- especially right around the
+      // initial 3s grace period this is trying to hit. Previously this
+      // called it optionally and marked an ad "shown" regardless, which
+      // silently burned the very first eligible check (and reset the gap
+      // timer) even when nothing actually played, making the first ad of a
+      // session miss entirely. Only mark shown when the SDK was actually
+      // callable, so an early miss just gets retried on the next poll tick
+      // instead of waiting out a whole new GAP_MS for nothing.
+      if (typeof window.show_11527679 !== "function") return;
+      window.show_11527679({ type: "inApp", inAppSettings: IN_APP_SETTINGS });
       markAdShown();
     }, POLL_INTERVAL_MS);
 
