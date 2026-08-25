@@ -25,6 +25,7 @@ type AdminUser = {
   usdt_balance: number;
   streak_count: number;
   referral_count: number;
+  entries_this_draw: number;
   raffly_pass_expires_at: string | null;
   created_at: string;
 };
@@ -35,13 +36,15 @@ type SortColumn =
   | "usdt_balance"
   | "streak_count"
   | "telegram_id"
-  | "referral_count";
+  | "referral_count"
+  | "entries_this_draw";
 type SortDir = "asc" | "desc";
 type PassFilter = "all" | "active" | "inactive";
 
 const COLUMNS: { key: SortColumn; label: string }[] = [
   { key: "telegram_id", label: "Telegram ID" },
   { key: "ticket_balance", label: "Tickets" },
+  { key: "entries_this_draw", label: "Entered (draw)" },
   { key: "usdt_balance", label: "USDT" },
   { key: "streak_count", label: "Streak" },
   { key: "referral_count", label: "Referrals" },
@@ -239,7 +242,7 @@ export default function AdminDashboard() {
               </div>
 
               <div className="overflow-x-auto rounded-2xl border border-white/10">
-                <table className="w-full min-w-[920px] text-left text-sm">
+                <table className="w-full min-w-[1020px] text-left text-sm">
                   <thead className="bg-white/5 text-white/50">
                     <tr>
                       <th className="px-4 py-3 font-medium">User</th>
@@ -270,7 +273,7 @@ export default function AdminDashboard() {
                   <tbody>
                     {!loading && users.length === 0 && (
                       <tr>
-                        <td colSpan={9} className="px-4 py-6 text-center text-white/40">
+                        <td colSpan={10} className="px-4 py-6 text-center text-white/40">
                           No users found.
                         </td>
                       </tr>
@@ -295,6 +298,7 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-4 py-3 text-white/70 tabular-nums">{u.telegram_id}</td>
                         <td className="px-4 py-3 text-white/70 tabular-nums">{u.ticket_balance}</td>
+                        <td className="px-4 py-3 text-white/70 tabular-nums">{u.entries_this_draw}</td>
                         <td className="px-4 py-3 text-white/70 tabular-nums">${Number(u.usdt_balance).toFixed(2)}</td>
                         <td className="px-4 py-3 text-white/70 tabular-nums">{u.streak_count}</td>
                         <td className="px-4 py-3 text-white/70 tabular-nums">{u.referral_count}</td>

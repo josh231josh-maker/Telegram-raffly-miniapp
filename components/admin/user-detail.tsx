@@ -19,6 +19,7 @@ type AdminUser = {
   streak_count: number;
   referral_count: number;
   referral_reached_count: number;
+  entries_this_draw: number;
   raffly_pass_expires_at: string | null;
   created_at: string;
 };
@@ -133,6 +134,7 @@ export default function UserDetail({ id }: { id: string }) {
 
         <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
           <Stat label="Tickets" value={user.ticket_balance} />
+          <Stat label="Entered (this draw)" value={user.entries_this_draw} />
           <Stat label="USDT Balance" value={`$${Number(user.usdt_balance).toFixed(2)}`} />
           <Stat label="Streak" value={`${user.streak_count} days`} />
           <Stat label="Referrals" value={`${user.referral_reached_count}/${user.referral_count}`} />

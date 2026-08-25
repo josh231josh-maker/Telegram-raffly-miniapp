@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { withReferralCount } from "@/lib/referral";
+import { getCurrentWeekEnd } from "@/lib/raffle-week";
 import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
 
 type ActivityEvent = {
@@ -32,6 +33,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     { data: adViews },
     { data: transactions },
     { data: withdrawals },
+    { data: currentRaffle },
   ] = await Promise.all([
     withReferralCount(supabase, user),
     supabase
@@ -58,7 +60,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .eq("user_id", id)
       .order("requested_at", { ascending: false })
       .limit(50),
+    // The current draw's raffle row doesn't exist until its first entry
+    // (getOrCreateCurrentRaffle) -- no row here just means nobody, including
+    // this user, has entered yet.
+    supabase.from("raffles").select("id").eq("week_end", getCurrentWeekEnd().toISOString()).maybeSingle(),
   ]);
+
+  // Summed from the same raffleEntries fetch above (already capped at this
+  // user's most recent 50 entries, same as every other activity type here)
+  // rather than a second query, since a raffle_id filter is all this needs.
+  const entriesThisDraw = currentRaffle
+    ? (raffleEntries ?? [])
+        .filter((e) => e.raffle_id === currentRaffle.id)
+        .reduce((sum, e) => sum + e.tickets_used, 0)
+    : 0;
 
   const activity: ActivityEvent[] = [
     ...(raffleEntries ?? []).map((e) => ({
@@ -95,7 +110,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return NextResponse.json({
-    user: userWithReferralCount,
+    user: { ...userWithReferralCount, entries_this_draw: entriesThisDraw },
     activity,
   });
 }
