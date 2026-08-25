@@ -14,9 +14,9 @@ describe("ad-session-lock", () => {
     expect(isRewardedAdActive()).toBe(false);
   });
 
-  it("exposes a 90-second gap", async () => {
+  it("exposes a 2-minute gap", async () => {
     const { GAP_MS } = await import("./ad-session-lock");
-    expect(GAP_MS).toBe(90_000);
+    expect(GAP_MS).toBe(120_000);
   });
 
   it("seeds lastAdAt so the very first interstitial is due after a short grace period, not a full gap", async () => {
@@ -29,8 +29,8 @@ describe("ad-session-lock", () => {
       expect(elapsedSinceSeed).toBeLessThan(GAP_MS);
       // ...but due well before a full gap has to elapse (grace period, not the full gap).
       expect(elapsedSinceSeed).toBeGreaterThan(GAP_MS / 2);
-      // Specifically: due 3s after load, so the session's first ad is prompt.
-      expect(GAP_MS - elapsedSinceSeed).toBe(3_000);
+      // Specifically: due 10s after load, so the session's first ad is prompt.
+      expect(GAP_MS - elapsedSinceSeed).toBe(10_000);
     } finally {
       vi.useRealTimers();
     }
@@ -86,14 +86,14 @@ describe("ad-session-lock", () => {
     vi.setSystemTime(1_000_000_000_000);
     try {
       const { GAP_MS, getLastAdAt } = await import("./ad-session-lock");
-      // Seeded past-due at the 3s grace point.
-      vi.setSystemTime(1_000_000_000_000 + 3_000);
+      // Seeded past-due at the 10s grace point.
+      vi.setSystemTime(1_000_000_000_000 + 10_000);
       const dueNow = () => Date.now() - getLastAdAt() >= GAP_MS;
       expect(dueNow()).toBe(true);
 
       // A show() that throws never calls markAdShown, so a moment later the
       // ad is still due and the next poll tick can retry it.
-      vi.setSystemTime(1_000_000_000_000 + 4_000);
+      vi.setSystemTime(1_000_000_000_000 + 11_000);
       expect(dueNow()).toBe(true);
     } finally {
       vi.useRealTimers();
