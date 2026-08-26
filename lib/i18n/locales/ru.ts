@@ -73,21 +73,12 @@ const ru: Record<TranslationKey, string> = {
     "Поделитесь пригласительной ссылкой с друзьями. Когда кто-то присоединится к Raffly по вашей ссылке и наберёт {{threshold}} билетов, вы получите {{reward}} билетов на баланс — автоматически, без ограничения на число друзей.",
   "referral.shareText": "Присоединяйся к Raffly и выигрывай USDT в розыгрышах!",
 
-  "joinChannel.label": "Подпишитесь на канал",
-  "joinChannel.description":
-    "Подпишитесь на канал анонсов Raffly, чтобы узнавать об обновлениях розыгрышей и победителях.",
-  "joinChannel.joinButton": "Подписаться",
-  "joinChannel.alreadyDid": "Уже подписан",
-  "joinChannel.checking": "Проверка...",
-  "joinChannel.genericError": "Что-то пошло не так. Попробуйте ещё раз.",
-
   "newUserBonus.label": "Приветственный бонус",
   "newUserBonus.claiming": "Получение...",
   "newUserBonus.sublabel": "Разовая награда для новых игроков",
 
   "completed.title": "Выполнено",
   "completed.dailyCheckin": "Ежедневный вход",
-  "completed.joinChannel": "Подпишитесь на канал",
   "completed.welcomeBonus": "Приветственный бонус",
 
   "buyRaffle.raffleTickets": "Билеты розыгрыша",

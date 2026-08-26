@@ -73,13 +73,6 @@ const ptBR: Record<TranslationKey, string> = {
     "Compartilhe seu link de convite com amigos. Quando alguém entrar no Raffly pelo seu link e ganhar {{threshold}} bilhetes, você recebe {{reward}} bilhetes no seu saldo — automaticamente, sem limite de quantos amigos você pode convidar.",
   "referral.shareText": "Junte-se ao Raffly e ganhe sorteios em USDT!",
 
-  "joinChannel.label": "Entre no nosso canal",
-  "joinChannel.description":
-    "Entre no canal de anúncios do Raffly para novidades de sorteios e ganhadores.",
-  "joinChannel.joinButton": "Entrar no canal",
-  "joinChannel.alreadyDid": "Já fiz isso",
-  "joinChannel.checking": "Verificando...",
-  "joinChannel.genericError": "Algo deu errado. Tente novamente.",
 
   "newUserBonus.label": "Bônus de boas-vindas",
   "newUserBonus.claiming": "Resgatando...",
@@ -87,7 +80,6 @@ const ptBR: Record<TranslationKey, string> = {
 
   "completed.title": "Concluído",
   "completed.dailyCheckin": "Check-in diário",
-  "completed.joinChannel": "Entre no nosso canal",
   "completed.welcomeBonus": "Bônus de boas-vindas",
 
   "buyRaffle.raffleTickets": "Bilhetes do sorteio",

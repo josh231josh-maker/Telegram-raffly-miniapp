@@ -77,20 +77,12 @@ export const TRANSLATION_KEYS = [
   "referral.howItWorksBody",
   "referral.shareText",
 
-  "joinChannel.label",
-  "joinChannel.description",
-  "joinChannel.joinButton",
-  "joinChannel.alreadyDid",
-  "joinChannel.checking",
-  "joinChannel.genericError",
-
   "newUserBonus.label",
   "newUserBonus.claiming",
   "newUserBonus.sublabel",
 
   "completed.title",
   "completed.dailyCheckin",
-  "completed.joinChannel",
   "completed.welcomeBonus",
 
   "buyRaffle.raffleTickets",

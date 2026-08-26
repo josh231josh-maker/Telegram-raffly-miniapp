@@ -73,13 +73,6 @@ const de: Record<TranslationKey, string> = {
     "Teile deinen Einladungslink mit Freunden. Wenn jemand über deinen Link Raffly beitritt und {{threshold}} Tickets verdient, erhältst du automatisch {{reward}} Tickets auf dein Guthaben — ohne Begrenzung, wie viele Freunde du einladen kannst.",
   "referral.shareText": "Tritt Raffly bei und gewinne USDT-Verlosungen!",
 
-  "joinChannel.label": "Tritt unserem Kanal bei",
-  "joinChannel.description":
-    "Tritt dem Raffly-Ankündigungskanal bei für Updates zu Verlosungen und Gewinnern.",
-  "joinChannel.joinButton": "Kanal beitreten",
-  "joinChannel.alreadyDid": "Bereits erledigt",
-  "joinChannel.checking": "Wird überprüft...",
-  "joinChannel.genericError": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
 
   "newUserBonus.label": "Willkommensbonus",
   "newUserBonus.claiming": "Wird abgeholt...",
@@ -87,7 +80,6 @@ const de: Record<TranslationKey, string> = {
 
   "completed.title": "Erledigt",
   "completed.dailyCheckin": "Täglicher Check-in",
-  "completed.joinChannel": "Tritt unserem Kanal bei",
   "completed.welcomeBonus": "Willkommensbonus",
 
   "buyRaffle.raffleTickets": "Verlosungstickets",

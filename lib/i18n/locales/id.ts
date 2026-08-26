@@ -73,12 +73,6 @@ const id: Record<TranslationKey, string> = {
     "Bagikan tautan undangan Anda ke teman. Saat seseorang bergabung ke Raffly lewat tautan Anda dan mendapatkan {{threshold}} tiket, Anda dapat {{reward}} tiket ke saldo Anda — otomatis, tanpa batas jumlah teman yang bisa diundang.",
   "referral.shareText": "Gabung Raffly dan menangkan undian USDT!",
 
-  "joinChannel.label": "Gabung Channel Kami",
-  "joinChannel.description": "Gabung channel pengumuman Raffly untuk info undian dan pemenang.",
-  "joinChannel.joinButton": "Gabung Channel",
-  "joinChannel.alreadyDid": "Sudah Gabung",
-  "joinChannel.checking": "Memeriksa...",
-  "joinChannel.genericError": "Terjadi kesalahan. Coba lagi.",
 
   "newUserBonus.label": "Bonus Selamat Datang",
   "newUserBonus.claiming": "Mengklaim...",
@@ -86,7 +80,6 @@ const id: Record<TranslationKey, string> = {
 
   "completed.title": "Selesai",
   "completed.dailyCheckin": "Check-in Harian",
-  "completed.joinChannel": "Gabung Channel Kami",
   "completed.welcomeBonus": "Bonus Selamat Datang",
 
   "buyRaffle.raffleTickets": "Tiket undian",

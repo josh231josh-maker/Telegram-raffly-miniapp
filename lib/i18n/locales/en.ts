@@ -73,21 +73,12 @@ const en: Record<TranslationKey, string> = {
     "Share your invite link with friends. When someone joins Raffly through your link and earns {{threshold}} tickets, you get {{reward}} tickets added to your balance — automatically, with no limit on how many friends you can invite.",
   "referral.shareText": "Join me on Raffly and win USDT raffles!",
 
-  "joinChannel.label": "Join Our Channel",
-  "joinChannel.description":
-    "Join the Raffly Announcement channel for raffle updates and winner announcements.",
-  "joinChannel.joinButton": "Join Channel",
-  "joinChannel.alreadyDid": "Already Did",
-  "joinChannel.checking": "Checking...",
-  "joinChannel.genericError": "Something went wrong. Please try again.",
-
   "newUserBonus.label": "Welcome Bonus",
   "newUserBonus.claiming": "Claiming...",
   "newUserBonus.sublabel": "One-time reward for new players",
 
   "completed.title": "Completed",
   "completed.dailyCheckin": "Daily Check-in",
-  "completed.joinChannel": "Join Our Channel",
   "completed.welcomeBonus": "Welcome Bonus",
 
   "buyRaffle.raffleTickets": "Raffle tickets",

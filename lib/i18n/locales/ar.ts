@@ -75,12 +75,6 @@ const ar: Record<TranslationKey, string> = {
     "شارك رابط دعوتك مع أصدقائك. عندما ينضم شخص إلى Raffly عبر رابطك ويكسب {{threshold}} تذكرة، تحصل على {{reward}} تذكرة تُضاف إلى رصيدك — تلقائيًا، بلا حد لعدد الأصدقاء الذين يمكنك دعوتهم.",
   "referral.shareText": "انضم إلى Raffly واربح سحوبات USDT!",
 
-  "joinChannel.label": "انضم إلى قناتنا",
-  "joinChannel.description": "انضم إلى قناة إعلانات Raffly لمتابعة تحديثات السحوبات وأسماء الفائزين.",
-  "joinChannel.joinButton": "الانضمام إلى القناة",
-  "joinChannel.alreadyDid": "انضممت بالفعل",
-  "joinChannel.checking": "جارٍ التحقق...",
-  "joinChannel.genericError": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
 
   "newUserBonus.label": "مكافأة الترحيب",
   "newUserBonus.claiming": "جارٍ الاستلام...",
@@ -88,7 +82,6 @@ const ar: Record<TranslationKey, string> = {
 
   "completed.title": "مكتمل",
   "completed.dailyCheckin": "تسجيل الحضور اليومي",
-  "completed.joinChannel": "انضم إلى قناتنا",
   "completed.welcomeBonus": "مكافأة الترحيب",
 
   "buyRaffle.raffleTickets": "تذاكر السحب",

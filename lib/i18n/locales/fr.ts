@@ -73,13 +73,6 @@ const fr: Record<TranslationKey, string> = {
     "Partagez votre lien d'invitation avec vos amis. Quand quelqu'un rejoint Raffly via votre lien et gagne {{threshold}} tickets, vous recevez {{reward}} tickets sur votre solde — automatiquement, sans limite du nombre d'amis que vous pouvez inviter.",
   "referral.shareText": "Rejoins Raffly et gagne des tirages en USDT !",
 
-  "joinChannel.label": "Rejoignez notre chaîne",
-  "joinChannel.description":
-    "Rejoignez la chaîne d'annonces Raffly pour les mises à jour des tirages et des gagnants.",
-  "joinChannel.joinButton": "Rejoindre la chaîne",
-  "joinChannel.alreadyDid": "Déjà fait",
-  "joinChannel.checking": "Vérification...",
-  "joinChannel.genericError": "Une erreur est survenue. Veuillez réessayer.",
 
   "newUserBonus.label": "Bonus de bienvenue",
   "newUserBonus.claiming": "Récupération...",
@@ -87,7 +80,6 @@ const fr: Record<TranslationKey, string> = {
 
   "completed.title": "Terminé",
   "completed.dailyCheckin": "Pointage quotidien",
-  "completed.joinChannel": "Rejoignez notre chaîne",
   "completed.welcomeBonus": "Bonus de bienvenue",
 
   "buyRaffle.raffleTickets": "Tickets de tirage",

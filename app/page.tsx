@@ -15,7 +15,6 @@ import { DailyCheckIn } from "@/components/raffles/daily-checkin";
 import { DailyCheckInPopup } from "@/components/raffles/daily-checkin-popup";
 import { WatchAdCard } from "@/components/raffles/watch-ad-card";
 import { ReferralCard } from "@/components/raffles/referral-card";
-import { JoinChannelCard } from "@/components/raffles/join-channel-card";
 import { NewUserBonusCard } from "@/components/raffles/new-user-bonus-card";
 import { CompletedTasksSection } from "@/components/raffles/completed-tasks-section";
 import { BuyRaffleBar } from "@/components/raffles/buy-raffle-bar";
@@ -84,7 +83,6 @@ export default function HomePage() {
             <DailyCheckIn />
             <WatchAdCard />
             <ReferralCard />
-            <JoinChannelCard />
             <CompletedTasksSection />
           </>
         )}
