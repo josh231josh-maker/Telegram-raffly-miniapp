@@ -31,12 +31,18 @@ type Failure = {
   users: { username: string | null; first_name: string | null } | null;
 };
 
+// The first five reach mini-app users only (people with a `users` row). The
+// last two also reach bot contacts -- anyone who messaged the bot, /start
+// included, without ever opening the mini app. They show under Bot Activity
+// but have no `users` row, which is why no other segment can see them.
 const SEGMENT_LABELS: Record<string, string> = {
-  all: "All eligible users",
+  all: "All eligible users (opened the mini app)",
   active_pass: "Users with an active Raffly Pass",
   no_pass: "Users without an active pass",
   has_tickets: "Users with tickets > 0",
   selected: "Selected users",
+  bot_contacts: "Bot contacts only (never opened the mini app)",
+  all_contacts: "Everyone — mini app users + bot contacts",
 };
 
 const STATUS_STYLES: Record<Broadcast["status"], string> = {

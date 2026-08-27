@@ -91,10 +91,20 @@ export async function processBroadcastBatch(
           .eq("id", recipient.id);
 
         if (result.blocked) {
-          await supabase
-            .from("users")
-            .update({ bot_blocked_at: new Date().toISOString() })
-            .eq("id", recipient.user_id);
+          // A bot-only contact (messaged the bot, never opened the mini app)
+          // has no users row to flag, so its block is recorded by telegram_id
+          // instead -- bot_only_contacts() filters those out, so a later
+          // broadcast doesn't keep messaging someone who has blocked the bot.
+          if (recipient.user_id) {
+            await supabase
+              .from("users")
+              .update({ bot_blocked_at: new Date().toISOString() })
+              .eq("id", recipient.user_id);
+          } else {
+            await supabase
+              .from("bot_blocked_contacts")
+              .upsert({ telegram_id: recipient.telegram_id }, { onConflict: "telegram_id" });
+          }
         }
       }
 

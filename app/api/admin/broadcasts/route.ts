@@ -5,10 +5,29 @@ import { TEXT_MESSAGE_LIMIT, CAPTION_LIMIT, type ButtonInput } from "@/lib/teleg
 import { RATE_LIMITS, rateLimitByIp, rateLimitResponse } from "@/lib/rate-limit";
 import { safeServerError } from "@/lib/logger";
 
-const SEGMENTS = ["all", "active_pass", "no_pass", "has_tickets", "selected"] as const;
+const SEGMENTS = [
+  "all",
+  "active_pass",
+  "no_pass",
+  "has_tickets",
+  "selected",
+  "bot_contacts",
+  "all_contacts",
+] as const;
 type Segment = (typeof SEGMENTS)[number];
 
+// Segments that reach people who messaged the bot but never opened the mini
+// app. They have no `users` row at all (they exist only in `bot_messages`),
+// which is why every other segment is blind to them -- see the
+// broadcast_to_bot_contacts migration.
+const BOT_ONLY_SEGMENTS: Segment[] = ["bot_contacts", "all_contacts"];
+const USER_SEGMENTS: Segment[] = ["all", "active_pass", "no_pass", "has_tickets", "selected", "all_contacts"];
+
 const MAX_BUTTONS = 8;
+
+// Supabase rejects a single insert of tens of thousands of rows, and a
+// bot-contact broadcast can carry ~16k recipients, so rows go in in chunks.
+const RECIPIENT_INSERT_CHUNK = 1_000;
 
 function validateButtons(buttons: unknown): ButtonInput[] | { error: string } {
   if (!buttons) return [];
@@ -129,26 +148,45 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  let query = supabase.from("users").select("id, telegram_id").is("bot_blocked_at", null);
+  // Two independent recipient sources, either or both of which a segment can
+  // draw from: mini-app users (a `users` row) and bot-only contacts (messaged
+  // the bot, never opened the app, so no `users` row exists to join to).
+  type Recipient = { id: string | null; telegram_id: number };
+  const recipients: Recipient[] = [];
 
-  if (segment === "active_pass") {
-    query = query.gt("raffly_pass_expires_at", new Date().toISOString());
-  } else if (segment === "no_pass") {
-    query = query.or(`raffly_pass_expires_at.is.null,raffly_pass_expires_at.lte.${new Date().toISOString()}`);
-  } else if (segment === "has_tickets") {
-    query = query.gt("ticket_balance", 0);
-  } else if (segment === "selected") {
-    query = query.in("telegram_id", selectedTelegramIds!);
+  if (USER_SEGMENTS.includes(segment)) {
+    let query = supabase.from("users").select("id, telegram_id").is("bot_blocked_at", null);
+
+    if (segment === "active_pass") {
+      query = query.gt("raffly_pass_expires_at", new Date().toISOString());
+    } else if (segment === "no_pass") {
+      query = query.or(`raffly_pass_expires_at.is.null,raffly_pass_expires_at.lte.${new Date().toISOString()}`);
+    } else if (segment === "has_tickets") {
+      query = query.gt("ticket_balance", 0);
+    } else if (segment === "selected") {
+      query = query.in("telegram_id", selectedTelegramIds!);
+    }
+
+    const { data: users, error: usersError } = await query;
+    if (usersError) {
+      return NextResponse.json(safeServerError("admin.broadcast_recipients_query_failed", usersError), { status: 500 });
+    }
+    recipients.push(...(users ?? []));
   }
 
-  const { data: recipients, error: recipientsError } = await query;
-  if (recipientsError) {
-    return NextResponse.json(safeServerError("admin.broadcast_recipients_query_failed", recipientsError), { status: 500 });
+  if (BOT_ONLY_SEGMENTS.includes(segment)) {
+    // An RPC because this needs DISTINCT over every logged bot message, and
+    // it already excludes contacts recorded as having blocked the bot.
+    const { data: botContacts, error: botError } = await supabase.rpc("bot_only_contacts");
+    if (botError) {
+      return NextResponse.json(safeServerError("admin.broadcast_bot_contacts_query_failed", botError), { status: 500 });
+    }
+    recipients.push(...(botContacts ?? []).map((c: { telegram_id: number }) => ({ id: null, telegram_id: c.telegram_id })));
   }
 
-  const excludedCount = segment === "selected" ? selectedTelegramIds!.length - (recipients?.length ?? 0) : 0;
+  const excludedCount = segment === "selected" ? selectedTelegramIds!.length - recipients.length : 0;
 
-  if (!recipients || recipients.length === 0) {
+  if (recipients.length === 0) {
     return NextResponse.json({ error: "No eligible recipients match this selection" }, { status: 400 });
   }
 
@@ -180,14 +218,18 @@ export async function POST(req: NextRequest) {
     telegram_id: u.telegram_id,
   }));
 
-  const { error: recipientInsertError } = await supabase.from("broadcast_recipients").insert(recipientRows);
-  if (recipientInsertError) {
-    // Roll back the orphaned draft rather than leaving a broadcast with no recipients.
-    await supabase.from("broadcasts").delete().eq("id", broadcast.id);
-    return NextResponse.json(
-      safeServerError("admin.broadcast_recipients_insert_failed", recipientInsertError, { broadcastId: broadcast.id }, "Failed to create broadcast"),
-      { status: 500 }
-    );
+  for (let i = 0; i < recipientRows.length; i += RECIPIENT_INSERT_CHUNK) {
+    const chunk = recipientRows.slice(i, i + RECIPIENT_INSERT_CHUNK);
+    const { error: recipientInsertError } = await supabase.from("broadcast_recipients").insert(chunk);
+    if (recipientInsertError) {
+      // Roll back the orphaned draft rather than leaving a broadcast with a
+      // partial recipient list. Recipient rows cascade on the delete.
+      await supabase.from("broadcasts").delete().eq("id", broadcast.id);
+      return NextResponse.json(
+        safeServerError("admin.broadcast_recipients_insert_failed", recipientInsertError, { broadcastId: broadcast.id }, "Failed to create broadcast"),
+        { status: 500 }
+      );
+    }
   }
 
   return NextResponse.json({ broadcast, recipientCount: recipients.length, excludedCount });
