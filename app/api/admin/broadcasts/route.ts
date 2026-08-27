@@ -29,6 +29,33 @@ const MAX_BUTTONS = 8;
 // bot-contact broadcast can carry ~16k recipients, so rows go in in chunks.
 const RECIPIENT_INSERT_CHUNK = 1_000;
 
+// Supabase caps any PostgREST response at 1000 rows. A recipient query that
+// matches more than that comes back silently truncated -- which is exactly
+// what happened to the first bot-contacts broadcast: 15,843 eligible
+// contacts, 1000 recipients. Every recipient read pages through this.
+const PAGE_SIZE = 1_000;
+
+type PageError = { message: string } | null;
+
+/**
+ * Reads every row of a query by paging until a short page comes back. `page`
+ * must build a fresh, deterministically ordered query each call -- a
+ * PostgREST builder is consumed once it is awaited, and paging over an
+ * unordered query can both skip and duplicate rows.
+ */
+async function fetchAllRows<T>(
+  page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: PageError }>
+): Promise<{ rows: T[]; error: PageError }> {
+  const rows: T[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await page(from, from + PAGE_SIZE - 1);
+    if (error) return { rows, error };
+    const batch = data ?? [];
+    rows.push(...batch);
+    if (batch.length < PAGE_SIZE) return { rows, error: null };
+  }
+}
+
 function validateButtons(buttons: unknown): ButtonInput[] | { error: string } {
   if (!buttons) return [];
   if (!Array.isArray(buttons)) return { error: "Buttons must be a list" };
@@ -155,33 +182,45 @@ export async function POST(req: NextRequest) {
   const recipients: Recipient[] = [];
 
   if (USER_SEGMENTS.includes(segment)) {
-    let query = supabase.from("users").select("id, telegram_id").is("bot_blocked_at", null);
+    // Rebuilt per page rather than built once: a PostgREST query builder is
+    // consumed by awaiting it, so it cannot be re-ranged.
+    const buildQuery = () => {
+      const base = supabase.from("users").select("id, telegram_id").is("bot_blocked_at", null);
+      if (segment === "active_pass") {
+        return base.gt("raffly_pass_expires_at", new Date().toISOString());
+      }
+      if (segment === "no_pass") {
+        return base.or(`raffly_pass_expires_at.is.null,raffly_pass_expires_at.lte.${new Date().toISOString()}`);
+      }
+      if (segment === "has_tickets") {
+        return base.gt("ticket_balance", 0);
+      }
+      if (segment === "selected") {
+        return base.in("telegram_id", selectedTelegramIds!);
+      }
+      return base;
+    };
 
-    if (segment === "active_pass") {
-      query = query.gt("raffly_pass_expires_at", new Date().toISOString());
-    } else if (segment === "no_pass") {
-      query = query.or(`raffly_pass_expires_at.is.null,raffly_pass_expires_at.lte.${new Date().toISOString()}`);
-    } else if (segment === "has_tickets") {
-      query = query.gt("ticket_balance", 0);
-    } else if (segment === "selected") {
-      query = query.in("telegram_id", selectedTelegramIds!);
-    }
-
-    const { data: users, error: usersError } = await query;
+    const { rows, error: usersError } = await fetchAllRows<Recipient>((from, to) =>
+      buildQuery().order("id").range(from, to)
+    );
     if (usersError) {
       return NextResponse.json(safeServerError("admin.broadcast_recipients_query_failed", usersError), { status: 500 });
     }
-    recipients.push(...(users ?? []));
+    recipients.push(...rows);
   }
 
   if (BOT_ONLY_SEGMENTS.includes(segment)) {
     // An RPC because this needs DISTINCT over every logged bot message, and
-    // it already excludes contacts recorded as having blocked the bot.
-    const { data: botContacts, error: botError } = await supabase.rpc("bot_only_contacts");
+    // it already excludes contacts recorded as having blocked the bot. It
+    // orders by telegram_id so the paging below is stable.
+    const { rows, error: botError } = await fetchAllRows<{ telegram_id: number }>((from, to) =>
+      supabase.rpc("bot_only_contacts").range(from, to)
+    );
     if (botError) {
       return NextResponse.json(safeServerError("admin.broadcast_bot_contacts_query_failed", botError), { status: 500 });
     }
-    recipients.push(...(botContacts ?? []).map((c: { telegram_id: number }) => ({ id: null, telegram_id: c.telegram_id })));
+    recipients.push(...rows.map((c) => ({ id: null, telegram_id: c.telegram_id })));
   }
 
   const excludedCount = segment === "selected" ? selectedTelegramIds!.length - recipients.length : 0;
