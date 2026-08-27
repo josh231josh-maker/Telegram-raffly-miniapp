@@ -131,6 +131,20 @@ textarea,
   -webkit-touch-callout: default;
 }
 
+.admin-surface,
+.admin-surface * {
+  /* The body rule above is for the mini app: an app-like feel in the Telegram
+     WebView, where selection handles on ordinary UI look wrong. The admin
+     dashboard is a plain browser page where copying a Telegram ID, a tx hash,
+     or an error string is routine work, and it inherited that rule only
+     because both surfaces share the root layout. Scoped to the class on
+     app/admin/layout.tsx, which wraps every /admin route and nothing else, so
+     the mini app is untouched. */
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 .font-heading {
   font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
 }
