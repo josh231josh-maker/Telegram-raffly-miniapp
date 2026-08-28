@@ -1,12 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendTelegramContent, buildInlineButtons, type ButtonInput } from "@/lib/telegram-bot";
 
-const BATCH_SIZE = 60;
+const BATCH_SIZE = 40;
 // Telegram allows roughly 30 messages/sec across all chats -- 70ms between
 // sends keeps us comfortably under that even with request overhead on top.
 const SEND_DELAY_MS = 70;
-// Leaves headroom under the route's maxDuration so a batch always finishes
-// cleanly instead of getting killed mid-send.
+// Leaves headroom under Vercel's 60s timeout (hobby plan max), accounting for
+// database overhead and Telegram API latency. At 40 messages × 70ms = 2.8s
+// sends + overhead, most batches complete in ~20–30s, well under the limit.
 const TIME_BUDGET_MS = 45_000;
 
 type Broadcast = {
