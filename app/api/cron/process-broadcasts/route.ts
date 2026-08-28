@@ -14,8 +14,28 @@ export const maxDuration = 60;
 // explicitly clicking Send first.
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
-  const expected = process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined;
-  if (!timingSafeEqual(authHeader, expected)) {
+  const supabase = getSupabaseAdmin();
+
+  // Two accepted callers. Vercel's own daily cron sends CRON_SECRET, which
+  // lives only in Vercel's env. The pg_cron driver (drive_broadcast_sends())
+  // sends a token generated in and never leaving Postgres -- CRON_SECRET is
+  // write-only in Vercel's UI, so it can't be copied into the database, and
+  // inverting the direction for this one caller avoids needing to.
+  //
+  // Read through the service-role key, so the token is no more reachable than
+  // any other server-side secret. Checked second, and only when the env
+  // secret didn't already match, so the normal cron path costs no query.
+  let authorized = timingSafeEqual(
+    authHeader,
+    process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined
+  );
+
+  if (!authorized) {
+    const { data: internal } = await supabase.from("internal_cron_auth").select("token").eq("id", true).single();
+    authorized = timingSafeEqual(authHeader, internal?.token ? `Bearer ${internal.token}` : undefined);
+  }
+
+  if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -27,7 +47,6 @@ export async function GET(req: NextRequest) {
   // plain link button or no button at all shouldn't be blocked by it being unset.
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
-  const supabase = getSupabaseAdmin();
   const { data: stuck } = await supabase.from("broadcasts").select("*").eq("status", "sending");
 
   const results = [];
