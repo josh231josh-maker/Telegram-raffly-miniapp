@@ -102,7 +102,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8 text-center">
-        <Image src="/images/crown-icon.png" alt="" width={60} height={35} />
+        <Image src="/images/raffly-pass-icon.png" alt="" width={90} height={66} />
         <h1 className="font-heading mt-4 text-2xl font-bold text-balance">{t("pass.title")}</h1>
 
         {hasPass ? (
