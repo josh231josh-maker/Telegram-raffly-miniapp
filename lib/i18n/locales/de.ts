@@ -92,7 +92,7 @@ const de: Record<TranslationKey, string> = {
   "pass.title": "Raffly Pass",
   "pass.daysLeft": "Verbleibende Tage",
   "pass.ticketsPerDay": "Tickets/Tag",
-  "pass.oneTimePurchase": "einmaliger Kauf",
+  "pass.durationDays": "{{days}} Tage",
   "pass.benefit1": "{{daily}} Tickets täglich für {{days}} Tage",
   "pass.benefit2": "2x Tickets beim Ansehen von Anzeigen",
   "pass.benefit3": "Doppelte Belohnung beim täglichen Check-in",

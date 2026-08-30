@@ -94,7 +94,7 @@ const ar: Record<TranslationKey, string> = {
   "pass.title": "Raffly Pass",
   "pass.daysLeft": "الأيام المتبقية",
   "pass.ticketsPerDay": "تذاكر/يوم",
-  "pass.oneTimePurchase": "شراء لمرة واحدة",
+  "pass.durationDays": "{{days}} يومًا",
   "pass.benefit1": "{{daily}} تذكرة كل يوم لمدة {{days}} يومًا",
   "pass.benefit2": "تذاكر مضاعفة عند مشاهدة الإعلانات",
   "pass.benefit3": "مكافأة مضاعفة لتسجيل الحضور اليومي",

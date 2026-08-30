@@ -122,7 +122,7 @@ export function RafflyPassDetail({ onClose }: RafflyPassDetailProps) {
               {RAFFLY_PASS_STARS}
               <Image src="/images/star-icon.png" alt="" width={28} height={27} />
             </p>
-            <p className="text-xs text-white/50">{t("pass.oneTimePurchase")}</p>
+            <p className="text-xs text-white/50">{t("pass.durationDays", { days: RAFFLY_PASS_DURATION_DAYS })}</p>
           </>
         )}
 
